@@ -42,53 +42,59 @@ selector (M.K.). It will also try to determine the BPM. Simply select a module a
 it will load it, take you to the player screen and start playing. 
 
 
-** KEYS FOR FILE SELECTA MODE **
-
-HELP        = Switch screens (load and DJ mode)
-UP / DOWN   = Select file
-RETURN      = Load Tune
-F10         = Sort list by BPM (toggles asc / desc)
-F9          = Sort list by Filename (toggles asc / desc)
-F8          = Show Kb
-ESCAPE      = Quit (hold for a second)
-A-Z / 0-9   = Pick first file with matching first letter
-F1          = Re-scan folder (used when running from floppy drive)
+#KEYS FOR FILE SELECTA MODE
+|Key|Function|
+|-|-|
+| HELP        | Switch screens (load and DJ mode) |
+| UP / DOWN   | Select file |
+| RETURN      | Load Tune |
+| F10         | Sort list by BPM (toggles asc / desc) |
+| F9          | Sort list by Filename (toggles asc / desc) |
+| F8          | Show Kb |
+| ESCAPE      | Quit (hold for a second) |
+| A-Z / 0-9   | Pick first file with matching first letter |
+| F1          | Re-scan folder (used when running from floppy drive) |
 
 NOTE: Quit will not work if a tune is playing!
 
-** KEYS FOR DJ MODE **
+#KEYS FOR DJ MODE
+|Key|Function|
+|-|-|
+| HELP        | Switch screens (load and DJ mode) |
+| LEFT        | Nudge backward |
+| RIGHT       | Nudge forward |
+| SHIFT LEFT  | Hard nudge forward |
+| SHIFT RIGHT | Hard nudge back  |
+| UP          | Increase BPM |
+| DOWN        | Decrease BPM |
+| SHIFT UP    | Increase BPM fine tune |
+| SHUFT DOWN  | Decrease BPM fine tune |
+| SPACE       | Stop / Play |
+| TAB         | Toggle repitch on / off |
+| \`          | Kills sound DMA |
+| 1/2/3/4		  | Mute / Un-Mute Channel |
 
-HELP        = Switch screens (load and DJ mode)
-LEFT        = Nudge backward
-RIGHT       = Nudge forward
-SHIFT LEFT  = Hard nudge forward
-SHIFT RIGHT = Hard nudge back 
-UP          = Increase BPM
-DOWN        = Decrease BPM
-SHIFT UP    = Increase BPM fine tune
-SHUFT DOWN  = Decrease BPM fine tune
-SPACE       = Stop / Play
-TAB         = Toggle repitch on / off
-`           = Kills sound DMA
-1/2/3/4		= Mute / Un-Mute Channel
+#Pattern / Position Functions
+|Key|Function|
+|-|-|
+| F1          | Jump to cue pattern |
+| F2          | Jump to cue pattern after current pattern ends |
+| F3          | Set current pattern as cue |
+| F10         | Pattern Loop (start / stop / deactivate) |
+| +           | Move forward one pattern (shift moves loop size) |
+| -           | Move back one pattern (shift moves loops size) |
+| SHIFT +     | Move forward line loop size |
+| SHIFT -     | Move back line loop size |
+| CTRL +      | Move cue pattern forward |
+| CTRL -      | Move cue pattern back |
 
-              Pattern / Position Functions
-F1          = Jump to cue pattern
-F2          = Jump to cue pattern after current pattern ends
-F3          = Set current pattern as cue
-F10         = Pattern Loop (start / stop / deactivate)
-+           = Move forward one pattern (shift moves loop size)
--           = Move back one pattern (shift moves loops size)
-SHIFT +     = Move forward line loop size
-SHIFT -     = Move back line loop size
-CTRL +      = Move cue pattern forward
-CTRL -      = Move cue pattern back
-
-              Line Loop Functions
-F6          = Decrease loop size
-F7          = Increase loop size
-F5          = Activate loop
-F4          = Toggle Slip On / Off
+#Line Loop Functions
+|Key|Function|
+|-|-|
+| F6          | Decrease loop size |
+| F7          | Increase loop size |
+| F5          | Activate loop |
+| F4          | Toggle Slip On / Off |
 
 ** PATTERN LOOPING **
 
