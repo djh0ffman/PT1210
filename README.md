@@ -42,9 +42,9 @@ selector (M.K.). It will also try to determine the BPM. Simply select a module a
 it will load it, take you to the player screen and start playing. 
 
 
-#KEYS FOR FILE SELECTA MODE
+# KEYS FOR FILE SELECTA MODE
 |Key|Function|
-|-|-|
+|---|---|
 | HELP        | Switch screens (load and DJ mode) |
 | UP / DOWN   | Select file |
 | RETURN      | Load Tune |
@@ -57,9 +57,9 @@ it will load it, take you to the player screen and start playing.
 
 NOTE: Quit will not work if a tune is playing!
 
-#KEYS FOR DJ MODE
+# KEYS FOR DJ MODE
 |Key|Function|
-|-|-|
+|---|---|
 | HELP        | Switch screens (load and DJ mode) |
 | LEFT        | Nudge backward |
 | RIGHT       | Nudge forward |
@@ -74,9 +74,9 @@ NOTE: Quit will not work if a tune is playing!
 | \`          | Kills sound DMA |
 | 1/2/3/4		  | Mute / Un-Mute Channel |
 
-#Pattern / Position Functions
+# Pattern / Position Functions
 |Key|Function|
-|-|-|
+|---|---|
 | F1          | Jump to cue pattern |
 | F2          | Jump to cue pattern after current pattern ends |
 | F3          | Set current pattern as cue |
@@ -88,9 +88,9 @@ NOTE: Quit will not work if a tune is playing!
 | CTRL +      | Move cue pattern forward |
 | CTRL -      | Move cue pattern back |
 
-#Line Loop Functions
+# Line Loop Functions
 |Key|Function|
-|-|-|
+|---|---|
 | F6          | Decrease loop size |
 | F7          | Increase loop size |
 | F5          | Activate loop |
