@@ -1,0 +1,38 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "legacy build",
+            "type": "shell",
+            "command": "vasmm68k_mot",
+            "args":[
+                "pt1210.asm",
+                "-Fhunkexe",
+                "-I..\\include",
+                "-o",
+                "..\\bin\\pt1210.exe"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+            "options": {
+                "cwd": "${workspaceFolder}/legacy"
+            }
+        },
+        {
+            "label": "legacy launch",
+            "type": "shell",
+            "command": "winuae.exe",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+            "options": {
+                "cwd": "${workspaceFolder}/legacy"
+            }
+        }
+    ]
+}

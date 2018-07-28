@@ -2811,7 +2811,7 @@ quitmeplease	dc.w	0
 		
 		; key list 
 		; byte1 key code
-		; byte2 pressing type (0 = hold / 1 = hit / 2 = hold repeat)
+		; byte2 pressing type (0 = hold / 1 = hit /ï¿½2 = hold repeat)
 		; long word (function
 
 keylistptr	dc.l	keylistdir
@@ -4484,8 +4484,8 @@ VolCalc		dcb.w	256*33,0
 
 ;------------------------------------------------------------------------------
 ;
-;	$VER: CIA Shell Hardware v1.1 - by Håvard "Howard" Pedersen
-;	© 1994-96 Mental Diseases
+;	$VER: CIA Shell Hardware v1.1 - by Hï¿½vard "Howard" Pedersen
+;	ï¿½ 1994-96 Mental Diseases
 ;
 ;	A hardware-banging CIA-shell
 ;
@@ -4602,7 +4602,7 @@ CIA_IntCode	movem.l	d0-a6,-(sp)
 		move.b	$e00(a0),d0
 		and.b	#%11000000,d0
 		or.w	#%00001011,d0
-		move.b	d0,$e00(a0)		; ...tut & kjør!
+		move.b	d0,$e00(a0)		; ...tut & kjï¿½r!
 
 		tst.b	mt_Enabled
 		beq.b	.dontplay
