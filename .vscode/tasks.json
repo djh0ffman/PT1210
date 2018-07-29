@@ -25,7 +25,7 @@
         {
             "label": "legacy launch",
             "type": "shell",
-            "command": "winuae.exe",
+            "command": "winuae64.exe",
             "options": {
                 "cwd": "${workspaceFolder}/legacy"
             }
