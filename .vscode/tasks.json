@@ -17,7 +17,7 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
             "options": {
                 "cwd": "${workspaceFolder}/legacy"
             }
@@ -26,10 +26,6 @@
             "label": "legacy launch",
             "type": "shell",
             "command": "winuae.exe",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
             "options": {
                 "cwd": "${workspaceFolder}/legacy"
             }
