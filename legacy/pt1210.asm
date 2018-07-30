@@ -18,7 +18,16 @@ SW_Splash = 0		; Include splash screen
 
 	section pt1210,code		
 
+; Exports for C code (places them in global scope)
+	XDEF _START
+	XDEF _FS_LoadErrBuff
+	XDEF _FS_DrawLoadError
 
+; Imports from C code
+	XREF _pt1210_file_gen_list
+	XREF _pt1210_file_read
+	XREF _pt1210_file_count
+	XREF _pt1210_file_list
 
 FONTWIDTH = 64
 
@@ -64,7 +73,7 @@ WAITBLIT	MACRO
 *** CLOSE DOWN SYSTEM - INIT PROGRAM		***
 ***************************************************
 
-START	bsr	mi_GenList
+_START	bsr	_pt1210_file_gen_list
 	
 .go	bsr	mi_SortFileAsc	
 

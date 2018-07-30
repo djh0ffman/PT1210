@@ -75,14 +75,14 @@ FS_Clear	lea	_dir,a0
 		
 		; d5 = type (0 bpm / 1 =kb)
 
-FS_DrawDir	cmp.w	#$0,mi_FileCount
+FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 		bne.b	.go
 		bra	FS_DrawNoMods
 		
 .go		moveq	#0,d5
 		move.b	FS_CurrentType,d5
 		lea	FS_FileList,a0
-		lea	mi_FileList,a1
+		lea	_pt1210_file_list,a1
 		moveq	#0,d0
 		move.w	FS_Current,d0
 		sub.w	FS_ListPos,d0
@@ -160,7 +160,7 @@ FS_DrawDir	cmp.w	#$0,mi_FileCount
 		rts
 
 
-FS_Copper	cmp.w	#$0,mi_FileCount
+FS_Copper	cmp.w	#$0,_pt1210_file_count
 		bgt.b	.go
 		bsr	FS_CopperClr
 		rts
@@ -207,7 +207,8 @@ FS_Move		lea	FS_Current(pc),a0
 		lea	FS_ListPos(pc),a1
 		move.w	(a0),d0
 		move.w	(a1),d1
-		move.w	FS_FileCount,d3		; total
+		move.w	_pt1210_file_count,d3		; total
+		sub.w	#1,d3
 		move.w	#FS_ListMax-1,d4		; total on screen
 
 		cmp.w	d3,d4
@@ -259,7 +260,7 @@ FS_Rescan	movem.l	d0-a6,-(sp)
 		bsr	CIA_RemCIAInt	
 		move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
-		bsr	mi_GenList	
+		bsr	_pt1210_file_gen_list
 		move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
 		bsr	CIA_AddCIAInt	
@@ -290,7 +291,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 		moveq	#0,d0
 		move.w	FS_Current,d0
 		mulu	#mi_Sizeof,d0
-		lea	mi_FileList,a0
+		lea	_pt1210_file_list,a0
 		add.l	d0,a0
 		move.l	mi_FileSize(a0),memsize
 		move.w	mi_Frames(a0),FRAMES
@@ -307,7 +308,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 		move.l	memptr,a1
 		moveq	#0,d6		; seek
 		move.l	memsize,d7
-		bsr	mi_LoadFile		
+		bsr	_pt1210_file_read
 		tst.l	d0
 		bne.b	.quit
 		
@@ -376,7 +377,6 @@ FS_Reset	move.b	#125,CIABPM
 		rts
 
 FS_ListMax	=	21
-FS_FileCount	dc.w	0
 FS_Current	dc.w	0
 FS_ListPos	dc.w	0
 FS_DoLoad	dc.b	0
@@ -415,7 +415,7 @@ FS_DrawOutRam	bsr	FS_CopperClr
 		rts
 
 		; d0 = load error code
-FS_DrawLoadError
+_FS_DrawLoadError
 		;clr.w	$100
 		lea	FS_LoadErrCode+32,a0
 		lea	PT_HexList,a1
@@ -459,7 +459,7 @@ FS_NoMods	dc.b	"--------------------------------------- "
 			;0123456789012345678901234567890123456789
 FS_LoadError	dc.b	"--------------------------------------- "
 FS_LoadErrCode	dc.b	"       LOADING ERROR : $00000000        "
-FS_LoadErrBuff	dc.b	"                                        "
+_FS_LoadErrBuff	dc.b	"                                        "
 		dc.b	"                                        "
 		dc.b	"--------------------------------------- "
 

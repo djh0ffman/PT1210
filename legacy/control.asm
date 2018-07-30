@@ -758,7 +758,7 @@ hunt		bsr	mi_FindFirst
 		moveq	#0,d3		; -- offset
 
 		moveq	#0,d1
-		move.w	mi_FileCount,d1
+		move.w	_pt1210_file_count,d1
 		sub.w	d0,d1
 		cmp.w	#FS_ListMax,d1
 		bgt.b	.ok
