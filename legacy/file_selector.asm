@@ -302,13 +302,16 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 		bsr	allocchip
 		tst.l	memptr
 		beq.b	.memerror
-		moveq	#0,d0	
-	
-		move.l	a6,a0
-		move.l	memptr,a1
-		moveq	#0,d6		; seek
-		move.l	memsize,d7
-		bsr	_pt1210_file_read
+
+		move.l	memsize,-(sp)
+		move.l	#0,-(sp)
+		move.l	memptr,-(sp)
+		move.l	a6,-(sp)
+
+		bsr		_pt1210_file_read
+
+		add.l 	#16,sp
+
 		tst.l	d0
 		bne.b	.quit
 		

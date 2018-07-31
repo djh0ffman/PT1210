@@ -54,7 +54,8 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	file_list_t* list_entry = &pt1210_file_list[pt1210_file_count];
 	uint32_t magic = 0;
 	uint8_t first_pattern = 0;
-	uint32_t pattern_line[4];
+	uint32_t pattern_row[4];
+	uint32_t fpb_tag[2];
 
 	/* Ignore files too small to be valid Protracker modules */
 	if (fib->fib_Size < MIN_MODULE_FILE_SIZE)
@@ -72,22 +73,22 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	/* Multiply to get offset into pattern data */
 	size_t pattern_offset = PT_PATTERN_OFFSET + first_pattern * PT_PATTERN_DATA_LEN;
 
-	/* Read first line of first pattern */
-	if (pt1210_file_read(fib->fib_FileName, pattern_line, pattern_offset, sizeof(pattern_line)) == -1)
+	/* Read first row of first pattern */
+	if (pt1210_file_read(fib->fib_FileName, pattern_row, pattern_offset, sizeof(pattern_row)) == -1)
 		return;
 
 	/* Store a default BPM */
 	list_entry->bpm = DEFAULT_BPM;
 
-	/* Iterate over the first line and look for FXX commands to determine BPM */
+	/* Iterate over the first row and look for FXX commands to determine BPM */
 	for (uint8_t i = 0; i < 4; ++i)
 	{
 		/* Do we have a tempo command? */
-		if ((pattern_line[i] & 0x0F00) != 0x0F00)
+		if ((pattern_row[i] & 0x0F00) != 0x0F00)
 			continue;
 
-		/* Parameters >= 0x20 are tempo; else ticks-per-line ("SPD") */
-		uint8_t param = pattern_line[i] & 0xFF;
+		/* Parameters >= 0x20 are tempo; else frames per row ("SPD") */
+		uint8_t param = pattern_row[i] & 0xFF;
 		if (param >= 0x20)
 		{
 			list_entry->bpm = param;
@@ -95,7 +96,23 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 		}
 	}
 
-	/* TODO: "!FRM" in sample 31 frames-per-beat calculation? */
+	/* Look for a frames-per-beat tag in the name string of sample 31 */
+	list_entry->frames = 0;
+	if (pt1210_file_read(fib->fib_FileName, fpb_tag, PT_SMP_31_NAME_OFFSET, sizeof(fpb_tag)) == -1)
+		return;
+
+	if (fpb_tag[0] == FPB_MAGIC)
+	{
+		uint8_t tens = (fpb_tag[1] >> 24) & 0x0F;
+		uint8_t units = (fpb_tag[1] >> 16) & 0x0F;
+		uint16_t fpb = (tens * 10) + units;
+
+		if (fpb)
+		{
+			list_entry->frames = fpb;
+			list_entry->bpm = list_entry->bpm * DEFAULT_FPB / fpb;
+		}
+	}
 
 	/* Store file name */
 	strncpy(list_entry->file_name, fib->fib_FileName, MAX_FILE_NAME_LENGTH);
@@ -106,8 +123,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	++pt1210_file_count;
 }
 
-/* TODO: Remove register mappings when we replace FS_LoadTune */
-int pt1210_file_read(__reg("a0") const char* file_name, __reg("a1") void* buffer, __reg("d6") size_t seek_point, __reg("d7") size_t read_size)
+int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
 {
 	BPTR file;
 	LONG result;
