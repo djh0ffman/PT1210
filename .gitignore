@@ -50,3 +50,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+#ignore our bin folder so we can drop mods in it for testing without it trying to check them into github
+bin/*
