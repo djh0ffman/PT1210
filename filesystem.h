@@ -41,6 +41,7 @@
 
 /* !FRM (frames-per-beat tag) */
 #define FPB_MAGIC				0x2146524DUL
+#define FPB_MAGIC_UPPER			0xFFDFDFDFUL
 
 /* Structure to hold entries in the file list */
 typedef struct {

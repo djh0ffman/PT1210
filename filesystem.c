@@ -101,6 +101,9 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	if (pt1210_file_read(fib->fib_FileName, fpb_tag, PT_SMP_31_NAME_OFFSET, sizeof(fpb_tag)) == -1)
 		return;
 
+	/* Force upper case on text */
+	fpb_tag[0] &= FPB_MAGIC_UPPER;
+
 	if (fpb_tag[0] == FPB_MAGIC)
 	{
 		uint8_t tens = (fpb_tag[1] >> 24) & 0x0F;
