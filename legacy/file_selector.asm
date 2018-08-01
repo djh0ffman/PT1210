@@ -90,15 +90,15 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 		add.l	d0,a1
 		
 		moveq	#FS_ListMax-1,d7	; max file count...
-.loop		lea	mi_FileName(a1),a2
+.loop		lea	mi_Name(a1),a2
 		tst.b	(a2)
 		beq	.quit		
 		moveq	#36-1,d6	; char count
 		move.l	a0,a3
-		cmp.l	#"mod.",(a2)
-		bne.b	.skipmod
-		addq.l	#4,a2
-.skipmod		
+;		cmp.l	#"mod.",(a2)	; TODO - remove this as display name is now a thing
+;		bne.b	.skipmod
+;		addq.l	#4,a2
+;.skipmod		
 .charloop	tst.b	(a2)
 		beq.b	.ended
 		move.b	(a2)+,(a3)+

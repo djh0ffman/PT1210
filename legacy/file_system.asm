@@ -18,7 +18,8 @@ Close		= -36
 mi_FileSize	rs.l	1
 mi_BPM		rs.w	1
 mi_Frames	rs.w	1
-mi_FileName	rs.b	108	; -- file name
+mi_FileName	rs.b	108		; -- file name
+mi_Name		rs.b	40 		; -- display name
 mi_Sizeof	rs.b	0
 
 		; d0 = first char

@@ -120,6 +120,16 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	/* Store file name */
 	strncpy(list_entry->file_name, fib->fib_FileName, MAX_FILE_NAME_LENGTH);
 
+	strncpy(list_entry->name, fib->fib_FileName, MAX_FILE_NAME_DISPLAY);
+
+	/* Create display name mod. at the front an in upper case */
+	if (!strncmp("mod.",fib->fib_FileName,4))
+		strncpy(list_entry->name, fib->fib_FileName + 4, MAX_FILE_NAME_DISPLAY);
+	else
+		strncpy(list_entry->name, fib->fib_FileName, MAX_FILE_NAME_DISPLAY);
+
+
+
 	/* Store file size */
 	list_entry->file_size = fib->fib_Size;
 

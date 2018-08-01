@@ -17,6 +17,7 @@
 #include <stdint.h>
 
 #define MAX_FILE_NAME_LENGTH 	108
+#define MAX_FILE_NAME_DISPLAY	40
 #define MAX_FILE_COUNT 			500
 
 /* Smallest possible module = header + one pattern; no samples */
@@ -49,6 +50,7 @@ typedef struct {
 	uint16_t bpm;
 	uint16_t frames;
 	char file_name[MAX_FILE_NAME_LENGTH];
+	char name[MAX_FILE_NAME_DISPLAY];
 } file_list_t;
 
 file_list_t pt1210_file_list[MAX_FILE_COUNT];
