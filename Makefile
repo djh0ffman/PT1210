@@ -23,7 +23,7 @@ CFLAGS += +kick13 -g -lamiga -c99 -I$(NDK_INCLUDE_PATH)
 OUTPUT_EXE := bin/pt1210.exe
 
 # Default target - the program executable
-$(OUTPUT_EXE): main.o filesystem.o pt1210.o
+$(OUTPUT_EXE): main.o audiodevice.o filesystem.o pt1210.o
 	$(CC) $(CFLAGS) -o $(OUTPUT_EXE) $^
 
 # Assembly code
@@ -31,6 +31,9 @@ pt1210.o: $(wildcard legacy/*.asm)
 	$(AS) $(ASFLAGS) -o $@ legacy/pt1210.asm
 
 # C code
+audiodevice.o: audiodevice.c audiodevice.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 filesystem.o: filesystem.c filesystem.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
