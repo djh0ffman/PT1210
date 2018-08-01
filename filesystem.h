@@ -14,6 +14,7 @@
 #ifndef FILE_SYSTEM_H
 #define FILE_SYSTEM_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #define MAX_FILE_NAME_LENGTH 	108
@@ -70,7 +71,7 @@ void pt1210_file_gen_list();
 void pt1210_display_name(char *input, size_t count);
 void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
-int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
+bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
 void pt1210_file_read_error();
 
 #endif /* FILE_SYSTEM_H */

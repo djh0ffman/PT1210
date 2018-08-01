@@ -9,8 +9,8 @@
 
 FS_CurrentType	dc.b	0
 		even
-		
-FS_SwitchType	
+
+FS_SwitchType
 			moveq	#0,d0
 			move.b	FS_CurrentType,d0
 			tst.b	d0
@@ -24,7 +24,7 @@ FS_SwitchType
 			rts
 
 		; d0 = 0 = BPM / 1 = KB
-		
+
 FS_DrawType	moveq	#0,d0
 			move.b	FS_CurrentType,d0
 			lea		_bpm,a0
@@ -57,7 +57,7 @@ FS_DrawType	moveq	#0,d0
 			lea		40(a1),a1
 			move.l	(a0)+,(a1)
 			lea		40(a1),a1
-	
+
 			rts
 
 FS_Clear	lea	_dir,a0
@@ -65,7 +65,7 @@ FS_Clear	lea	_dir,a0
 .clr		clr.w	(a0)+
 			cmp.l	a1,a0
 			blo.b	.clr
-		
+
 			lea	FS_FileList,a0
 			lea	FS_FileListEnd,a1
 .clr2		clr.w	(a0)+
@@ -79,7 +79,7 @@ FS_Clear	lea	_dir,a0
 FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			bne.b	.go
 			bra		FS_DrawNoMods
-		
+
 .go			moveq	#0,d5
 			move.b	FS_CurrentType,d5
 			lea		FS_FileList,a0
@@ -92,14 +92,14 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			add.w	#1,d4				; out by one error much?
 			mulu	#mi_Sizeof,d0
 			add.l	d0,a1
-		
+
 			moveq	#FS_ListMax-1,d7	; max listable count
 .loop		lea		mi_Name(a1),a2
 			moveq	#36-1,d6	; char count
 			move.l	a0,a3
 
 .charloop	move.b	(a2)+,(a3)+
-			dbra	d6,.charloop	
+			dbra	d6,.charloop
 
 			tst.b	d5
 			bne.b	.kb
@@ -108,7 +108,7 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			move.w	mi_BPM(a1),d0
 			moveq	#3-1,d2
 			lea		3(a3),a3
-		
+
 .bpmconv	divu.w	#10,d0
 			swap	d0
 			add.b	#"0",d0
@@ -117,13 +117,13 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			swap	d0
 			dbra	d2,.bpmconv
 			bra		.nextfile
-		
+
 .kb			move.l	mi_FileSize(a1),d0
 			divu	#1024,d0
 			and.l	#$ffff,d0
 			moveq	#6-1,d2
 			lea		3(a3),a3
-				
+
 .kbconv		divu.w	#10,d0
 			swap	d0
 			add.b	#"0",d0
@@ -139,9 +139,9 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			dbra	d2,.tidy
 
 .quitzero
-		
+
 .nextfile	lea		40(a0),a0
-			addq.w	#1,d4					; add one to total 
+			addq.w	#1,d4					; add one to total
 			cmp.w	_pt1210_file_count,d4
 			bgt		.quit
 
@@ -161,7 +161,7 @@ FS_Copper	cmp.w	#$0,_pt1210_file_count
 			bgt.b	.go
 			bsr	FS_CopperClr
 			rts
-		
+
 .go			movem.l	d0-a6,-(sp)
 			moveq	#0,d0
 			move.w	FS_ListPos,d0
@@ -172,13 +172,13 @@ FS_Copper	cmp.w	#$0,_pt1210_file_count
 			bne.b	.skip
 			nop
 			move.w	#$00f,6(a0)
-			
+
 .skip		subq.w	#1,d0
 			lea	_selectasize(a0),a0
 			dbra	d7,.loop
 			movem.l	(sp)+,d0-a6
 			rts
-		
+
 
 
 FS_CopperClr	movem.l	d0-a6,-(sp)
@@ -190,14 +190,14 @@ FS_CopperClr	movem.l	d0-a6,-(sp)
 			dbra	d7,.loop
 			movem.l	(sp)+,d0-a6
 			rts
-		
+
 
 FS_MoveDown	moveq	#1,d2
 			bra	FS_Move
-		
+
 FS_MoveUp	moveq	#-1,d2
 			bra	FS_Move
-		
+
 
 			; d2 = add value
 FS_Move		lea	FS_Current(pc),a0
@@ -211,9 +211,9 @@ FS_Move		lea	FS_Current(pc),a0
 			cmp.w	d3,d4
 			blo.b	.lessthan
 			move.w	d3,d4
-		
 
-.lessthan	add.w	d2,d0		
+
+.lessthan	add.w	d2,d0
 			cmp.w	#0,d0
 			bge.b	.skiplow_a
 			moveq	#0,d0
@@ -222,8 +222,8 @@ FS_Move		lea	FS_Current(pc),a0
 			blo.b	.skiphi
 			move.w	d3,d0
 .skiphi		move.w	d0,(a0)
-				
-			add.w	d2,d1		
+
+			add.w	d2,d1
 			cmp.w	#0,d1
 			bge.b	.skiplow_b
 			moveq	#0,d1
@@ -232,18 +232,18 @@ FS_Move		lea	FS_Current(pc),a0
 			blo.b	.skiphi_b
 			move.w	d4,d1
 .skiphi_b	move.w	d1,(a1)
-		
-			bsr	FS_DrawDir	
+
+			bsr	FS_DrawDir
 
 .skipdraw	bsr	FS_Copper
 
 			rts
 
 FS_Rescan	movem.l	d0-a6,-(sp)
-		
+
 			clr.b	mt_Enabled	; stop the current track
 			jsr	mt_end
-			move.b	#1,VBDisable		
+			move.b	#1,VBDisable
 			jsr	ScopeStop
 
 			clr.w	FS_Current
@@ -251,14 +251,14 @@ FS_Rescan	movem.l	d0-a6,-(sp)
 
 			bsr	FS_Clear
 			bsr	FS_CopperClr
-			
-			bsr	CIA_RemCIAInt	
+
+			bsr	CIA_RemCIAInt
 			move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
 			bsr	_pt1210_file_gen_list
 			move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
-			bsr	CIA_AddCIAInt	
+			bsr	CIA_AddCIAInt
 
 			bsr	FS_DrawDir
 			bsr	FS_Copper
@@ -269,13 +269,13 @@ FS_Rescan	movem.l	d0-a6,-(sp)
 			rts
 
 FS_LoadTune	movem.l	d0-a6,-(sp)
-		
+
 			clr.b	mt_Enabled	; stop the current track
-			
+
 			jsr	mt_end
 
 			move.b	#1,VBDisable
-			
+
 			jsr	ScopeStop
 
 			move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
@@ -307,10 +307,10 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 			add.l 	#16,sp
 
 			tst.l	d0
-			bne.b	.quit
-			
+			beq.b	.quit
+
 			move.l	memptr,a0
-			jsr		mt_init		
+			jsr		mt_init
 
 			bsr		FS_Reset
 
@@ -318,7 +318,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 			bsr		switch
 
 			move.b	#1,mt_Enabled
-			
+
 .quit		clr.b	FS_DoLoad
 			move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 			clr.b	VBDisable
@@ -330,7 +330,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 
 .error		bsr	unallocchip
 			jsr	FS_DrawError
-			bra	.quit		
+			bra	.quit
 
 
 
@@ -340,13 +340,13 @@ FS_Reset	move.b	#125,CIABPM
 			clr.b	BPMFINE
 			move.w	#%0000000000001111,chantog
 
-			move.b #4,loopsize	
-			move.b #0,loopactive	
-			move.b #0,loopstart		
-			move.b #0,loopend		
-		
-			move.b #0,patslipflag	
-			move.b #0,patslippat	
+			move.b #4,loopsize
+			move.b #0,loopactive
+			move.b #0,loopstart
+			move.b #0,loopend
+
+			move.b #0,patslipflag
+			move.b #0,patslippat
 			move.b	#1,slipon
 			move.b	#1,repitch
 			clr.b	mt_TuneEnd
@@ -368,7 +368,7 @@ FS_Reset	move.b	#125,CIABPM
 
 			move.b	#-1,UI_PatternCue
 			move.b	#-1,UI_BPMFINE
-		
+
 			jsr	UI_CuePos
 
 			rts
@@ -384,10 +384,10 @@ FS_DoScan	dc.b	0
 			;0123456789012345678901234567890123456789
 FS_FileList	rept	FS_ListMax
 			dc.b	"                                        "
-			endr		
+			endr
 FS_FileListEnd
 
-FS_DrawError	
+FS_DrawError
 			bsr	FS_CopperClr
 			lea	FS_Error,a0
 			lea	_dir+80,a1
@@ -403,8 +403,8 @@ FS_DrawNoMods	bsr	FS_CopperClr
 			moveq	#5-1,d7		; number of lines
 			bsr	ST_Type
 			rts
-		
-FS_DrawOutRam	
+
+FS_DrawOutRam
 			bsr	FS_CopperClr
 			lea	FS_OutRam,a0
 			lea	_dir+80,a1
@@ -436,7 +436,7 @@ _FS_DrawLoadError
 		rts
 
 
-FS_CopClear	
+FS_CopClear
 		rts
 					;0000000000111111111122222222223333333333
 					;0123456789012345678901234567890123456789
@@ -455,11 +455,11 @@ FS_NoMods	dc.b	"--------------------------------------- "
 
 					;0000000000111111111122222222223333333333
 					;0123456789012345678901234567890123456789
-FS_LoadError	
+FS_LoadError
 			dc.b	"--------------------------------------- "
-FS_LoadErrCode	
+FS_LoadErrCode
 			dc.b	"       LOADING ERROR : $00000000        "
-_FS_LoadErrBuff	
+_FS_LoadErrBuff
 			dc.b	"                                        "
 			dc.b	"                                        "
 			dc.b	"--------------------------------------- "

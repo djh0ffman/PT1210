@@ -160,14 +160,14 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 		return;
 
 	/* Get number of first pattern */
-	if (pt1210_file_read(fib->fib_FileName, &first_pattern, PT_POSITION_OFFSET, sizeof(first_pattern)) == -1)
+	if (!pt1210_file_read(fib->fib_FileName, &first_pattern, PT_POSITION_OFFSET, sizeof(first_pattern)))
 		return;
 
 	/* Multiply to get offset into pattern data */
 	size_t pattern_offset = PT_PATTERN_OFFSET + first_pattern * PT_PATTERN_DATA_LEN;
 
 	/* Read first row of first pattern */
-	if (pt1210_file_read(fib->fib_FileName, pattern_row, pattern_offset, sizeof(pattern_row)) == -1)
+	if (!pt1210_file_read(fib->fib_FileName, pattern_row, pattern_offset, sizeof(pattern_row)))
 		return;
 
 	/* Store a default BPM */
@@ -191,7 +191,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 
 	/* Look for a frames-per-beat tag in the name string of sample 31 */
 	list_entry->frames = 0;
-	if (pt1210_file_read(fib->fib_FileName, fpb_tag, PT_SMP_31_NAME_OFFSET, sizeof(fpb_tag)) == -1)
+	if (!pt1210_file_read(fib->fib_FileName, fpb_tag, PT_SMP_31_NAME_OFFSET, sizeof(fpb_tag)))
 		return;
 
 	/* Force upper case on text */
@@ -231,7 +231,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	++pt1210_file_count;
 }
 
-int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
+bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
 {
 	BPTR file;
 	LONG result;
@@ -240,7 +240,7 @@ int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point,
 	if (!file)
 	{
 		pt1210_file_read_error();
-		return -1;
+		return false;
 	}
 
 	/* FIXME: Possible bug in Kickstarts v36/v37 not returning -1 on error */
@@ -249,7 +249,7 @@ int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point,
 	{
 		pt1210_file_read_error();
 		Close(file);
-		return -1;
+		return false;
 	}
 
 	result = Read(file, buffer, read_size);
@@ -259,10 +259,10 @@ int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point,
 	Close(file);
 
 	if (result != read_size)
-		return -1;
+		return false;
 
 	/* Success */
-	return 0;
+	return true;
 }
 
 void pt1210_file_read_error()
