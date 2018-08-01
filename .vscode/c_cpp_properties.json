@@ -1,20 +1,16 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Amiga",
             "includePath": [
-                "${workspaceFolder}/include/**",
-                "${NDK}/Include/include_h"
+				"${env:VBCC}/targets/m68k-kick13/include",
+                "${env:NDK}/Include/include_h"
             ],
             "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
+                "__VBCC__"
             ],
-            "windowsSdkVersion": "10.0.17134.0",
-            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/VC/Tools/MSVC/14.14.26428/bin/Hostx64/x64/cl.exe",
-            "cStandard": "c11",
-            "cppStandard": "c++17",
+            "compilerPath": "${env:VBCC}/bin/vc.exe",
+            "cStandard": "c99",
             "intelliSenseMode": "msvc-x64"
         }
     ],
