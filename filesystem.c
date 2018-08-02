@@ -202,7 +202,6 @@ void pt1210_file_sort_name_desc()
 
 void pt1210_file_sort_bpm_asc()
 {
-	printf("fuck sticks");
 	if (pt1210_file_count <= 1)
 		return;
 
