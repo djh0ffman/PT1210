@@ -30,6 +30,8 @@ SW_Splash = 0		; Include splash screen
 	XREF _pt1210_file_list
 	XREF _pt1210_file_sort_name_asc
 	XREF _pt1210_file_sort_name_desc
+	XREF _pt1210_file_sort_bpm_asc
+	XREF _pt1210_file_sort_bpm_desc
 	
 FONTWIDTH = 64
 

@@ -67,5 +67,9 @@ void pt1210_file_read_error();
 void pt1210_display_name(char *input, size_t count);
 void pt1210_file_sort_name_asc();
 void pt1210_file_sort_name_desc();
+void pt1210_file_sort_bpm_asc();
+void pt1210_file_sort_bpm_desc();
+
+void pt1210_file_swap();
 
 #endif /* FILE_SYSTEM_H */

@@ -40,8 +40,6 @@ mi_FindFirst
 .found		move.l	d2,d0
 			rts
 		
-
-
 mi_SortFileAsc	
 			bsr 	_pt1210_file_sort_name_asc
 			rts
@@ -50,91 +48,12 @@ mi_SortFileDesc
 			bsr		_pt1210_file_sort_name_desc
 			rts
 
-
-mi_SortBPMDesc
-			movem.l	d0-a6,-(sp)
-
-.resort
-			lea		_pt1210_file_list,a0
-			moveq	#0,d7
-			moveq	#0,d4			; check if any change
-			move.w	_pt1210_file_count,d7
-			subq.w	#2,d7
-
-.nextfile	lea		mi_BPM(a0),a1
-		
-			lea		mi_Sizeof(a1),a2
-			moveq	#0,d5			; d5 = check		
-			cmp.w	(a1)+,(a2)+
-			bgt.b	.lower
-			moveq	#1,d5
-
-.lower		tst.b	d5
-			bne.b	.ok		
-		
-			moveq	#1,d4
-			move.l	a0,a1
-			lea		mi_Sizeof(a1),a2
-			move.w	#mi_Sizeof-1,d3
-.swaploop	move.b	(a2),d2
-			move.b	(a1),(a2)
-			move.b	d2,(a1)
-			addq.l	#1,a1
-			addq.l	#1,a2
-			dbra	d3,.swaploop
-			nop				; swap code here...
-
-
-.ok			lea		mi_Sizeof(a0),a0
-			dbra	d7,.nextfile
-			
-			tst.b	d4
-			bne.b	.resort
-
-			movem.l	(sp)+,d0-a6
+mi_SortBPMAsc
+			bsr		_pt1210_file_sort_bpm_asc
 			rts
 
-mi_SortBPMAsc
-			movem.l	d0-a6,-(sp)
-
-.resort
-			lea		_pt1210_file_list,a0
-			moveq	#0,d7
-			moveq	#0,d4			; check if any change
-			move.w	_pt1210_file_count,d7
-			subq.w	#2,d7
-
-.nextfile	lea		mi_BPM(a0),a1
-		
-			lea		mi_Sizeof(a1),a2
-			moveq	#0,d5			; d5 = check		
-			cmp.w	(a1)+,(a2)+
-			blo.b	.lower
-			moveq	#1,d5
-
-.lower		tst.b	d5
-			bne.b	.ok		
-		
-			moveq	#1,d4
-			move.l	a0,a1
-			lea		mi_Sizeof(a1),a2
-			move.w	#mi_Sizeof-1,d3
-.swaploop	move.b	(a2),d2
-			move.b	(a1),(a2)
-			move.b	d2,(a1)
-			addq.l	#1,a1
-			addq.l	#1,a2
-			dbra	d3,.swaploop
-			nop				; swap code here...
-
-
-.ok			lea		mi_Sizeof(a0),a0
-			dbra	d7,.nextfile
-			
-			tst.b	d4
-			bne.b	.resort
-
-			movem.l	(sp)+,d0-a6
+mi_SortBPMDesc
+			bsr		_pt1210_file_sort_bpm_desc
 			rts
 
 freechip

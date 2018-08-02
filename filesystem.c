@@ -161,10 +161,7 @@ void pt1210_file_sort_name_asc()
 	if (pt1210_file_count <= 1)
 		return;
 
-	file_list_t temp;
-
-	int done = 0;
-	int comp = 0;
+	int done, comp = 0;
 
 	while (done == 0)
 	{
@@ -174,25 +171,19 @@ void pt1210_file_sort_name_asc()
 			comp = strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY);
 			if (comp > 0)
 			{
-				memcpy(&temp, &pt1210_file_list[i+1], sizeof temp);
-				memcpy(&pt1210_file_list[i+1], &pt1210_file_list[i], sizeof temp);
-				memcpy(&pt1210_file_list[i], &temp, sizeof temp);
+				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
 				done = 0;
 			}
 		}
 	}
 }
 
-
 void pt1210_file_sort_name_desc()
 {
 	if (pt1210_file_count <= 1)
 		return;
 
-	file_list_t temp;
-
-	int done = 0;
-	int comp = 0;
+	int done, comp = 0;
 
 	while (done == 0)
 	{
@@ -202,13 +193,62 @@ void pt1210_file_sort_name_desc()
 			comp = strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY);
 			if (comp < 0)
 			{
-				memcpy(&temp, &pt1210_file_list[i+1], sizeof temp);
-				memcpy(&pt1210_file_list[i+1], &pt1210_file_list[i], sizeof temp);
-				memcpy(&pt1210_file_list[i], &temp, sizeof temp);
+				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
 				done = 0;
 			}
 		}
 	}
+}
+
+void pt1210_file_sort_bpm_asc()
+{
+	printf("fuck sticks");
+	if (pt1210_file_count <= 1)
+		return;
+
+	int done, comp = 0;
+
+	while (done == 0)
+	{
+		done = 1;
+		for (int i = 0; i < pt1210_file_count - 1; i++)
+		{
+			if (pt1210_file_list[i].bpm > pt1210_file_list[i+1].bpm)
+			{
+				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
+				done = 0;
+			}
+		}
+	}
+}
+
+void pt1210_file_sort_bpm_desc()
+{
+	if (pt1210_file_count <= 1)
+		return;
+
+	int done, comp = 0;
+
+	while (done == 0)
+	{
+		done = 1;
+		for (int i = 0; i < pt1210_file_count - 1; i++)
+		{
+			if (pt1210_file_list[i].bpm < pt1210_file_list[i+1].bpm);
+			{
+				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
+				done = 0;
+			}
+		}
+	}
+}
+
+void pt1210_file_swap(void *a, void *b)
+{
+	file_list_t temp;
+	memcpy(&temp, b, sizeof temp);
+	memcpy(b, a, sizeof temp);
+	memcpy(a, &temp, sizeof temp);
 }
 
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
