@@ -158,12 +158,58 @@ void pt1210_display_name(char *input, size_t count)
 
 void pt1210_file_sort_name_asc()
 {
-	for (int i = 0; i < pt1210_file_count - 1; i++)
+	if (pt1210_file_count <= 1)
+		return;
+
+	file_list_t temp;
+
+	int done = 0;
+	int comp = 0;
+
+	while (done == 0)
 	{
-		printf("test %d\n", strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY) );
+		done = 1;
+		for (int i = 0; i < pt1210_file_count - 1; i++)
+		{
+			comp = strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY);
+			if (comp > 0)
+			{
+				memcpy(&temp, &pt1210_file_list[i+1], sizeof temp);
+				memcpy(&pt1210_file_list[i+1], &pt1210_file_list[i], sizeof temp);
+				memcpy(&pt1210_file_list[i], &temp, sizeof temp);
+				done = 0;
+			}
+		}
 	}
 }
 
+
+void pt1210_file_sort_name_desc()
+{
+	if (pt1210_file_count <= 1)
+		return;
+
+	file_list_t temp;
+
+	int done = 0;
+	int comp = 0;
+
+	while (done == 0)
+	{
+		done = 1;
+		for (int i = 0; i < pt1210_file_count - 1; i++)
+		{
+			comp = strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY);
+			if (comp < 0)
+			{
+				memcpy(&temp, &pt1210_file_list[i+1], sizeof temp);
+				memcpy(&pt1210_file_list[i+1], &pt1210_file_list[i], sizeof temp);
+				memcpy(&pt1210_file_list[i], &temp, sizeof temp);
+				done = 0;
+			}
+		}
+	}
+}
 
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
 {

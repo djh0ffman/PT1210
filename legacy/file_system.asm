@@ -43,119 +43,13 @@ mi_FindFirst
 
 
 mi_SortFileAsc	
-			bsr _pt1210_file_sort_name_asc
-			
-			cmp.w	#$1,_pt1210_file_count
-			bgt.b	.go
-			rts
-.go
-			movem.l	d0-a6,-(sp)
-
-.resort
-			lea		_pt1210_file_list,a0
-			moveq	#0,d7
-			moveq	#0,d4			; check if any change
-			move.w	_pt1210_file_count,d7
-			subq.w	#2,d7
-
-.nextfile	lea		mi_Name(a0),a1
-		
-			lea		mi_Sizeof(a1),a2
-
-			bsr		mi_Compare
-
-			cmp.b	#0,d0
-			ble.b	.ok
-
-			moveq	#1,d4
-			move.l	a0,a1
-			lea		mi_Sizeof(a1),a2
-			move.w	#mi_Sizeof-1,d3
-.swaploop	move.b	(a2),d2
-			move.b	(a1),(a2)
-			move.b	d2,(a1)
-			addq.l	#1,a1
-			addq.l	#1,a2
-			dbra	d3,.swaploop
-			nop				; swap code here...
-
-
-.ok			lea		mi_Sizeof(a0),a0
-			dbra	d7,.nextfile
-		
-			tst.b	d4
-			bne.b	.resort
-
-			movem.l	(sp)+,d0-a6
+			bsr 	_pt1210_file_sort_name_asc
 			rts
 
 mi_SortFileDesc	
-			movem.l	d0-a6,-(sp)
-.resort
-			lea		_pt1210_file_list,a0
-			moveq	#0,d7
-			moveq	#0,d4			; check if any change
-			move.w	_pt1210_file_count,d7
-			subq.w	#2,d7
-
-.nextfile	lea		mi_Name(a0),a1
-			lea		mi_Sizeof(a1),a2
-
-			bsr		mi_Compare
-
-			cmp.b	#0,d0
-			bge.b	.ok
-
-			moveq	#1,d4
-			move.l	a0,a1
-			lea		mi_Sizeof(a1),a2
-			move.w	#mi_Sizeof-1,d3
-.swaploop	move.b	(a2),d2
-			move.b	(a1),(a2)
-			move.b	d2,(a1)
-			addq.l	#1,a1
-			addq.l	#1,a2
-			dbra	d3,.swaploop
-			nop				; swap code here...
-
-.ok			lea		mi_Sizeof(a0),a0
-			dbra	d7,.nextfile
-			
-			tst.b	d4
-			bne.b	.resort
-
-			movem.l	(sp)+,d0-a6
+			bsr		_pt1210_file_sort_name_desc
 			rts
 
-mi_Compare
-.comp		move.b    (a1)+,d1     ; run until end of string or until
-			bsr       lowcase       ; characters differ
-			move.b    d1,d0
-			move.b    (a2)+,d1
-			beq       .done
-			bsr       lowcase
-			cmp.b     d0,d1
-			beq       .comp
-
-.done     	sub.b     d1,d0        ; update condition codes with result
-			rts
-
-
-lowcase   	cmp.b     #65,d1       ; check range 'A' to 'Z'
-			blo       .noascii
-			cmp.b     #90,d1
-			bls       .makelow
-
-.noascii  	cmp.b     #192,d1      ; 'A' to '?' and ignore '?' 'y' '?' '?' 
-			blo       .done
-			cmp.b     #222,d1
-			bhi       .done
-			cmp.b     #215,d1
-			beq       .done
-
-.makelow  	add.b     #32,d1
-.done     	rts
-		
 
 mi_SortBPMDesc
 			movem.l	d0-a6,-(sp)
