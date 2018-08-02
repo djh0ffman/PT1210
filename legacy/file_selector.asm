@@ -97,7 +97,7 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			move.l	a0,a3
 .charloop
 			move.b	(a2)+,(a3)+
-			bra.b	.doloop
+			;bra.b	.doloop
 .doloop		dbra	d6,.charloop	
 
 			tst.b	d5

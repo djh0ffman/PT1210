@@ -28,7 +28,8 @@ SW_Splash = 0		; Include splash screen
 	XREF _pt1210_file_read
 	XREF _pt1210_file_count
 	XREF _pt1210_file_list
-
+	XREF _pt1210_file_sort_name_asc
+	
 FONTWIDTH = 64
 
 INTENASET	= %1100000000100000

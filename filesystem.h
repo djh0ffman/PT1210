@@ -65,5 +65,6 @@ void pt1210_file_check_module(struct FileInfoBlock* fib);
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
 void pt1210_file_read_error();
 void pt1210_display_name(char *input, size_t count);
+void pt1210_file_sort_name_asc();
 
 #endif /* FILE_SYSTEM_H */

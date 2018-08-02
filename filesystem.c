@@ -156,6 +156,15 @@ void pt1210_display_name(char *input, size_t count)
 	}
 }
 
+void pt1210_file_sort_name_asc()
+{
+	for (int i = 0; i < pt1210_file_count - 1; i++)
+	{
+		printf("test %d\n", strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY) );
+	}
+}
+
+
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
 {
 	BPTR file;
