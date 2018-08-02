@@ -44,6 +44,10 @@
 #define FPB_MAGIC				0x2146524DUL
 #define FPB_MAGIC_UPPER			0xFFDFDFDFUL
 
+/* mod. prefix */
+#define FS_MOD_PREFIX			0x4D4F442EUL
+#define FS_MOD_PREFIX_UPPER		0xDFDFDFFFUL
+
 /* Structure to hold entries in the file list */
 typedef struct {
 	uint32_t file_size;
@@ -60,5 +64,6 @@ void pt1210_file_gen_list();
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
 void pt1210_file_read_error();
+void pt1210_display_name(char *input, size_t count);
 
 #endif /* FILE_SYSTEM_H */

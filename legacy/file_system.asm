@@ -23,58 +23,59 @@ mi_Name		rs.b	40 		; -- display name
 mi_Sizeof	rs.b	0
 
 		; d0 = first char
-mi_FindFirst	moveq	#0,d2
-		lea	_pt1210_file_list,a0
-		move.w	_pt1210_file_count,d7
-		subq.b	#1,d7
+mi_FindFirst	
+			moveq	#0,d2
+			lea	_pt1210_file_list,a0
+			move.w	_pt1210_file_count,d7
+			subq.b	#1,d7
 .huntloop	moveq	#0,d1
-		cmp.l	#"mod.",mi_FileName(a0)	
-		bne.b	.skipmod
-		move.b	mi_FileName+4(a0),d1
-		bra	.comp
+			cmp.l	#"mod.",mi_FileName(a0)	
+			bne.b	.skipmod
+			move.b	mi_FileName+4(a0),d1
+			bra	.comp
 .skipmod	move.b	mi_FileName(a0),d1
 .comp		cmp.b	#$60,d1
-		blo.b	.upper
-		sub.b	#$20,d1
+			blo.b	.upper
+			sub.b	#$20,d1
 .upper		cmp.b	d0,d1
-		beq.b	.found
-		lea	mi_Sizeof(a0),a0
-		addq.w	#1,d2
-		dbra	d7,.huntloop		
-		moveq	#-1,d2
+			beq.b	.found
+			lea	mi_Sizeof(a0),a0
+			addq.w	#1,d2
+			dbra	d7,.huntloop		
+			moveq	#-1,d2
 .found		move.l	d2,d0
-		rts
+			rts
 		
 
 
 mi_SortFileAsc	
-		cmp.w	#$1,_pt1210_file_count
-		bgt.b	.go
-		rts
+			cmp.w	#$1,_pt1210_file_count
+			bgt.b	.go
+			rts
 .go
-		movem.l	d0-a6,-(sp)
+			movem.l	d0-a6,-(sp)
 
 .resort
-		lea	_pt1210_file_list,a0
-		moveq	#0,d7
-		moveq	#0,d4			; check if any change
-		move.w	_pt1210_file_count,d7
-		subq.w	#2,d7
+			lea	_pt1210_file_list,a0
+			moveq	#0,d7
+			moveq	#0,d4			; check if any change
+			move.w	_pt1210_file_count,d7
+			subq.w	#2,d7
 
 .nextfile	lea	mi_FileName(a0),a1
 		
-		lea	mi_Sizeof(a1),a2
-		;moveq	#0,d5			; d5 = check		
+			lea	mi_Sizeof(a1),a2
+			;moveq	#0,d5			; d5 = check		
 
-		bsr	mi_Compare
+			bsr	mi_Compare
 
-		cmp.b	#0,d0
-		ble.b	.ok
+			cmp.b	#0,d0
+			ble.b	.ok
 
-		moveq	#1,d4
-		move.l	a0,a1
-		lea	mi_Sizeof(a1),a2
-		move.w	#mi_Sizeof-1,d3
+			moveq	#1,d4
+			move.l	a0,a1
+			lea	mi_Sizeof(a1),a2
+			move.w	#mi_Sizeof-1,d3
 .swaploop	move.b	(a2),d2
 		move.b	(a1),(a2)
 		move.b	d2,(a1)

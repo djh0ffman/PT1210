@@ -17,6 +17,8 @@
 
 #include "filesystem.h"
 
+#include <ctype.h>
+
 /* Imported from ASM code */
 extern char FS_LoadErrBuff[80];
 void FS_DrawLoadError(__reg("d0") int32_t error_code);
@@ -56,6 +58,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	uint8_t first_pattern = 0;
 	uint32_t pattern_row[4];
 	uint32_t fpb_tag[2];
+	uint32_t mod_tag = 0;
 
 	/* Ignore files too small to be valid Protracker modules */
 	if (fib->fib_Size < MIN_MODULE_FILE_SIZE)
@@ -120,20 +123,37 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	/* Store file name */
 	strncpy(list_entry->file_name, fib->fib_FileName, MAX_FILE_NAME_LENGTH);
 
-	strncpy(list_entry->name, fib->fib_FileName, MAX_FILE_NAME_DISPLAY);
+	mod_tag = *(unsigned int*)fib->fib_FileName;
+	mod_tag &= FS_MOD_PREFIX_UPPER;
 
-	/* Create display name mod. at the front an in upper case */
-	if (!strncmp("mod.",fib->fib_FileName,4))
+	/* Create display name removing mod. prefix */
+	if (mod_tag == FS_MOD_PREFIX)
 		strncpy(list_entry->name, fib->fib_FileName + 4, MAX_FILE_NAME_DISPLAY);
 	else
 		strncpy(list_entry->name, fib->fib_FileName, MAX_FILE_NAME_DISPLAY);
 
-
+	/* clear display string with white space for text display */
+	pt1210_display_name(list_entry->name, MAX_FILE_NAME_DISPLAY);
 
 	/* Store file size */
 	list_entry->file_size = fib->fib_Size;
 
 	++pt1210_file_count;
+}
+
+/* function for white spacing and uppercase display name */
+void pt1210_display_name(char *input, size_t count)
+{
+	char temp;
+
+	for (int i = 0; i < count; i++)
+	{
+		temp = input[i];
+		if (temp == 0)
+			temp = ' ';
+
+		input[i] = (char) toupper(temp);
+	}
 }
 
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
