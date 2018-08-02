@@ -175,12 +175,10 @@ switch		;movem.l	d0-a6,-(sp)
 		beq.b	.loaddj
 
 		move.l	#keylistdir,keylistptr
-		move.l	#_select_cop,cop2lc(a6)
 		clr.w	currentscreen
 		bra.b	.quit
 .loaddj
 		move.l	#keylistdj,keylistptr
-		move.l	#_cCopper,cop2lc(a6)
 		move.w	#1,currentscreen
 
 .quit		;movem.l	(sp)+,d0-a6

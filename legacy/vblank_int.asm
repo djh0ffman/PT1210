@@ -1,8 +1,6 @@
 ; ************* VBLANK Int
-	    	
-VBInt		movem.l	d0-a6,-(sp)
-		;move.w	#$f00,$dff180
-		tst.b	VBDisable
+
+VBInt	tst.b	VBDisable
 		bne.b	.quit
 
 		move.w	#0,NUDGE
@@ -24,8 +22,8 @@ VBInt		movem.l	d0-a6,-(sp)
 
 		bsr	PT_DrawPat2
 		bsr	PT_PatPos2
-		;move.w	#$000,$dff180
-.quit		movem.l	(sp)+,d0-a6
+
+.quit
 		rts
 
 

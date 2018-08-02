@@ -23,7 +23,7 @@ CFLAGS += +kick13 -g -lamiga -c99 -I$(NDK_INCLUDE_PATH)
 OUTPUT_EXE := bin/pt1210.exe
 
 # Default target - the program executable
-$(OUTPUT_EXE): main.o audiodevice.o filesystem.o pt1210.o
+$(OUTPUT_EXE): main.o audiodevice.o filesystem.o graphics.o libraries.o pt1210.o
 	$(CC) $(CFLAGS) -o $(OUTPUT_EXE) $^
 
 # Assembly code
@@ -35,6 +35,12 @@ audiodevice.o: audiodevice.c audiodevice.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 filesystem.o: filesystem.c filesystem.h utility.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+graphics.o: graphics.c graphics.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+libraries.o: libraries.c libraries.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 main.o: main.c

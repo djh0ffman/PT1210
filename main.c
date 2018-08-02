@@ -11,38 +11,48 @@
  * Code	- h0ffman
  * Graphics - Akira
  * Bug testing - Akira
- * Startup / Restore Code - Stingray
  * C conversion - d0pefish
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <exec/libraries.h>
-#include <proto/exec.h>
-#include <proto/dos.h>
-
 #include "audiodevice.h"
+#include "filesystem.h"
+#include "graphics.h"
+#include "libraries.h"
 
-void START();
+void MAIN();
 
 int main(int argc, char** argv)
 {
-	/* Attempt to open DOS library, v33 (Kickstart 1.2) or above */
-	DOSBase = (struct DosLibrary*) OpenLibrary("dos.library", 33L);
-	if (!DOSBase)
+	/* Open system libraries */
+	if (!pt1210_libs_open())
 		return EXIT_FAILURE;
 
 	/* Attempt to allocate audio device */
 	if (!pt1210_audio_open_device())
 		return EXIT_FAILURE;
 
+	/* Attempt to open a custom Intuition screen */
+	if (!pt1210_gfx_open_screen())
+		return EXIT_FAILURE;
+
+	/* Attempt to install the VBlank interrupt server */
+	if (!pt1210_gfx_install_vblank_server())
+		return EXIT_FAILURE;
+
+	pt1210_file_gen_list();
+	pt1210_file_sort_list(SORT_DISPLAY_NAME, false);
+
 	/* Jump into ASM */
-	START();
+	MAIN();
 
 	/* Clean up */
+	pt1210_gfx_remove_vblank_server();
+	pt1210_gfx_close_screen();
 	pt1210_audio_close_device();
-	CloseLibrary((struct Library*) DOSBase);
+	pt1210_libs_close();
 
 	return EXIT_SUCCESS;
 }
