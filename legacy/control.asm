@@ -3,6 +3,12 @@
 ; ******************** CONTROLS!!!!!!!!!!!!
 ; *******************************************
 
+; Imports from C code
+	XREF _pt1210_file_sort_name_asc
+	XREF _pt1210_file_sort_name_desc
+	XREF _pt1210_file_sort_bpm_asc
+	XREF _pt1210_file_sort_bpm_desc
+
 keyboard	lea	keys(pc),a0
 		lea	keys2(pc),a1
 		lea	keysfr(pc),a4
@@ -487,11 +493,11 @@ moveback	tst.b	$60(a0)
 
 sortbpm		tst.w	sortbpmtog
 		bne.b	.desc
-		bsr	mi_SortBPMAsc
+		bsr	_pt1210_file_sort_bpm_asc
 		move.w	#1,sortbpmtog
 		bra	.done
 		
-.desc		bsr	mi_SortBPMDesc
+.desc		bsr	_pt1210_file_sort_bpm_desc
 		move.w	#0,sortbpmtog
 		
 .done		bsr	FS_DrawDir
@@ -501,11 +507,11 @@ sortbpmtog	dc.w	0
 
 sortfile	tst.w	sortfiletog
 		bne.b	.desc
-		bsr	mi_SortFileAsc
+		bsr	_pt1210_file_sort_name_asc
 		move.w	#1,sortfiletog
 		bra	.done
 		
-.desc		bsr	mi_SortFileDesc
+.desc		bsr	_pt1210_file_sort_name_desc
 		move.w	#0,sortfiletog
 		
 .done		bsr	FS_DrawDir
@@ -750,7 +756,7 @@ findZ		move.b	#"Z",d0
 
 		nop
 
-hunt		bsr	mi_FindFirst
+hunt		;bsr	mi_FindFirst
 		;clr.w	$100
 		cmp.w	#-1,d0
 		beq.b	.notfound

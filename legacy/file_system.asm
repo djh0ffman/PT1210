@@ -23,12 +23,9 @@ mi_FindFirst
 			moveq	#0,d2
 			lea		_pt1210_file_list,a0
 			move.w	_pt1210_file_count,d7
-			subq.b	#1,d7
+			subq.w	#1,d7
 .huntloop	moveq	#0,d1
 			move.b	mi_Name(a0),d1
-.comp		cmp.b	#$60,d1
-			blo.b	.upper
-			sub.b	#$20,d1
 .upper		cmp.b	d0,d1
 			beq.b	.found
 			lea		mi_Sizeof(a0),a0
@@ -36,22 +33,6 @@ mi_FindFirst
 			dbra	d7,.huntloop		
 			moveq	#-1,d2
 .found		move.l	d2,d0
-			rts
-		
-mi_SortFileAsc	
-			bsr 	_pt1210_file_sort_name_asc
-			rts
-
-mi_SortFileDesc	
-			bsr		_pt1210_file_sort_name_desc
-			rts
-
-mi_SortBPMAsc
-			bsr		_pt1210_file_sort_bpm_asc
-			rts
-
-mi_SortBPMDesc
-			bsr		_pt1210_file_sort_bpm_desc
 			rts
 
 freechip	movem.l	d1-a6,-(sp)

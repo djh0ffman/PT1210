@@ -256,7 +256,6 @@ FS_Rescan	movem.l	d0-a6,-(sp)
 			move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
 			bsr	CIA_AddCIAInt	
-			jsr	mi_SortFileAsc	
 
 			bsr	FS_DrawDir
 			bsr	FS_Copper

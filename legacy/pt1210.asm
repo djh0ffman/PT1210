@@ -79,7 +79,7 @@ WAITBLIT	MACRO
 
 _START	bsr	_pt1210_file_gen_list
 	
-.go	bsr	mi_SortFileAsc	
+.go	bsr	_pt1210_file_sort_name_asc	
 
 	movem.l	d0-a6,-(a7)
 	move.l	$4.w,a6
