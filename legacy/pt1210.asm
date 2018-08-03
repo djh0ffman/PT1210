@@ -84,7 +84,7 @@ SORT_SIZE = 3
 _START	bsr	_pt1210_file_gen_list
 
 .go
-	move.l	#1,-(sp)				; ascending
+	move.l	#0,-(sp)				; ascending
 	move.l	#SORT_NAME,-(sp)		; sort by name
 	bsr	_pt1210_file_sort_list
 	add.l #8,sp

@@ -13,11 +13,15 @@
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <proto/dos.h>
 
 #include "filesystem.h"
+
+file_list_t pt1210_file_list[MAX_FILE_COUNT];
+uint16_t pt1210_file_count;
 
 /* Imported from ASM code */
 extern char FS_LoadErrBuff[80];
@@ -34,7 +38,7 @@ static inline bool pt1210_file_cmp_bpm(const void* a, const void* b)
 
 static inline bool pt1210_file_cmp_file_name(const void* a, const void* b)
 {
-	return strncmp(((file_list_t*)a)->file_name, ((file_list_t*)b)->file_name, MAX_FILE_NAME_DISPLAY) < 0;
+	return strncmp(((file_list_t*)a)->file_name, ((file_list_t*)b)->file_name, MAX_FILE_NAME_LENGTH) < 0;
 }
 
 static inline bool pt1210_file_cmp_name(const void* a, const void* b)
@@ -81,11 +85,9 @@ void pt1210_file_gen_list()
 /* Function for white spacing and uppercase display name */
 void pt1210_display_name(char *input, size_t count)
 {
-	char temp;
-
 	for (int i = 0; i < count; i++)
 	{
-		temp = input[i];
+		char temp = input[i];
 		if (temp == '\0')
 			temp = ' ';
 
@@ -93,7 +95,34 @@ void pt1210_display_name(char *input, size_t count)
 	}
 }
 
-void pt1210_file_sort_list(file_sort_key_t key, bool ascending)
+static int partition(int low, int high, comparator_t comparator, bool descending)
+{
+	file_list_t* pivot = &pt1210_file_list[high];
+	int i = low - 1;
+	for (int j = low; j <= high - 1; ++j)
+	{
+		if (comparator(&pt1210_file_list[j], pivot) ^ descending)
+		{
+			++i;
+			pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[j]);
+		}
+	}
+
+	pt1210_file_swap(&pt1210_file_list[i + 1], &pt1210_file_list[high]);
+	return i + 1;
+}
+
+static void quicksort(int low, int high, comparator_t comparator, bool descending)
+{
+	if (low < high)
+	{
+		size_t p = partition(low, high, comparator, descending);
+		quicksort(low, p - 1, comparator, descending);
+		quicksort(p + 1, high, comparator, descending);
+	}
+}
+
+void pt1210_file_sort_list(file_sort_key_t key, bool descending)
 {
 	if (pt1210_file_count <= 1)
 		return;
@@ -109,21 +138,7 @@ void pt1210_file_sort_list(file_sort_key_t key, bool ascending)
 		default:			return;
 	}
 
-	/* TODO: Improve performance by implementing Quicksort */
-	bool done = false;
-	while (!done)
-	{
-		done = true;
-		for (size_t i = 0; i < pt1210_file_count - 1; i++)
-		{
-			/* XOR with ascending flag to invert result of comparator */
-			if (comparator(&pt1210_file_list[i], &pt1210_file_list[i + 1]) ^ ascending)
-			{
-				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i + 1]);
-				done = false;
-			}
-		}
-	}
+	quicksort(0, pt1210_file_count - 1, comparator, descending);
 }
 
 void pt1210_file_check_module(struct FileInfoBlock* fib)
@@ -203,7 +218,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 
 	/* Create display name removing mod. prefix */
 	if (mod_tag == FS_MOD_PREFIX)
-		strncpy(list_entry->name, fib->fib_FileName + 4, MAX_FILE_NAME_DISPLAY);
+		strncpy(list_entry->name, fib->fib_FileName + 4, MAX_FILE_NAME_DISPLAY - 4);
 	else
 		strncpy(list_entry->name, fib->fib_FileName, MAX_FILE_NAME_DISPLAY);
 

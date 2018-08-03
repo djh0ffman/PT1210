@@ -490,13 +490,13 @@ moveback	tst.b	$60(a0)
 
 sortbpm
 		tst.w	sortbpmtog
-		bne.b	.desc
+		beq.b	.desc
 
-		move.l	#1,-(sp)			; ascending
+		move.l	#0,-(sp)			; ascending
 		move.w	#0,sortbpmtog
 		bra .done
 
-.desc	move.l	#0,-(sp)			; descending
+.desc	move.l	#1,-(sp)			; descending
 		move.w	#1,sortbpmtog
 
 .done	move.l	#SORT_BPM,-(sp)		; sort by bpm
@@ -511,13 +511,13 @@ sortbpmtog	dc.w	0
 
 sortfile
 		tst.w	sortfiletog
-		bne.b	.desc
+		beq.b	.desc
 
-		move.l	#1,-(sp)				; ascending
+		move.l	#0,-(sp)				; ascending
 		move.w	#0,sortfiletog
 		bra .done
 
-.desc	move.l	#0,-(sp)				; descending
+.desc	move.l	#1,-(sp)				; descending
 		move.w	#1,sortfiletog
 
 .done	move.l	#SORT_NAME,-(sp)		; sort by name

@@ -66,9 +66,6 @@ typedef enum
 	SIZE
 } file_sort_key_t;
 
-file_list_t pt1210_file_list[MAX_FILE_COUNT];
-uint16_t pt1210_file_count;
-
 void pt1210_file_gen_list();
 void pt1210_display_name(char *input, size_t count);
 void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
