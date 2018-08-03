@@ -16,7 +16,7 @@
 
 SW_Splash = 0		; Include splash screen
 
-	section pt1210,code		
+	section pt1210,code
 
 ; Exports for C code (places them in global scope)
 	XDEF _START
@@ -28,11 +28,7 @@ SW_Splash = 0		; Include splash screen
 	XREF _pt1210_file_read
 	XREF _pt1210_file_count
 	XREF _pt1210_file_list
-	XREF _pt1210_file_sort_name_asc
-	XREF _pt1210_file_sort_name_desc
-	XREF _pt1210_file_sort_bpm_asc
-	XREF _pt1210_file_sort_bpm_desc
-	
+
 FONTWIDTH = 64
 
 INTENASET	= %1100000000100000
@@ -71,15 +67,27 @@ WAITBLIT	MACRO
 .\@		btst	#6,$02(a6)
 		bne.b	.\@
 		ENDM
-		
+
+
+***************************************************
+*** SORT KEYS FOR FILE LIST				***
+***************************************************
+SORT_NAME = 0
+SORT_FILE_NAME = 1
+SORT_BPM = 2
+SORT_SIZE = 3
 
 ***************************************************
 *** CLOSE DOWN SYSTEM - INIT PROGRAM		***
 ***************************************************
 
 _START	bsr	_pt1210_file_gen_list
-	
-.go	bsr	_pt1210_file_sort_name_asc	
+
+.go
+	move.l	#1,-(sp)				; ascending
+	move.l	#SORT_NAME,-(sp)		; sort by name
+	bsr	_pt1210_file_sort_list
+	add.l #8,sp
 
 	movem.l	d0-a6,-(a7)
 	move.l	$4.w,a6
@@ -119,7 +127,7 @@ _START	bsr	_pt1210_file_gen_list
 	move.w	#DMASET!$8200,$96(a6)		; set DMA	+ BIT 09/15
 	bsr	MAIN
 
-	
+
 ***************************************************
 *** Restore Sytem Parameter etc.		***
 ***************************************************
@@ -182,7 +190,7 @@ _START	bsr	_pt1210_file_gen_list
 .getit	;movec   vbr,d0
 	dc.l	$4e7a0801
 	rte				; back to user state code
-	
+
 
 *******************************************
 *** VERTICAL BLANK (VBI)		***
@@ -193,7 +201,7 @@ _START	bsr	_pt1210_file_gen_list
 	;moveq	#$20,d0
 	;move.w	d0,(a6)
 	;move.w	d0,(a6)			; twice to avoid a4k hw bug
-	
+
 	move.l	VBIptr(pc),d0
 	beq.b	.noVBI
 	move.l	d0,a0
@@ -270,12 +278,12 @@ splashkill	movem.l	d0-a6,-(sp)
 		rts
 
 		endc
-MAIN		
+MAIN
 		ifne	SW_Splash
 		jsr	splashgo
 		bsr	splashkill
 		endc
-		
+
 		moveq	#1,d0
 		bsr	FS_DrawType
 
@@ -285,7 +293,7 @@ MAIN
 		bsr	FS_DrawDir
 		bsr	FS_Copper
 		bsr	PT_Prep
-		
+
 		bsr	UI_DrawChip
 
 		bsr	kbinit
@@ -294,14 +302,14 @@ MAIN
 		lea	$dff000,a6
 		move.l	#1773447,d0
 		jsr	CIA_AddCIAInt
-		
+
 		bsr	ScopeInit
 		move.l	#VBInt,VBIptr		; set VB Int pointer
-		
+
 		lea	$dff000,a6		; hw base
 
 		move.l	#_hud,d0		; load plane to copper
-		lea	_hud_planes,a0		
+		lea	_hud_planes,a0
 		moveq	#5-1,d7
 .hudloop	move.w	d0,6(a0)
 		swap	d0
@@ -312,7 +320,7 @@ MAIN
 		dbra	d7,.hudloop
 
 		move.l	#_track,d0		; load plane to copper
-		lea	_track_planes,a0		
+		lea	_track_planes,a0
 		moveq	#3-1,d7
 .trackloop	move.w	d0,6(a0)
 		swap	d0
@@ -323,7 +331,7 @@ MAIN
 		dbra	d7,.trackloop
 
 		move.l	#_song_grid,d0		; load plane to copper
-		lea	_grid_planes1,a0		
+		lea	_grid_planes1,a0
 		lea	_grid_planes2,a1
 		move.w	d0,6(a0)
 		move.w	d0,6(a1)
@@ -333,7 +341,7 @@ MAIN
 
 		moveq	#3-1,d7
 		move.l	#_track_fill,d0		; load plane to copper
-		lea	_track_plane,a0		
+		lea	_track_plane,a0
 .tloop		move.w	d0,6(a0)
 		swap	d0
 		move.w	d0,2(a0)
@@ -343,7 +351,7 @@ MAIN
 		dbra	d7,.tloop
 
 		move.l	#_song_grid_clr,d0		; load plane to copper
-		lea	_grid_planes1c,a0		
+		lea	_grid_planes1c,a0
 		lea	_grid_planes2c,a1
 		lea	_cScopeSpace,a2
 		move.w	d0,6(a0)
@@ -358,7 +366,7 @@ MAIN
 		lea	_hud_sprites,a0
 		lea	_spritelist,a1
 		moveq	#8-1,d7
-		
+
 .sprloop	move.l	(a1)+,d0
 		move.w	d0,6(a0)
 		swap	d0
@@ -368,7 +376,7 @@ MAIN
 		dbra	d7,.sprloop
 
 		move.l	#_select,d0		; load plane to copper
-		lea	_select_planes,a0		
+		lea	_select_planes,a0
 		moveq	#2-1,d7
 .selectloop	move.w	d0,6(a0)
 		swap	d0
@@ -379,7 +387,7 @@ MAIN
 		dbra	d7,.selectloop
 
 		move.l	#_selectfilla,d0		; load plane to copper
-		lea	_filla_planes,a0		
+		lea	_filla_planes,a0
 		move.w	d0,6(a0)
 		swap	d0
 		move.w	d0,2(a0)
@@ -389,7 +397,7 @@ MAIN
 		move.w	d0,6(a0)
 		swap	d0
 		move.w	d0,2(a0)
-		
+
 		move.l	#_selectfillb,d0
 		addq.l	#8,a0
 		move.w	d0,6(a0)
@@ -398,14 +406,14 @@ MAIN
 
 
 		move.l	#_song_grid_clr,d0		; load plane to copper
-		lea	_cscreen,a0		
+		lea	_cscreen,a0
 		move.w	d0,6(a0)
 		swap	d0
 		move.w	d0,2(a0)
 
 
 
-		move.l	#_hud_cop,cop1lc(a6)					
+		move.l	#_hud_cop,cop1lc(a6)
 		move.l	#_select_cop,cop2lc(a6)
 
 
@@ -431,20 +439,20 @@ MAIN
 		beq.b	.lp
 
 ;		btst    #6,$bfe001
-;	        bne.s   .lp      	
+;	        bne.s   .lp
 
 		jsr	CIA_RemCIAInt
 	        jsr	mt_end
 		bsr	unallocchip
 
 		bsr	kbrem
-	        
+
 	        movem.l	(sp)+,d0-a6
 	    	rts
 
 		include keyboard.asm
 		include file_system.asm
-		include vblank_int.asm		
+		include vblank_int.asm
 		include time.asm
 		include ui.asm
 		include control.asm
@@ -455,6 +463,6 @@ MAIN
 		include player.asm
 		include data_fast.asm
 		include data_chip.asm
-		include splash_screen.asm		
+		include splash_screen.asm
 
 

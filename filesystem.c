@@ -11,17 +11,44 @@
  * File I/O functions.
  */
 
+#include <ctype.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <proto/dos.h>
 
 #include "filesystem.h"
 
-#include <ctype.h>
-
 /* Imported from ASM code */
 extern char FS_LoadErrBuff[80];
 void FS_DrawLoadError(__reg("d0") int32_t error_code);
+
+/* A generic comparator function pointer type */
+typedef bool(*comparator_t)(const void*, const void*);
+
+/* Comparator functions for sorting each of the file structure fields */
+static inline bool pt1210_file_cmp_bpm(const void* a, const void* b)
+{
+	return ((file_list_t*)a)->bpm < ((file_list_t*)b)->bpm;
+}
+
+static inline bool pt1210_file_cmp_file_name(const void* a, const void* b)
+{
+	return strncmp(((file_list_t*)a)->file_name, ((file_list_t*)b)->file_name, MAX_FILE_NAME_DISPLAY) < 0;
+}
+
+static inline bool pt1210_file_cmp_name(const void* a, const void* b)
+{
+	return strncmp(((file_list_t*)a)->name, ((file_list_t*)b)->name, MAX_FILE_NAME_DISPLAY) < 0;
+}
+
+/* Performs an in-place swap of two file list entries */
+static inline void pt1210_file_swap(file_list_t* a, file_list_t* b)
+{
+	file_list_t temp = *a;
+	*a = *b;
+	*b = temp;
+}
 
 void pt1210_file_gen_list()
 {
@@ -49,6 +76,54 @@ void pt1210_file_gen_list()
 	}
 
 	UnLock(folder_lock);
+}
+
+/* Function for white spacing and uppercase display name */
+void pt1210_display_name(char *input, size_t count)
+{
+	char temp;
+
+	for (int i = 0; i < count; i++)
+	{
+		temp = input[i];
+		if (temp == '\0')
+			temp = ' ';
+
+		input[i] = (char) toupper(temp);
+	}
+}
+
+void pt1210_file_sort_list(file_sort_key_t key, bool ascending)
+{
+	if (pt1210_file_count <= 1)
+		return;
+
+	/* Function pointer to the comparator we want to use */
+	comparator_t comparator;
+
+	switch (key)
+	{
+		case NAME: 			comparator = pt1210_file_cmp_name;			break;
+		case FILE_NAME:		comparator = pt1210_file_cmp_file_name;		break;
+		case BPM:			comparator = pt1210_file_cmp_bpm;			break;
+		default:			return;
+	}
+
+	/* TODO: Improve performance by implementing Quicksort */
+	bool done = false;
+	while (!done)
+	{
+		done = true;
+		for (size_t i = 0; i < pt1210_file_count - 1; i++)
+		{
+			/* XOR with ascending flag to invert result of comparator */
+			if (comparator(&pt1210_file_list[i], &pt1210_file_list[i + 1]) ^ ascending)
+			{
+				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i + 1]);
+				done = false;
+			}
+		}
+	}
 }
 
 void pt1210_file_check_module(struct FileInfoBlock* fib)
@@ -139,115 +214,6 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	list_entry->file_size = fib->fib_Size;
 
 	++pt1210_file_count;
-}
-
-/* function for white spacing and uppercase display name */
-void pt1210_display_name(char *input, size_t count)
-{
-	char temp;
-
-	for (int i = 0; i < count; i++)
-	{
-		temp = input[i];
-		if (temp == 0)
-			temp = ' ';
-
-		input[i] = (char) toupper(temp);
-	}
-}
-
-void pt1210_file_sort_name_asc()
-{
-	if (pt1210_file_count <= 1)
-		return;
-
-	int done, comp = 0;
-
-	while (done == 0)
-	{
-		done = 1;
-		for (int i = 0; i < pt1210_file_count - 1; i++)
-		{
-			comp = strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY);
-			if (comp > 0)
-			{
-				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
-				done = 0;
-			}
-		}
-	}
-}
-
-void pt1210_file_sort_name_desc()
-{
-	if (pt1210_file_count <= 1)
-		return;
-
-	int done, comp = 0;
-
-	while (done == 0)
-	{
-		done = 1;
-		for (int i = 0; i < pt1210_file_count - 1; i++)
-		{
-			comp = strncmp(pt1210_file_list[i].name, pt1210_file_list[i+1].name, MAX_FILE_NAME_DISPLAY);
-			if (comp < 0)
-			{
-				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
-				done = 0;
-			}
-		}
-	}
-}
-
-void pt1210_file_sort_bpm_asc()
-{
-	if (pt1210_file_count <= 1)
-		return;
-
-	int done, comp = 0;
-
-	while (done == 0)
-	{
-		done = 1;
-		for (int i = 0; i < pt1210_file_count - 1; i++)
-		{
-			if (pt1210_file_list[i].bpm > pt1210_file_list[i+1].bpm)
-			{
-				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
-				done = 0;
-			}
-		}
-	}
-}
-
-void pt1210_file_sort_bpm_desc()
-{
-	if (pt1210_file_count <= 1)
-		return;
-
-	int done, comp = 0;
-
-	while (done == 0)
-	{
-		done = 1;
-		for (int i = 0; i < pt1210_file_count - 1; i++)
-		{
-			if (pt1210_file_list[i].bpm < pt1210_file_list[i+1].bpm);
-			{
-				pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[i+1]);
-				done = 0;
-			}
-		}
-	}
-}
-
-void pt1210_file_swap(void *a, void *b)
-{
-	file_list_t temp;
-	memcpy(&temp, b, sizeof temp);
-	memcpy(b, a, sizeof temp);
-	memcpy(a, &temp, sizeof temp);
 }
 
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)

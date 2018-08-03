@@ -57,19 +57,23 @@ typedef struct {
 	char name[MAX_FILE_NAME_DISPLAY];
 } file_list_t;
 
+/* Keys for sorting the file list */
+typedef enum
+{
+	NAME,
+	FILE_NAME,
+	BPM,
+	SIZE
+} file_sort_key_t;
+
 file_list_t pt1210_file_list[MAX_FILE_COUNT];
 uint16_t pt1210_file_count;
 
 void pt1210_file_gen_list();
+void pt1210_display_name(char *input, size_t count);
+void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
 void pt1210_file_read_error();
-void pt1210_display_name(char *input, size_t count);
-void pt1210_file_sort_name_asc();
-void pt1210_file_sort_name_desc();
-void pt1210_file_sort_bpm_asc();
-void pt1210_file_sort_bpm_desc();
-
-void pt1210_file_swap();
 
 #endif /* FILE_SYSTEM_H */
