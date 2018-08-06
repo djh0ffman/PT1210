@@ -765,29 +765,34 @@ findY		move.b	#"Y",d0
 findZ		move.b	#"Z",d0
 		bra	hunt
 
-		nop
 
-hunt		;bsr	mi_FindFirst
-		;clr.w	$100
-		cmp.w	#-1,d0
-		beq.b	.notfound
-		move.w	d0,FS_Current
-		moveq	#0,d3		; -- offset
 
-		moveq	#0,d1
-		move.w	_pt1210_file_count,d1
-		sub.w	d0,d1
-		cmp.w	#FS_ListMax,d1
-		bgt.b	.ok
+hunt		bsr	FindFirst
+			cmp.w	#-1,d0
+			beq.b	.notfound
+			clr.w	$100
 
-		move.w	#FS_ListMax,d2
-		sub.w	d1,d2
-		move.w	d2,d3
-
-.ok		move.w	d3,FS_ListPos
-		bsr	FS_DrawDir
-		bsr	FS_Copper
+			sub.w	FS_Current,d0
+			move.w	d0,d2
+			bra		FS_Move
 .notfound	rts
+
+		; d0 = first char
+FindFirst	
+			moveq	#0,d2
+			lea		_pt1210_file_list,a0
+			move.w	_pt1210_file_count,d7
+			subq.w	#1,d7
+.huntloop	moveq	#0,d1
+			move.b	mi_Name(a0),d1
+.upper		cmp.b	d0,d1
+			beq.b	.found
+			lea		mi_Sizeof(a0),a0
+			addq.w	#1,d2
+			dbra	d7,.huntloop		
+			moveq	#-1,d2
+.found		move.l	d2,d0
+			rts
 
 
 setbpm		moveq	#0,d0

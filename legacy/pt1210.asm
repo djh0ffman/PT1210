@@ -451,7 +451,7 @@ MAIN
 	    	rts
 
 		include keyboard.asm
-		include file_system.asm
+		include memory.asm
 		include vblank_int.asm
 		include time.asm
 		include ui.asm

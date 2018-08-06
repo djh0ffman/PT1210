@@ -5,6 +5,7 @@
 ** File Selecta
 *********************************************
 
+	XREF _pt1210_file_count
 
 FS_CurrentType	dc.b	0
 		even
@@ -72,12 +73,12 @@ FS_Clear	lea	_dir,a0
 			blo.b	.clr2
 
 			rts
-		
+
 			; d5 = type (0 bpm / 1 =kb)
 
 FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			bne.b	.go
-			bra	FS_DrawNoMods
+			bra		FS_DrawNoMods
 		
 .go			moveq	#0,d5
 			move.b	FS_CurrentType,d5
@@ -85,20 +86,19 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			lea		_pt1210_file_list,a1
 			moveq	#0,d0
 			move.w	FS_Current,d0
-			sub.w	FS_ListPos,d0
+			move.w	FS_ListPos,d1
+			sub.w	d1,d0
+			move.w	d0,d4				; copy file counter
 			mulu	#mi_Sizeof,d0
 			add.l	d0,a1
 		
-			moveq	#FS_ListMax-1,d7	; max file count...
+			moveq	#FS_ListMax-1,d7	; max listable count
 .loop		lea		mi_Name(a1),a2
-			tst.b	(a2)
-			beq		.quit		
 			moveq	#36-1,d6	; char count
 			move.l	a0,a3
-.charloop
-			move.b	(a2)+,(a3)+
-			;bra.b	.doloop
-.doloop		dbra	d6,.charloop	
+
+.charloop	move.b	(a2)+,(a3)+
+			dbra	d6,.charloop	
 
 			tst.b	d5
 			bne.b	.kb
@@ -140,9 +140,11 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 .quitzero
 		
 .nextfile	lea		40(a0),a0
-			lea		mi_Sizeof(a1),a1
-			tst.l	(a1)
-			beq.b	.quit
+			addq.w	#1,d4					; add one to total 
+			cmp.w	_pt1210_file_count,d4
+			bgt		.quit
+
+			lea		mi_Sizeof(a1),a1		; move to next file
 			dbra	d7,.loop
 .quit
 			; all done now draw...
@@ -412,7 +414,6 @@ FS_DrawOutRam
 
 		; d0 = load error code
 _FS_DrawLoadError
-		;clr.w	$100
 		lea	FS_LoadErrCode+32,a0
 		lea	PT_HexList,a1
 		moveq	#8-1,d7		; all d0
