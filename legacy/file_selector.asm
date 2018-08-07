@@ -89,6 +89,7 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			move.w	FS_ListPos,d1
 			sub.w	d1,d0
 			move.w	d0,d4				; copy file counter
+			add.w	#1,d4				; out by one error much?
 			mulu	#mi_Sizeof,d0
 			add.l	d0,a1
 		

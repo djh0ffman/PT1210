@@ -775,7 +775,7 @@ hunt		bsr	FindFirst
 			sub.w	FS_Current,d0
 			move.w	d0,d2
 			bra		FS_Move
-.notfound	rts
+.notfound			rts
 
 		; d0 = first char
 FindFirst	
