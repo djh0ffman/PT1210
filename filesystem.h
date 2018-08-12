@@ -17,6 +17,7 @@
 #include <stdint.h>
 
 #define MAX_FILE_NAME_LENGTH 	108
+#define MAX_FILE_NAME_DISPLAY	40
 #define MAX_FILE_COUNT 			500
 
 /* Smallest possible module = header + one pattern; no samples */
@@ -43,18 +44,31 @@
 #define FPB_MAGIC				0x2146524DUL
 #define FPB_MAGIC_UPPER			0xFFDFDFDFUL
 
+/* mod. prefix */
+#define FS_MOD_PREFIX			0x4D4F442EUL
+#define FS_MOD_PREFIX_UPPER		0xDFDFDFFFUL
+
 /* Structure to hold entries in the file list */
 typedef struct {
 	uint32_t file_size;
 	uint16_t bpm;
 	uint16_t frames;
 	char file_name[MAX_FILE_NAME_LENGTH];
+	char name[MAX_FILE_NAME_DISPLAY];
 } file_list_t;
 
-file_list_t pt1210_file_list[MAX_FILE_COUNT];
-uint16_t pt1210_file_count;
+/* Keys for sorting the file list */
+typedef enum
+{
+	NAME,
+	FILE_NAME,
+	BPM,
+	SIZE
+} file_sort_key_t;
 
 void pt1210_file_gen_list();
+void pt1210_display_name(char *input, size_t count);
+void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 int32_t pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
 void pt1210_file_read_error();

@@ -3,6 +3,9 @@
 ; ******************** CONTROLS!!!!!!!!!!!!
 ; *******************************************
 
+; Imports from C code
+	XREF _pt1210_file_sort_list
+
 keyboard	lea	keys(pc),a0
 		lea	keys2(pc),a1
 		lea	keysfr(pc),a4
@@ -14,11 +17,11 @@ keyboard	lea	keys(pc),a0
 		beq.b	.quit				; end of list quit
 		cmp.b	(a0,d1.w),d0		; check for key pressed
 		beq.b	.dokey				; key pressed
-.nextkey	lea	6(a2),a2	
+.nextkey	lea	6(a2),a2
 		bra.b	.loop
 .quit		rts
 
-.dokey		
+.dokey
 		move.l	2(a2),a3		; get the function
 		tst.b	1(a2)				; test press type
 		beq.b	.dofunc				; 0 = do it all the time
@@ -45,7 +48,7 @@ keyboard	lea	keys(pc),a0
 		ble.b	.nextkey
 		bra.b	.dofunc
 
-		
+
 .phold		tst.b	(a1,d1.w)
 		bne.b	.pcont
 		move.b	#1,(a4,d1.w)
@@ -65,9 +68,9 @@ keyboard	lea	keys(pc),a0
 		jsr	(a3)			; do the function
 		movem.l	(sp)+,d0-a6
 		bra	.nextkey				; done, go to next key
-		
 
-		
+
+
 pitchdown	tst.b	$60(a0)
 		bne.b	.fine
 		tst.b	$61(a0)
@@ -78,7 +81,7 @@ pitchdown	tst.b	$60(a0)
 		add.w	OFFBPM,d0
 		cmp.w	#20,d0
 		ble.b	.skip
-		subq.w	#1,OFFBPM				
+		subq.w	#1,OFFBPM
 .skip		rts
 
 .fine		move.b	BPMFINE,d0
@@ -95,7 +98,7 @@ pitchdown	tst.b	$60(a0)
 		moveq	#$f,d0
 .ok		move.b	d0,BPMFINE
 .skipfine	rts
-		
+
 pitchup		tst.b	$60(a0)
 		bne.b	.fine
 		tst.b	$61(a0)
@@ -106,7 +109,7 @@ pitchup		tst.b	$60(a0)
 		add.w	OFFBPM,d0
 		cmp.w	#300,d0
 		bge.b	.skip
-		addq.w	#1,OFFBPM				
+		addq.w	#1,OFFBPM
 .skip		rts
 
 .fine		move.b	BPMFINE,d0
@@ -119,7 +122,7 @@ pitchup		tst.b	$60(a0)
 		add.w	OFFBPM,d1
 		cmp.w	#299,d1
 		bge.b	.skipfine
-		
+
 		add.w	#1,OFFBPM
 		moveq	#0,d0
 .ok		move.b	d0,BPMFINE
@@ -150,13 +153,13 @@ nudgebkw
 rescan		clr.b	(a0,d1.w)
 		move.b	#1,FS_DoScan
 		rts
-		
 
-loadtune	
+
+loadtune
 		clr.b	(a0,d1.w)
 		move.b	#1,FS_DoLoad
 		rts
-		
+
 backup		lea	keys(pc),a0
 		lea	keys2(pc),a1
 		moveq	#$20-1,d7
@@ -164,7 +167,7 @@ backup		lea	keys(pc),a0
 		dbra	d7,.lop
 
 		rts
-		
+
 
 switch		;movem.l	d0-a6,-(sp)
 		lea	$dff000,a6
@@ -172,14 +175,14 @@ switch		;movem.l	d0-a6,-(sp)
 		beq.b	.loaddj
 
 		move.l	#keylistdir,keylistptr
-		move.l	#_select_cop,cop2lc(a6)					
+		move.l	#_select_cop,cop2lc(a6)
 		clr.w	currentscreen
 		bra.b	.quit
 .loaddj
 		move.l	#keylistdj,keylistptr
-		move.l	#_cCopper,cop2lc(a6)					
+		move.l	#_cCopper,cop2lc(a6)
 		move.w	#1,currentscreen
-		
+
 .quit		;movem.l	(sp)+,d0-a6
 		rts
 
@@ -190,7 +193,7 @@ playpause	tst.b	mt_Enabled
 		beq.b	.disable
 		clr.b	mt_Enabled
 		jsr	mt_end
-		
+
 		bra.b	.quit
 .disable	move.b	#1,mt_Enabled
 .quit		rts
@@ -206,7 +209,7 @@ patternlock	move.b	mt_PatternLock,d6
 		beq.b	.end
 		cmp.b	#2,d6
 		beq.b	.clear
-		rts		
+		rts
 
 .start		move.b	mt_SongPos,d6
 		move.b	d6,mt_PatLockStart
@@ -217,7 +220,7 @@ patternlock	move.b	mt_PatternLock,d6
 		move.b	d6,mt_PatLockEnd
 		move.b	#2,mt_PatternLock
 		bra	.quit
-		
+
 .clear		clr.b	mt_PatternLock
 		clr.b	mt_PatLockStart
 		clr.b	mt_PatLockEnd
@@ -228,7 +231,7 @@ patternlock	move.b	mt_PatternLock,d6
 restart		clr.b	mt_SongPos
 		move.b	mt_PatternCue,mt_SongPos
 		clr.w	mt_PatternPos
-		move.b	mt_speed,d6		
+		move.b	mt_speed,d6
 		move.b	d6,mt_counter
 		clr.b	mt_TuneEnd
 		clr.b	Time_Frames
@@ -244,9 +247,9 @@ sliprestart	move.b	patslipflag,d0
 		beq.b	.active
 		moveq	#0,d0
 		bra.b	.write
-		
+
 .active		moveq	#1,d0
-		
+
 
 .write		move.b	d0,patslipflag
 		rts
@@ -264,7 +267,7 @@ loopinc		move.b	loopsize(pc),d0
 		tst.b	loopactive
 		bne.w	loopresize
 .quit		rts
-		
+
 loopdec		move.b	loopsize(pc),d0
 		cmp.b	#1,d0
 		beq.b	.quit
@@ -273,7 +276,7 @@ loopdec		move.b	loopsize(pc),d0
 		tst.b	loopactive
 		bne	loopresize
 .quit		rts
-		
+
 loopset		move.b	loopactive(pc),d0
 		tst.b	d0
 		beq.b	.set
@@ -282,7 +285,7 @@ loopset		move.b	loopactive(pc),d0
 		beq.b	.meh
 		moveq	#0,d1
 		moveq	#0,d3
-		
+
 		move.b	mt_SLSongPos,d1
 		move.b	mt_SongLen,d3
 		move.w	mt_SLPatternPos,d2
@@ -311,7 +314,7 @@ loopset		move.b	loopactive(pc),d0
 
 .save		move.b	d0,loopactive
 		rts
-		
+
 loopresize	move.b	loopstart,d0
 		add.b	loopsize,d0
 		move.b	d0,loopend
@@ -328,7 +331,7 @@ tog1		move.w	chantog,d6
 		beq.b	.turnon
 		bclr	#3,d6
 		bra	.doit
-				
+
 .turnon		bset	#3,d6
 .doit		move.w	d6,chantog
 		rts
@@ -338,7 +341,7 @@ tog2		move.w	chantog,d6
 		beq.b	.turnon
 		bclr	#2,d6
 		bra	.doit
-				
+
 .turnon		bset	#2,d6
 .doit		move.w	d6,chantog
 		rts
@@ -348,7 +351,7 @@ tog3		move.w	chantog,d6
 		beq.b	.turnon
 		bclr	#1,d6
 		bra	.doit
-				
+
 .turnon		bset	#1,d6
 .doit		move.w	d6,chantog
 		rts
@@ -361,8 +364,8 @@ tog4		move.w	chantog,d6
 
 .turnon		bset	#0,d6
 .doit		move.w	d6,chantog
-		rts		
-		
+		rts
+
 
 chantog		dc.w	%0000000000001111
 
@@ -384,18 +387,18 @@ sliptog		move.b	slipon(pc),d0
 
 .write		move.b	d0,slipon
 		rts
-		
+
 
 slipon		dc.b	1
 		even
-		
+
 
 togglerepitch	move.b	repitch,d0
 		tst.b	d0
 		beq.b	.active
 		moveq	#0,d0
 		bra.b	.write
-		
+
 .active		moveq	#1,d0
 .write		move.b	d0,repitch
 		rts
@@ -446,11 +449,11 @@ movefwd		moveq	#0,d0
 		cmp.b	mt_SongPos,d0
 		subq.b	#1,d0
 		blo.b	.skipadd
-		add.b	#1,mt_SongPos		
+		add.b	#1,mt_SongPos
 .skipadd	and.w	#1024-1,d2
 		move.w	d2,mt_PatternPos
 		rts
-		
+
 
 moveback	tst.b	$60(a0)
 		bne.b	.movebackline
@@ -471,7 +474,7 @@ moveback	tst.b	$60(a0)
 .skip2		rts
 
 .movebackline	moveq	#0,d1
-		moveq	#0,d2		
+		moveq	#0,d2
 		move.b	loopsize,d1
 		move.w	mt_PatternPos,d2
 		lsl.w	#4,d1
@@ -480,35 +483,49 @@ moveback	tst.b	$60(a0)
 		bge.b	.skipadd
 		tst.b	mt_SongPos
 		beq.b	.skipall
-		sub.b	#1,mt_SongPos		
+		sub.b	#1,mt_SongPos
 .skipadd	and.w	#1024-1,d2
 		move.w	d2,mt_PatternPos
 .skipall	rts
 
-sortbpm		tst.w	sortbpmtog
-		bne.b	.desc
-		bsr	mi_SortBPMAsc
-		move.w	#1,sortbpmtog
-		bra	.done
-		
-.desc		bsr	mi_SortBPMDesc
+sortbpm
+		tst.w	sortbpmtog
+		beq.b	.desc
+
+		move.l	#0,-(sp)			; ascending
 		move.w	#0,sortbpmtog
-		
-.done		bsr	FS_DrawDir
+		bra .done
+
+.desc	move.l	#1,-(sp)			; descending
+		move.w	#1,sortbpmtog
+
+.done	move.l	#SORT_BPM,-(sp)		; sort by bpm
+
+		bsr	_pt1210_file_sort_list
+		add.l #8,sp
+
+		bsr	FS_DrawDir
 		rts
 
 sortbpmtog	dc.w	0
 
-sortfile	tst.w	sortfiletog
-		bne.b	.desc
-		bsr	mi_SortFileAsc
-		move.w	#1,sortfiletog
-		bra	.done
-		
-.desc		bsr	mi_SortFileDesc
+sortfile
+		tst.w	sortfiletog
+		beq.b	.desc
+
+		move.l	#0,-(sp)				; ascending
 		move.w	#0,sortfiletog
-		
-.done		bsr	FS_DrawDir
+		bra .done
+
+.desc	move.l	#1,-(sp)				; descending
+		move.w	#1,sortfiletog
+
+.done	move.l	#SORT_NAME,-(sp)		; sort by name
+
+		bsr	_pt1210_file_sort_list
+		add.l #8,sp
+
+		bsr	FS_DrawDir
 		rts
 
 sortfiletog	dc.w	0
@@ -519,14 +536,14 @@ quitme		tst.b	mt_Enabled
 .skip		rts
 
 quitmeplease	dc.w	0
-		
-		; key list 
+
+		; key list
 		; byte1 key code
 		; byte2 pressing type (0 = hold / 1 = hit /�2 = hold repeat)
 		; long word (function
 
 keylistptr	dc.l	keylistdir
-		
+
 keylistdj	dc.b	$5f,$1
 		dc.l	switch
 		dc.b	$4c,$02
@@ -674,7 +691,7 @@ keylistdir	dc.b	$5f,$01
 		dc.b	$ff
 
 		even
-		
+
 find0		move.b	#"0",d0
 		bra	hunt
 find1		move.b	#"1",d0
@@ -748,30 +765,35 @@ findY		move.b	#"Y",d0
 findZ		move.b	#"Z",d0
 		bra	hunt
 
-		nop
 
-hunt		bsr	mi_FindFirst
-		;clr.w	$100
-		cmp.w	#-1,d0
-		beq.b	.notfound
-		move.w	d0,FS_Current
-		moveq	#0,d3		; -- offset
 
-		moveq	#0,d1
-		move.w	_pt1210_file_count,d1
-		sub.w	d0,d1
-		cmp.w	#FS_ListMax,d1
-		bgt.b	.ok
+hunt		bsr	FindFirst
+			cmp.w	#-1,d0
+			beq.b	.notfound
+			clr.w	$100
 
-		move.w	#FS_ListMax,d2
-		sub.w	d1,d2
-		move.w	d2,d3
-		
-.ok		move.w	d3,FS_ListPos
-		bsr	FS_DrawDir
-		bsr	FS_Copper
-.notfound	rts
-		
+			sub.w	FS_Current,d0
+			move.w	d0,d2
+			bra		FS_Move
+.notfound			rts
+
+		; d0 = first char
+FindFirst	
+			moveq	#0,d2
+			lea		_pt1210_file_list,a0
+			move.w	_pt1210_file_count,d7
+			subq.w	#1,d7
+.huntloop	moveq	#0,d1
+			move.b	mi_Name(a0),d1
+.upper		cmp.b	d0,d1
+			beq.b	.found
+			lea		mi_Sizeof(a0),a0
+			addq.w	#1,d2
+			dbra	d7,.huntloop		
+			moveq	#-1,d2
+.found		move.l	d2,d0
+			rts
+
 
 setbpm		moveq	#0,d0
 		move.b	CIABPM,d0
