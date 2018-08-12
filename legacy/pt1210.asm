@@ -27,8 +27,10 @@ SW_Splash = 0		; Include splash screen
 ; Imports from C code
 	XREF _pt1210_file_gen_list
 	XREF _pt1210_file_read
-	XREF _pt1210_file_count
 	XREF _pt1210_file_list
+	XREF _pt1210_keyboard_enable_processing
+	XREF _current_screen
+	XREF _quit
 
 FONTWIDTH = 64
 
@@ -54,14 +56,6 @@ WAITBLIT	MACRO
 		bne.b	.\@
 		ENDM
 
-***************************************************
-*** SORT KEYS FOR FILE LIST				***
-***************************************************
-SORT_NAME = 0
-SORT_FILE_NAME = 1
-SORT_BPM = 2
-SORT_SIZE = 3
-
 *******************************************
 *** DATA AREA		FAST		***
 *******************************************
@@ -81,7 +75,7 @@ _pt1210_gfx_vblank_server_proc
 	move.l	#$dff000,a6					; Re-load copper lists as OS can trash them
 	move.l	#_hud_cop,cop1lc(a6)
 
-	tst.w	currentscreen
+	tst.l	_current_screen
 	bne.b	.dj
 	move.l	#_select_cop,cop2lc(a6)
 	bra .nodj
@@ -121,19 +115,19 @@ _MAIN
 		bsr	splashkill
 		endc
 
-		moveq	#1,d0
-		bsr	FS_DrawType
-
+		moveq	#0,d0
+		bsr	_FS_DrawType
 
 		movem.l	d0-a6,-(sp)
 
-		bsr	FS_DrawDir
+		moveq	#0,d5
+		bsr	_FS_DrawDir
 		bsr	FS_Copper
 		bsr	PT_Prep
 
 		bsr	UI_DrawChip
 
-		bsr	kbinit
+		;bsr	kbinit
 
 		move.l	VBRptr,a0
 		lea	$dff000,a6
@@ -250,45 +244,57 @@ _MAIN
 
 
 .lp
-		tst.b	FS_DoLoad
+		tst.b	_pt1210_fs_load_pending
 		beq.b	.skipload
-		clr.b	FS_DoLoad
-		bsr	kbrem
+
+		; Disable keyboard processing
+		move.l #0,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
+
 		bsr	FS_LoadTune
-		bsr	kbinit
+
+		; Re-enable keyboard processing
+		move.l #1,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
 .skipload
 
-		tst.b	FS_DoScan
+		tst.b	_pt1210_fs_rescan_pending
 		beq.b	.skipscan
-		clr.b	FS_DoScan
-		bsr	kbrem
+
+		move.l #0,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
+
 		bsr	FS_Rescan
-		bsr	kbinit
+
+		move.l #1,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
 .skipscan
 
 
 
-		tst.w	quitmeplease
+		tst.b	_quit
 		beq.b	.lp
 
 ;		btst    #6,$bfe001
 ;	        bne.s   .lp
 
 		jsr	CIA_RemCIAInt
-	        jsr	mt_end
+		jsr	_mt_end
 		bsr	unallocchip
 
-		bsr	kbrem
+		;bsr	kbrem
 
 	        movem.l	(sp)+,d0-a6
 	    	rts
 
-		include keyboard.asm
 		include memory.asm
 		include vblank_int.asm
 		include time.asm
 		include ui.asm
-		include control.asm
 		include pattern_render.asm
 		include file_selector.asm
 		include scope.asm

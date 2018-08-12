@@ -198,7 +198,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	else
 		strncpy(list_entry->name, fib->fib_FileName, MAX_FILE_NAME_DISPLAY);
 
-	/* clear display string with white space for text display */
+	/* Clear display string with white space for text display */
 	pt1210_display_name(list_entry->name, MAX_FILE_NAME_DISPLAY);
 
 	/* Store file size */
@@ -249,4 +249,18 @@ void pt1210_file_read_error()
 	/* Fault(error, "", FS_LoadErrBuff, sizeof(FS_LoadErrBuff)); */
 
 	FS_DrawLoadError(error);
+}
+
+bool pt1210_file_find_first(char key, size_t* index)
+{
+	for (size_t i = 0; i < ARRAY_LENGTH(pt1210_file_list); ++i)
+	{
+		if (pt1210_file_list[i].name[0] == key)
+		{
+			*index = i;
+			return true;
+		}
+	}
+
+	return false;
 }

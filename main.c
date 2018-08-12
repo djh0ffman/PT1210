@@ -18,8 +18,10 @@
 #include <stdlib.h>
 
 #include "audiodevice.h"
+#include "consoledevice.h"
 #include "filesystem.h"
 #include "graphics.h"
+#include "inputdevice.h"
 #include "libraries.h"
 
 void MAIN();
@@ -28,6 +30,17 @@ int main(int argc, char** argv)
 {
 	/* Open system libraries */
 	if (!pt1210_libs_open())
+		return EXIT_FAILURE;
+
+	/* Attempt to open console device */
+	if (!pt1210_console_open_device())
+		return EXIT_FAILURE;
+
+	/* Attempt to open input device and install handler */
+	if (!pt1210_input_open_device())
+		return EXIT_FAILURE;
+
+	if (!pt1210_input_install_handler())
 		return EXIT_FAILURE;
 
 	/* Attempt to allocate audio device */
@@ -52,6 +65,9 @@ int main(int argc, char** argv)
 	pt1210_gfx_remove_vblank_server();
 	pt1210_gfx_close_screen();
 	pt1210_audio_close_device();
+	pt1210_input_remove_handler();
+	pt1210_input_close_device();
+	pt1210_console_close_device();
 	pt1210_libs_close();
 
 	return EXIT_SUCCESS;

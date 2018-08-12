@@ -44,7 +44,7 @@ ScopeInit	lea	VolCalc(pc),a0
 		rts
 
 Scope		bsr	ScopeClr
-		tst.b	mt_Enabled
+		tst.b	_mt_Enabled
 		beq.b	ScopeStop
 		bsr	ScopeD
 		bsr.b	ScopeBlitFill
@@ -138,7 +138,7 @@ ScopeShow	move.l	ScopePtr(pc),d0		; load plane to copper
 		move.w	d0,2(a0)
 		rts
 
-ScopeD	move.w	chantog,d4
+ScopeD	move.w	_channel_toggle,d4
 	LEA	mt_chan1temp(pc),A0
 	LEA	ScopeInfo(pc),A2
 	LEA	ScopeSamInfo(pc),A1

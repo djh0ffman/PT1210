@@ -47,6 +47,12 @@
 ;
 ;------------------------------------------------------------------------------
 
+; Exports to C code
+	XDEF _CIABPM
+	XDEF _OFFBPM
+	XDEF _BPMFINE
+	XDEF _NUDGE
+
 ; Constants. Feel free to change if you know what you're doing.
 
 CIA_CIABase	=	$bfd000
@@ -65,7 +71,7 @@ CIA_AddCIAInt	move.l	d0,CIA_CIASeed
 		move.b	d0,CIA_TimerLo
 		lsr.w	#8,d0
 		move.b	d0,CIA_TimerHi
-	
+
 		move.l	CIA_VBR,a0
 		move.l	CIA_CIAVector(a0),CIA_OldIntCode
 		move.l	#CIA_IntCode,CIA_CIAVector(a0); Set interrupt vector
@@ -122,7 +128,7 @@ CIA_IntCode	movem.l	d0-a6,-(sp)
 		or.w	#%00001011,d0
 		move.b	d0,$e00(a0)		; ...tut & kj�r!
 
-		tst.b	mt_Enabled
+		tst.b	_mt_Enabled
 		beq.b	.dontplay
 		jsr	CIA_CIAInt
 
@@ -138,10 +144,10 @@ CIA_IntCode	movem.l	d0-a6,-(sp)
 ;------------------------------------------------------------------------------
 CIA_SetBPM	movem.l	d0-a6,-(sp)
 		and.l	#$ff,d0
-		lea	CIABPM(pc),a0
+		lea	_CIABPM(pc),a0
 		move.b	d0,(a0)
-		add.w	OFFBPM(pc),d0
-		add.w	NUDGE(pc),d0
+		add.w	_OFFBPM(pc),d0
+		add.w	_NUDGE(pc),d0
 		;cmp.w	CURBPM(pc),d0
 		;beq.b	CIA_SkipBPM
 		move.w	d0,CURBPM
@@ -158,12 +164,12 @@ CIA_SetBPM	movem.l	d0-a6,-(sp)
 
 		lsl.l	#4,d0	; sift left
 		lsl.l	#4,d1
-		
-		or.b	BPMFINE(pc),d0
+
+		or.b	_BPMFINE(pc),d0
 		cmp.w	CURBPM(pc),d0
 		beq.b	CIA_SkipBPM
 		move.w	d0,ACTUALBPM
-		
+
 		divu.w	d0,d1
 
 		move.b	d1,CIA_TimerLo
@@ -177,28 +183,28 @@ CIA_SkipBPM	movem.l	(sp)+,d0-a6
 ; ************* CIA Int
 
 CIA_CIAInt	movem.l	d0-a6,-(sp)
-		tst.b	mt_TuneEnd
+		tst.b	_mt_TuneEnd
 		bne.b	.skip
 		jsr	mt_music
-		
-		tst.b	repitch
+
+		tst.b	_repitch_enabled
 		beq.b	.skip
 		jsr	mt_retune
 
-.skip		tst.b	mt_TuneEnd
+.skip		tst.b	_mt_TuneEnd
 		beq.b	.skip2
-		jsr	mt_end
-		clr.b	mt_Enabled
-		clr.b	mt_TuneEnd
+		jsr	_mt_end
+		clr.b	_mt_Enabled
+		clr.b	_mt_TuneEnd
 .skip2		movem.l	(sp)+,d0-a6
 		rts
 
 CURBPM		dc.w	0
-OFFBPM		dc.w	0
-NUDGE		dc.w	0
+_OFFBPM		dc.w	0
+_NUDGE		dc.w	0
 ACTUALBPM	dc.w	0
-BPMFINE		dc.b	0
-CIABPM		dc.b	0
+_BPMFINE		dc.b	0
+_CIABPM		dc.b	0
 FRAMES		dc.w	0
 		even
 

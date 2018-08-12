@@ -39,6 +39,7 @@
 
 /* Offsets into the Protracker header */
 #define PT_SMP_31_NAME_OFFSET	920
+#define PT_SONG_LENGTH_OFFSET	950
 #define PT_POSITION_OFFSET		952
 #define PT_MAGIC_OFFSET			1080
 #define PT_PATTERN_OFFSET		1084
@@ -75,5 +76,6 @@ void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
 void pt1210_file_read_error();
+bool pt1210_file_find_first(char key, size_t* index);
 
 #endif /* FILE_SYSTEM_H */

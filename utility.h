@@ -21,4 +21,7 @@
 #define REG(REGISTER, PARAMETER) __reg(#REGISTER) PARAMETER
 #endif
 
+/* Macro for determining the length of an array at compile time */
+#define ARRAY_LENGTH(ARRAY) (sizeof(ARRAY) / sizeof(*ARRAY))
+
 #endif /* UTILITY_H */
