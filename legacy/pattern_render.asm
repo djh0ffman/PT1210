@@ -126,18 +126,19 @@ PT_DrawPat2	tst.l	mt_SongDataPtr					; test song pointer, blank then quit.
 			move.l	d0,d1
 			swap	d1
 			and.w	#$fff,d1						; d1 = note
-			beq.b	.skipnote						; result of and means no period value found so skip
+			beq		.skipnote						; result of and means no period value found so skip
 			
-			move.w	#36-1,d6						; note loop counter
 			lea		PT_Notes,a1						; ascii note look up
-.notefind	cmp.w	(a1)+,d1						; TODO: maybe optimise thie with a look up
-			beq.b	.gotnote
-			lea		4(a1),a1
-			dbra	d6,.notefind		
+
+													; rolled out loop to save some cycles
+.notefind	rept	36								
+			cmp.w	(a1)+,d1						; TODO: maybe optimise thie with a look up
+			beq		.gotnote
+			addq.l	#4,a1
+			endr
 			bra		.skipnote
 		
-.gotnote											; note text now in A1
-			lea		1(a6),a4
+.gotnote	lea		1(a6),a4						; note text now in A1
 
 			moveq	#3-1,d5							; 3 chars per note
 .nextlet	moveq	#0,d1
