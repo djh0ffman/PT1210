@@ -18,9 +18,8 @@
 ***********************************
 
 PT_FontWidth	= 64
-PT_FontHeight	= 5
+PT_FontHeight	= 5			; this is never used but our fint is 5 pixels high
 PT_VPos			= 100
-PT_HPos			= 0	; byte!
 PT_LineHeight	= 7
 PT_Offset		= 10
 
@@ -145,7 +144,7 @@ PT_DrawPat2	tst.l	mt_SongDataPtr					; test song pointer, blank then quit.
 			beq		.gotnote
 			addq.l	#4,a1
 			endr
-			bra		.skipnote
+			bra.b	.skipnote
 		
 .gotnote	lea		1(a6),a4						; note text now in A1
 
@@ -193,11 +192,11 @@ PT_DrawPat2	tst.l	mt_SongDataPtr					; test song pointer, blank then quit.
 			lea		-1(a4),a4		
 			dbra	d6,.fxloop
 		
-.skipfx		lea		10(a6),a6							; move to next 8 chars on the place
-			dbra	d7,.chanloop
+.skipfx		lea		10(a6),a6							; move to next 8 chars on the plane
+			dbra	d7,.chanloop						; loop to next channel
 
 			lea		(PT_LineHeight-1)*40(a6),a6			; move to next char line on the plane
-			dbra	d4,.lineloop
+			dbra	d4,.lineloop						; loop to next pattern line
 .quit		;move.w	#$0f0,$dff180						; terrible mechanism for seeing how quick it is
 			rts
 				
@@ -215,6 +214,27 @@ PT_PatPos2	move.l	PT_PlanePtr(pc),d0
 			swap	d0
 			move.w	d0,2(a0)
 
+			rts
+
+
+ST_Type		lea		_font_small,a5
+
+.nextline	moveq	#40-1,d4				; character line counter
+
+.nextchar	moveq	#0,d0
+			move.b	(a0)+,d0
+			sub.b	#$20,d0
+			lea		(a5,d0.w),a2
+		
+			lea		(a1),a3
+
+.charloop	PT_CharPlot a2,a3,40
+
+			addq.l	#1,a1
+			dbra	d4,.nextchar
+			
+			lea		(40*6)(a1),a1			; move to next character line on the plane
+			dbra	d7,.nextline
 			rts
 
 PT_PlanePtr	dc.l	_pattern1
@@ -303,23 +323,3 @@ PT_BaseLine	dc.b	" ---00000  ---00000  ---00000  ---00000 "
 
 PT_PrevPat	dc.b	-1
 			even
-
-ST_Type		lea		_font_small,a5
-
-.nextline	moveq	#40-1,d4				; character line counter
-
-.nextchar	moveq	#0,d0
-			move.b	(a0)+,d0
-			sub.b	#$20,d0
-			lea		(a5,d0.w),a2
-		
-			lea		(a1),a3
-
-.charloop	PT_CharPlot a2,a3,40
-
-			addq.l	#1,a1
-			dbra	d4,.nextchar
-			
-			lea		(40*6)(a1),a1			; move to next character line on the plane
-			dbra	d7,.nextline
-			rts
