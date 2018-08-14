@@ -25,9 +25,9 @@ PT_Offset		= 10
 
 
 			; marco for plotting a character
-			; 1 = font source
-			; 2 = plane dest
-			; 3 = plane move
+			; 1 = font source (address register)
+			; 2 = plane dest (address register)
+			; 3 = plane move (constant)
 PT_CharPlot	MACRO
 			move.b	(\1),(\2)
 			lea		PT_FontWidth(\1),\1
