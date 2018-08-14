@@ -137,7 +137,7 @@ PT_DrawPat2	tst.l	mt_SongDataPtr					; test song pointer, blank then quit.
 			and.w	#$fff,d1						; d1 = note
 			beq		.skipnote						; result of and means no period value found so skip
 			
-			lea		PT_Notes,a1						; ascii note look up
+			lea		PT_Notes(pc),a1					; ascii note look up
 
 													; rolled out loop to save some cycles
 .notefind	rept	36								
@@ -198,7 +198,8 @@ PT_DrawPat2	tst.l	mt_SongDataPtr					; test song pointer, blank then quit.
 
 			lea		(PT_LineHeight-1)*40(a6),a6			; move to next char line on the plane
 			dbra	d4,.lineloop
-.quit		rts
+.quit		;move.w	#$0f0,$dff180						; terrible mechanism for seeing how quick it is
+			rts
 				
 
 			; pushes plane pointers in copper to follow pattern data
