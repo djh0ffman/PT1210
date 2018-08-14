@@ -24,8 +24,29 @@ PT_HPos			= 0	; byte!
 PT_LineHeight	= 7
 PT_Offset		= 10
 
+
+			; marco for plotting a character
+			; 1 = font source
+			; 2 = plane dest
+			; 3 = plane move
+PT_CharPlot	MACRO
+			move.b	(\1),(\2)
+			lea		PT_FontWidth(\1),\1
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			lea		PT_FontWidth(\1),\1
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			lea		PT_FontWidth(\1),\1
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			lea		PT_FontWidth(\1),\1
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			ENDM
+
 			; creates the two template patterns
-			; to be called in the init phase
+			; needs to be called in the init phase
 PT_Prep		lea		PT_BaseLine,a0
 			lea		_basepattern,a1
 		
@@ -58,19 +79,7 @@ PT_Prep		lea		PT_BaseLine,a0
 		
 PT_CharLoop	move.l	a0,a2
 			move.l	a1,a3
-.charloop	move.b	(a2),(a3)
-			lea		PT_FontWidth(a2),a2
-			lea		16(a3),a3
-			move.b	(a2),(a3)
-			lea		PT_FontWidth(a2),a2
-			lea		16(a3),a3
-			move.b	(a2),(a3)
-			lea		PT_FontWidth(a2),a2
-			lea		16(a3),a3
-			move.b	(a2),(a3)
-			lea		PT_FontWidth(a2),a2
-			lea		16(a3),a3
-			move.b	(a2),(a3)
+.charloop	PT_CharPlot a2,a3,16
 
 			addq.l	#1,a0
 			addq.l	#1,a1
@@ -147,20 +156,7 @@ PT_DrawPat2	tst.l	mt_SongDataPtr					; test song pointer, blank then quit.
 			lea		(a5,d1.w),a3					; a3 now at font..
 			move.l	a4,a2
 
-.charloop	move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
-
+.charloop	PT_CharPlot a3,a2,40
 			addq.l	#1,a4
 			dbra	d5,.nextlet
 
@@ -189,19 +185,7 @@ PT_DrawPat2	tst.l	mt_SongDataPtr					; test song pointer, blank then quit.
 			lea		(a5,d2.w),a3
 
 			move.l	a4,a2
-			move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
-			lea		PT_FontWidth(a3),a3
-			lea		40(a2),a2
-			move.b	(a3),(a2)
+			PT_CharPlot	a3,a2,40
 
 .skipzero	ror.l	#4,d0
 			tst.w	d0
@@ -330,19 +314,7 @@ ST_Type		lea		_font_small,a5
 		
 			lea		(a1),a3
 
-.charloop	move.b	(a2),(a3)
-			lea		FONTWIDTH(a2),a2
-			lea		40(a3),a3
-			move.b	(a2),(a3)
-			lea		FONTWIDTH(a2),a2
-			lea		40(a3),a3
-			move.b	(a2),(a3)
-			lea		FONTWIDTH(a2),a2
-			lea		40(a3),a3
-			move.b	(a2),(a3)
-			lea		FONTWIDTH(a2),a2
-			lea		40(a3),a3
-			move.b	(a2),(a3)
+.charloop	PT_CharPlot a2,a3,40
 
 			addq.l	#1,a1
 			dbra	d4,.nextchar
