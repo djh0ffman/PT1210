@@ -19,13 +19,14 @@
 #include <proto/dos.h>
 
 #include "filesystem.h"
+#include "utility.h"
 
 file_list_t pt1210_file_list[MAX_FILE_COUNT];
 uint16_t pt1210_file_count;
 
 /* Imported from ASM code */
 extern char FS_LoadErrBuff[80];
-void FS_DrawLoadError(__reg("d0") int32_t error_code);
+void FS_DrawLoadError(REG(d0, int32_t error_code));
 
 /* A generic comparator function pointer type */
 typedef bool(*comparator_t)(const void*, const void*);

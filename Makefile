@@ -34,7 +34,7 @@ pt1210.o: $(wildcard legacy/*.asm)
 audiodevice.o: audiodevice.c audiodevice.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-filesystem.o: filesystem.c filesystem.h
+filesystem.o: filesystem.c filesystem.h utility.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 main.o: main.c
