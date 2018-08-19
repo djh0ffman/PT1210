@@ -16,6 +16,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#include <proto/dos.h>
 
 #define MAX_FILE_NAME_LENGTH 	108
 #define MAX_FILE_NAME_DISPLAY	40
@@ -61,14 +64,13 @@ typedef struct {
 /* Keys for sorting the file list */
 typedef enum
 {
-	NAME,
-	FILE_NAME,
-	BPM,
-	SIZE
+	SORT_DISPLAY_NAME,
+	SORT_FILE_NAME,
+	SORT_BPM,
 } file_sort_key_t;
 
 void pt1210_file_gen_list();
-void pt1210_display_name(char *input, size_t count);
+void pt1210_display_name(char* input, size_t count);
 void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);

@@ -12,11 +12,7 @@
  */
 
 #include <ctype.h>
-#include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
-
-#include <proto/dos.h>
 
 #include "filesystem.h"
 #include "utility.h"
@@ -29,30 +25,31 @@ extern char FS_LoadErrBuff[80];
 void FS_DrawLoadError(REG(d0, int32_t error_code));
 
 /* A generic comparator function pointer type */
-typedef bool(*comparator_t)(const void*, const void*);
+typedef int (*comparator_t)(const void*, const void*);
+
+/* Flag to swap comparator operands (for reversing sort) */
+static bool cmp_swap = false;
 
 /* Comparator functions for sorting each of the file structure fields */
-static inline bool pt1210_file_cmp_bpm(const void* a, const void* b)
+static int cmp_bpm(const void* a, const void* b)
 {
-	return ((file_list_t*)a)->bpm < ((file_list_t*)b)->bpm;
+	const file_list_t* lhs = cmp_swap ? b : a;
+	const file_list_t* rhs = cmp_swap ? a : b;
+	return lhs->bpm - rhs->bpm;
 }
 
-static inline bool pt1210_file_cmp_file_name(const void* a, const void* b)
+static int cmp_file_name(const void* a, const void* b)
 {
-	return strncmp(((file_list_t*)a)->file_name, ((file_list_t*)b)->file_name, MAX_FILE_NAME_LENGTH) < 0;
+	const file_list_t* lhs = cmp_swap ? b : a;
+	const file_list_t* rhs = cmp_swap ? a : b;
+	return strncmp(lhs->file_name, rhs->file_name, MAX_FILE_NAME_LENGTH);
 }
 
-static inline bool pt1210_file_cmp_name(const void* a, const void* b)
+static int cmp_name(const void* a, const void* b)
 {
-	return strncmp(((file_list_t*)a)->name, ((file_list_t*)b)->name, MAX_FILE_NAME_DISPLAY) < 0;
-}
-
-/* Performs an in-place swap of two file list entries */
-static inline void pt1210_file_swap(file_list_t* a, file_list_t* b)
-{
-	file_list_t temp = *a;
-	*a = *b;
-	*b = temp;
+	const file_list_t* lhs = cmp_swap ? b : a;
+	const file_list_t* rhs = cmp_swap ? a : b;
+	return strncmp(lhs->name, rhs->name, MAX_FILE_NAME_DISPLAY);
 }
 
 void pt1210_file_gen_list()
@@ -84,7 +81,7 @@ void pt1210_file_gen_list()
 }
 
 /* Function for white spacing and uppercase display name */
-void pt1210_display_name(char *input, size_t count)
+void pt1210_display_name(char* input, size_t count)
 {
 	for (int i = 0; i < count; i++)
 	{
@@ -96,33 +93,6 @@ void pt1210_display_name(char *input, size_t count)
 	}
 }
 
-static int partition(int low, int high, comparator_t comparator, bool descending)
-{
-	file_list_t* pivot = &pt1210_file_list[high];
-	int i = low - 1;
-	for (int j = low; j <= high - 1; ++j)
-	{
-		if (comparator(&pt1210_file_list[j], pivot) ^ descending)
-		{
-			++i;
-			pt1210_file_swap(&pt1210_file_list[i], &pt1210_file_list[j]);
-		}
-	}
-
-	pt1210_file_swap(&pt1210_file_list[i + 1], &pt1210_file_list[high]);
-	return i + 1;
-}
-
-static void quicksort(int low, int high, comparator_t comparator, bool descending)
-{
-	if (low < high)
-	{
-		size_t p = partition(low, high, comparator, descending);
-		quicksort(low, p - 1, comparator, descending);
-		quicksort(p + 1, high, comparator, descending);
-	}
-}
-
 void pt1210_file_sort_list(file_sort_key_t key, bool descending)
 {
 	if (pt1210_file_count <= 1)
@@ -130,16 +100,18 @@ void pt1210_file_sort_list(file_sort_key_t key, bool descending)
 
 	/* Function pointer to the comparator we want to use */
 	comparator_t comparator;
+	cmp_swap = descending;
 
 	switch (key)
 	{
-		case NAME: 			comparator = pt1210_file_cmp_name;			break;
-		case FILE_NAME:		comparator = pt1210_file_cmp_file_name;		break;
-		case BPM:			comparator = pt1210_file_cmp_bpm;			break;
-		default:			return;
+		case SORT_DISPLAY_NAME: 	comparator = cmp_name;			break;
+		case SORT_FILE_NAME:		comparator = cmp_file_name;		break;
+		case SORT_BPM:				comparator = cmp_bpm;			break;
+		default:					return;
 	}
 
-	quicksort(0, pt1210_file_count - 1, comparator, descending);
+	/* Perform quicksort */
+	qsort(pt1210_file_list, pt1210_file_count, sizeof(*pt1210_file_list), comparator);
 }
 
 void pt1210_file_check_module(struct FileInfoBlock* fib)
@@ -214,7 +186,10 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	/* Store file name */
 	strncpy(list_entry->file_name, fib->fib_FileName, MAX_FILE_NAME_LENGTH);
 
-	mod_tag = *(unsigned int*)fib->fib_FileName;
+	mod_tag = fib->fib_FileName[0] << 24 |
+			  fib->fib_FileName[1] << 16 |
+			  fib->fib_FileName[2] << 8 |
+			  fib->fib_FileName[3];
 	mod_tag &= FS_MOD_PREFIX_UPPER;
 
 	/* Create display name removing mod. prefix */
