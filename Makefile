@@ -1,6 +1,6 @@
 SOURCES :=	action.c audiodevice.c consoledevice.c filesystem.c \
-			graphics.c input.c inputdevice.c keyboard.c libraries.c \
-			main.c
+			gameport.c graphics.c input.c inputdevice.c keyboard.c \
+			libraries.c main.c
 
 OUTPUT_EXE := bin/pt1210.exe
 OUTPUT_ADF := bin/pt1210.adf

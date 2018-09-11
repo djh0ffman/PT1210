@@ -16,6 +16,7 @@
 
 #include "action.h"
 #include "filesystem.h"
+#include "gameport.h"
 #include "keyboard.h"
 #include "utility.h"
 
@@ -84,6 +85,7 @@ void pt1210_action_switch_screen()
 {
 	current_screen = current_screen == SCREEN_FILE_SELECTOR ? SCREEN_DJ : SCREEN_FILE_SELECTOR;
 	pt1210_keyboard_switch_binding_list(current_screen);
+	pt1210_gameport_switch_binding_list(current_screen);
 }
 
 void pt1210_action_pitch_up()

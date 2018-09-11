@@ -20,6 +20,7 @@
 #include "audiodevice.h"
 #include "consoledevice.h"
 #include "filesystem.h"
+#include "gameport.h"
 #include "graphics.h"
 #include "inputdevice.h"
 #include "libraries.h"
@@ -43,6 +44,9 @@ int main(int argc, char** argv)
 	if (!pt1210_input_install_handler())
 		return EXIT_FAILURE;
 
+	/* Attempt to open gameport */
+	pt1210_gameport_allocate();
+
 	/* Attempt to allocate audio device */
 	if (!pt1210_audio_open_device())
 		return EXIT_FAILURE;
@@ -65,6 +69,7 @@ int main(int argc, char** argv)
 	pt1210_gfx_remove_vblank_server();
 	pt1210_gfx_close_screen();
 	pt1210_audio_close_device();
+	pt1210_gameport_free();
 	pt1210_input_remove_handler();
 	pt1210_input_close_device();
 	pt1210_console_close_device();

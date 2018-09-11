@@ -2,6 +2,7 @@
 
 		; Imports from C code
 		XREF _pt1210_keyboard_process_keys
+		XREF _pt1210_gameport_process_buttons
 
 VBInt	tst.b	VBDisable
 		bne.b	.quit
@@ -11,6 +12,7 @@ VBInt	tst.b	VBDisable
 
 		movem.l a0-d6,-(sp)
 		jsr	_pt1210_keyboard_process_keys
+		jsr _pt1210_gameport_process_buttons
 		movem.l (sp)+,a0-d6
 
 		moveq	#0,d0
