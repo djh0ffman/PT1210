@@ -42,7 +42,7 @@ NDK_INCLUDE_PATH := $(NDK)/Include/include_h
 NDK_LINKER_PATH := $(NDK)/Include/linker_libs
 
 ASFLAGS += -I$(NDK)/Include/include_i
-CFLAGS += +vc.config -lamiga -c99 -I$(VBCC_INCLUDE_PATH) -I$(NDK_INCLUDE_PATH) -L$(NDK_LINKER_PATH)
+CFLAGS += +vc.config -lamiga -c99 -Iinclude -I$(VBCC_INCLUDE_PATH) -I$(NDK_INCLUDE_PATH) -L$(NDK_LINKER_PATH)
 
 else
 # GCC compiler setup
@@ -53,7 +53,7 @@ endif
 
 CC := m68k-amigaos-gcc
 ASFLAGS += -I$(AMIGA_GCC)/m68k-amigaos/ndk-include
-CFLAGS += -mcrt=nix13 -std=c99 -Wall -Werror -Wno-pointer-sign
+CFLAGS += -mcrt=nix13 -std=c99 -Wall -Werror -Wno-pointer-sign -Iinclude
 
 # Optimized CFLAGS
 ifndef DEBUG
