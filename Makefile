@@ -19,7 +19,7 @@ BUILD_DIR = build
 
 # Assembler flags
 AS := vasmm68k_mot
-ASFLAGS += -m68000 -Fhunk -x -Iinclude -quiet
+ASFLAGS += -m68000 -Fhunk -x -quiet
 
 # Define CC=vc to compile with VBCC
 ifeq ($(CC),vc)
@@ -41,11 +41,18 @@ VBCC_INCLUDE_PATH := $(VBCC)/targets/m68k-kick13/include
 NDK_INCLUDE_PATH := $(NDK)/Include/include_h
 NDK_LINKER_PATH := $(NDK)/Include/linker_libs
 
+ASFLAGS += -I$(NDK)/Include/include_i
 CFLAGS += +vc.config -lamiga -c99 -I$(VBCC_INCLUDE_PATH) -I$(NDK_INCLUDE_PATH) -L$(NDK_LINKER_PATH)
 
 else
 # GCC compiler setup
+# The following variable should be either passed to 'make' or set as an environment variable
+ifndef AMIGA_GCC
+$(error AMIGA_GCC is not set; please set AMIGA_GCC to the root of your Amiga GCC directory)
+endif
+
 CC := m68k-amigaos-gcc
+ASFLAGS += -I$(AMIGA_GCC)/m68k-amigaos/ndk-include
 CFLAGS += -mcrt=nix13 -std=c99 -Wall -Werror -Wno-pointer-sign
 
 # Optimized CFLAGS
