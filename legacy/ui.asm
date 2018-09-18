@@ -223,7 +223,7 @@ UI_TrackPosPix	dcb.w	129,0
 UI_TextBits	movem.l	d0-a6,-(sp)
 		lea	_hud,a6		; screen pointer
 
-UI_BPMFine	lea	_BPMFINE,a3
+UI_BPMFine	lea	_pt1210_cia_fine_offset,a3
 		lea	UI_BPMFINE,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -232,10 +232,10 @@ UI_BPMFine	lea	_BPMFINE,a3
 		move.b	d0,(a4)
 
 
-		move.w	ACTUALBPM,d0
+		move.w	_pt1210_cia_actual_bpm,d0
 		lsl.w	#4,d0
 
-		move.w	FRAMES,d1
+		move.w	_pt1210_cia_frames_per_beat,d1
 		beq.b	.noframe
 		mulu	#24,d0
 		divu	d1,d0
@@ -253,7 +253,7 @@ UI_BPMFine	lea	_BPMFINE,a3
 
 UI_BPMDiff	lea	UI_BPMCent,a0
 		move.b	#"+",(a0)
-		lea	ACTUALBPM,a3
+		lea	_pt1210_cia_actual_bpm,a3
 		lea	UI_ActualBPM,a4
 		moveq	#0,d0
 		move.w	(a3),d0
@@ -262,7 +262,7 @@ UI_BPMDiff	lea	UI_BPMCent,a0
 		move.w	d0,(a4)
 
  		moveq	#0,d1
-		move.b	_CIABPM,d1
+		move.b	_pt1210_cia_base_bpm,d1
 		lsl.w	#4,d1
 
 		tst.w	d0
@@ -293,7 +293,7 @@ UI_BPMDiff	lea	UI_BPMCent,a0
 .skip
 
 
-UI_TrackBPM	lea	_CIABPM,a3
+UI_TrackBPM	lea	_pt1210_cia_base_bpm,a3
 		lea	UI_BPM,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -932,17 +932,17 @@ UI_ChanDraw	lea	_track,a0
 		lea	_font_digi,a1
 
 
-UI_BPMDrawDigi	lea	CURBPM,a3
+UI_BPMDrawDigi	lea	_pt1210_cia_adjusted_bpm,a3
 		lea	UI_CurBPM,a4
 		move.w	(a3),d0
 		cmp.w	(a4),d0
 		beq.b	.skip
 		move.w	d0,(a4)
 
-		move.w	FRAMES,d1
+		move.w	_pt1210_cia_frames_per_beat,d1
 		beq.b	.skipframe
 
-		move.w	ACTUALBPM,d0
+		move.w	_pt1210_cia_actual_bpm,d0
 		muls	#24,d0
 		divs	d1,d0
 		swap	d0

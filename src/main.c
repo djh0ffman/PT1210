@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include "audiodevice.h"
+#include "cia.h"
 #include "consoledevice.h"
 #include "filesystem.h"
 #include "gameport.h"
@@ -51,6 +52,10 @@ int main(int argc, char** argv)
 	if (!pt1210_audio_open_device())
 		return EXIT_FAILURE;
 
+	/* Attempt to allocate CIA timer */
+	if (!pt1210_cia_allocate_timer())
+		return EXIT_FAILURE;
+
 	/* Attempt to open a custom Intuition screen */
 	if (!pt1210_gfx_open_screen())
 		return EXIT_FAILURE;
@@ -62,12 +67,18 @@ int main(int argc, char** argv)
 	pt1210_file_gen_list();
 	pt1210_file_sort_list(SORT_DISPLAY_NAME, false);
 
+	/* Start timer interrupt */
+	pt1210_cia_start_timer();
+
 	/* Jump into ASM */
 	MAIN();
+
+	pt1210_cia_stop_timer();
 
 	/* Clean up */
 	pt1210_gfx_remove_vblank_server();
 	pt1210_gfx_close_screen();
+	pt1210_cia_free_timer();
 	pt1210_audio_close_device();
 	pt1210_gameport_free();
 	pt1210_input_remove_handler();

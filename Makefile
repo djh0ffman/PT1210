@@ -1,4 +1,4 @@
-SOURCES :=	action.c audiodevice.c consoledevice.c filesystem.c \
+SOURCES :=	action.c audiodevice.c cia.c consoledevice.c filesystem.c \
 			gameport.c graphics.c input.c inputdevice.c keyboard.c \
 			libraries.c main.c
 

@@ -241,15 +241,11 @@ FS_Rescan	movem.l	d0-a6,-(sp)
 			bsr	FS_Clear
 			bsr	FS_CopperClr
 
-			bsr	CIA_RemCIAInt
-			move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
+			;bsr	CIA_RemCIAInt
+			;move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
 			jsr	_pt1210_file_gen_list
-			move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
-
-			move.l	VBRptr,a0
-			move.l	#1773447,d0
-			bsr	CIA_AddCIAInt
+			;move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
 			bsr	_FS_DrawDir
 			bsr	FS_Copper
@@ -270,7 +266,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 
 			jsr	ScopeStop
 
-			move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
+			;move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
 			bsr	unallocchip
 
@@ -280,7 +276,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 			lea		_pt1210_file_list,a0
 			add.l	d0,a0
 			move.l	mi_FileSize(a0),memsize
-			move.w	mi_Frames(a0),FRAMES
+			move.w	mi_Frames(a0),_pt1210_cia_frames_per_beat
 			lea		mi_FileName(a0),a0
 			move.l	a0,a6
 			tst.l	memsize
@@ -312,7 +308,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 			move.b	#1,_mt_Enabled
 
 .quit		clr.b	_pt1210_fs_load_pending
-			move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
+			;move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 			clr.b	VBDisable
 			movem.l	(sp)+,d0-a6
 			rts
@@ -326,10 +322,10 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 
 
 
-FS_Reset	move.b	#125,_CIABPM
-			;clr.w	FRAMES
-			clr.w	_OFFBPM
-			clr.b	_BPMFINE
+FS_Reset	move.b	#125,_pt1210_cia_base_bpm
+			;clr.w	_pt1210_cia_frames_per_beat
+			clr.w	_pt1210_cia_offset_bpm
+			clr.b	_pt1210_cia_fine_offset
 			move.w	#%0000000000001111,_channel_toggle
 
 			move.b #4,_loop_size

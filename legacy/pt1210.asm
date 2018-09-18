@@ -32,6 +32,15 @@ SW_Splash = 0		; Include splash screen
 	XREF _current_screen
 	XREF _quit
 
+	XREF _pt1210_cia_set_bpm
+	XREF _pt1210_cia_base_bpm
+	XREF _pt1210_cia_offset_bpm
+	XREF _pt1210_cia_fine_offset
+	XREF _pt1210_cia_nudge_bpm
+	XREF _pt1210_cia_adjusted_bpm
+	XREF _pt1210_cia_actual_bpm
+	XREF _pt1210_cia_frames_per_beat
+
 FONTWIDTH = 64
 
 TIMERSET	= %1100000000001000
@@ -61,7 +70,6 @@ WAITBLIT	MACRO
 *******************************************
 
 VBIptr		dc.l	0
-VBRptr		dc.l	0
 
 *******************************************
 *** VERTICAL BLANK (VBI)		***
@@ -128,11 +136,6 @@ _MAIN
 		bsr	UI_DrawChip
 
 		;bsr	kbinit
-
-		move.l	VBRptr,a0
-		lea	$dff000,a6
-		move.l	#1773447,d0
-		jsr	CIA_AddCIAInt
 
 		bsr	ScopeInit
 		move.l	#VBInt,VBIptr		; set VB Int pointer
@@ -282,7 +285,6 @@ _MAIN
 ;		btst    #6,$bfe001
 ;	        bne.s   .lp
 
-		jsr	CIA_RemCIAInt
 		jsr	_mt_end
 		bsr	unallocchip
 
@@ -298,7 +300,6 @@ _MAIN
 		include pattern_render.asm
 		include file_selector.asm
 		include scope.asm
-		include cia_int.asm
 		include player.asm
 		include data_fast.asm
 		include data_chip.asm

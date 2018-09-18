@@ -9,6 +9,8 @@
 
 ; Exports to C code
 	XDEF _mt_end
+	XDEF _mt_retune
+	XDEF _mt_music
 	XDEF _mt_TuneEnd
 	XDEF _mt_Enabled
 	XDEF _mt_PatternLock
@@ -150,7 +152,8 @@ _mt_end	LEA	$DFF000,A0
 	MOVE.W	#$F,$DFF096
 	RTS
 
-mt_retune
+_mt_retune
+	movem.l	d5/a5-a6,-(sp)
 	LEA	$DFF0A0,A5
 	LEA	mt_chan1temp(PC),A6
 	move.w	n_altperiod(a6),d5
@@ -182,10 +185,11 @@ mt_retune
 	move.w	n_period(a6),d5
 .vib4	bsr	mt_tuneup
 	move.w	d5,6(a5)
+	movem.l	(sp)+,d5/a5-a6
 	rts
 
-mt_music
-	MOVEM.L	D0-D4/A0-A6,-(SP)
+_mt_music
+	MOVEM.L	D0-D6/A0-A6,-(SP)
 	tst.l	_mt_SongDataPtr
 	beq	mt_exit
 	;BEQ	mt_exit
@@ -519,7 +523,7 @@ mt_NextPosition
 mt_NoNewPosYet
 	TST.B	mt_PosJumpFlag
 	BNE.w	mt_NextPosition
-mt_exit	MOVEM.L	(SP)+,D0-D4/A0-A6
+mt_exit	MOVEM.L	(SP)+,D0-D6/A0-A6
 	RTS
 
 mt_CheckEfx
@@ -1053,7 +1057,15 @@ mt_SetSpeed
 	BEQ	.fuckoff
 	CMP.B	#32,D0
 	;BHS	SetTempo			; granny
-	BHS	CIA_SetBPM
+	blo .skipsetbpm
+
+	; Save scratch registers; d0 is nicely at the top of stack for function call
+	movem.l d0-d1/a0-a1,-(sp)
+	jsr _pt1210_cia_set_bpm
+	movem.l (sp)+,d0-d1/a0-a1
+	rts
+
+.skipsetbpm
 	CLR.B	_mt_counter
 	tst.b	d0
 	beq.b	.fuckoff
@@ -1351,10 +1363,10 @@ mt_tuneup
 	swap	d5
 	moveq	#0,d0
 	moveq	#0,d1
-	move.b	_CIABPM,d0
+	move.b	_pt1210_cia_base_bpm,d0
 	beq.b	.quit
 	lsl.w	#4,d0
-	move.w	ACTUALBPM,d1
+	move.w	_pt1210_cia_actual_bpm,d1
 	beq.b	.quit
 	mulu	d0,d5
 	divu	d1,d5

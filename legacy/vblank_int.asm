@@ -7,17 +7,17 @@
 VBInt	tst.b	VBDisable
 		bne.b	.quit
 
-		move.w	#0,_NUDGE
+		move.w	#0,_pt1210_cia_nudge_bpm
 		bsr	DOTIME		; timer
 
-		movem.l a0-d6,-(sp)
 		jsr	_pt1210_keyboard_process_keys
 		jsr _pt1210_gameport_process_buttons
-		movem.l (sp)+,a0-d6
 
 		moveq	#0,d0
-		move.b	_CIABPM,d0
-		jsr	CIA_SetBPM
+		move.b	_pt1210_cia_base_bpm,d0
+		move.l d0,-(sp)
+		jsr	_pt1210_cia_set_bpm
+		addq #4,sp
 
 		bsr	UI_TrackPos
 		bsr	UI_WarnFlash

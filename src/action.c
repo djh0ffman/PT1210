@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 #include "action.h"
+#include "cia.h"
 #include "filesystem.h"
 #include "gameport.h"
 #include "keyboard.h"
@@ -66,12 +67,6 @@ extern uint8_t Time_Frames;
 extern uint8_t Time_Seconds;
 extern uint8_t Time_Minutes;
 
-/* ASM CIA interrupt variables */
-extern uint8_t CIABPM;
-extern int16_t OFFBPM;
-extern uint8_t BPMFINE;
-extern uint16_t NUDGE;
-
 /* ASM file selector variables */
 extern uint16_t FS_Current;
 
@@ -90,56 +85,56 @@ void pt1210_action_switch_screen()
 
 void pt1210_action_pitch_up()
 {
-	if (CIABPM + OFFBPM < 300)
-		++OFFBPM;
+	if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm < CIA_MAX_BPM)
+		++pt1210_cia_offset_bpm;
 }
 
 void pt1210_action_pitch_down()
 {
-	if (CIABPM + OFFBPM > 20)
-		--OFFBPM;
+	if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm > CIA_MIN_BPM)
+		--pt1210_cia_offset_bpm;
 }
 
 void pt1210_action_pitch_up_fine()
 {
-	if (BPMFINE + 1 < 16)
-		++BPMFINE;
-	else if (CIABPM + OFFBPM < 300)
+	if (pt1210_cia_fine_offset + 1 < 16)
+		++pt1210_cia_fine_offset;
+	else if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm < CIA_MAX_BPM)
 	{
-		++OFFBPM;
-		BPMFINE = 0;
+		++pt1210_cia_offset_bpm;
+		pt1210_cia_fine_offset = 0;
 	}
 }
 
 void pt1210_action_pitch_down_fine()
 {
-	if (BPMFINE - 1 >= 0)
-		--BPMFINE;
-	else if (CIABPM + OFFBPM > 20)
+	if (pt1210_cia_fine_offset > 0)
+		--pt1210_cia_fine_offset;
+	else if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm > CIA_MIN_BPM)
 	{
-		--OFFBPM;
-		BPMFINE = 15;
+		--pt1210_cia_offset_bpm;
+		pt1210_cia_fine_offset = 15;
 	}
 }
 
 void pt1210_action_nudge_forward()
 {
-	NUDGE = 1;
+	pt1210_cia_nudge_bpm = 1;
 }
 
 void pt1210_action_nudge_backward()
 {
-	NUDGE = -1;
+	pt1210_cia_nudge_bpm = -1;
 }
 
 void pt1210_action_nudge_forward_hard()
 {
-	NUDGE = 6;
+	pt1210_cia_nudge_bpm = 6;
 }
 
 void pt1210_action_nudge_backward_hard()
 {
-	NUDGE = -6;
+	pt1210_cia_nudge_bpm = -6;
 }
 
 void pt1210_action_play_pause()

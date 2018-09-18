@@ -24,4 +24,7 @@
 /* Macro for determining the length of an array at compile time */
 #define ARRAY_LENGTH(ARRAY) (sizeof(ARRAY) / sizeof(*ARRAY))
 
+/* Macro for clamping a value between a minimum and a maximum */
+#define CLAMP(VALUE, MIN, MAX) ((VALUE < MIN) ? MIN : (VALUE > MAX) ? MAX : VALUE)
+
 #endif /* UTILITY_H */
