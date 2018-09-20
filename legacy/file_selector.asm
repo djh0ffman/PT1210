@@ -5,28 +5,22 @@
 ** File Selecta
 *********************************************
 
+; Imports from C code
+	XREF _pt1210_action_switch_screen
 	XREF _pt1210_file_count
+	XREF _pt1210_fs_load_pending
+	XREF _pt1210_fs_rescan_pending
+	XREF _pattern_slip_pending
 
-FS_CurrentType	dc.b	0
-		even
-
-FS_SwitchType
-			moveq	#0,d0
-			move.b	FS_CurrentType,d0
-			tst.b	d0
-			beq.b	.kb
-			moveq	#0,d0
-			bra.b	.go
-.kb			moveq	#1,d0
-.go			move.b	d0,FS_CurrentType
-			bsr	FS_DrawType
-			bsr	FS_DrawDir
-			rts
+; Exports to C code
+	XDEF _FS_DrawDir
+	XDEF _FS_DrawType
+	XDEF _FS_Move
+	XDEF _FS_Current
 
 		; d0 = 0 = BPM / 1 = KB
 
-FS_DrawType	moveq	#0,d0
-			move.b	FS_CurrentType,d0
+_FS_DrawType
 			lea		_bpm,a0
 			tst.b	d0
 			beq.b	.gobpm
@@ -76,16 +70,16 @@ FS_Clear	lea	_dir,a0
 
 			; d5 = type (0 bpm / 1 =kb)
 
-FS_DrawDir	cmp.w	#$0,_pt1210_file_count
+_FS_DrawDir
+			cmp.w	#$0,_pt1210_file_count
 			bne.b	.go
 			bra		FS_DrawNoMods
 
-.go			moveq	#0,d5
-			move.b	FS_CurrentType,d5
+.go			movem.l	d0-a6,-(sp)
 			lea		FS_FileList,a0
 			lea		_pt1210_file_list,a1
 			moveq	#0,d0
-			move.w	FS_Current,d0
+			move.w	_FS_Current,d0
 			move.w	FS_ListPos,d1
 			sub.w	d1,d0
 			move.w	d0,d4				; copy file counter
@@ -154,6 +148,7 @@ FS_DrawDir	cmp.w	#$0,_pt1210_file_count
 			moveq	#FS_ListMax-1,d7		; number of lines
 			bsr		ST_Type
 	;		bsr		FS_Copper
+			movem.l	(sp)+,d0-a6
 			rts
 
 
@@ -191,16 +186,10 @@ FS_CopperClr	movem.l	d0-a6,-(sp)
 			movem.l	(sp)+,d0-a6
 			rts
 
-
-FS_MoveDown	moveq	#1,d2
-			bra	FS_Move
-
-FS_MoveUp	moveq	#-1,d2
-			bra	FS_Move
-
-
 			; d2 = add value
-FS_Move		lea	FS_Current(pc),a0
+_FS_Move
+			movem.l	d0-a6,-(sp)
+			lea	_FS_Current(pc),a0
 			lea	FS_ListPos(pc),a1
 			move.w	(a0),d0
 			move.w	(a1),d1
@@ -233,36 +222,35 @@ FS_Move		lea	FS_Current(pc),a0
 			move.w	d4,d1
 .skiphi_b	move.w	d1,(a1)
 
-			bsr	FS_DrawDir
+			bsr	_FS_DrawDir
 
 .skipdraw	bsr	FS_Copper
-
+			movem.l	(sp)+,d0-a6
 			rts
 
 FS_Rescan	movem.l	d0-a6,-(sp)
 
-			clr.b	mt_Enabled	; stop the current track
-			jsr	mt_end
+			clr.b	_mt_Enabled	; stop the current track
+			jsr	_mt_end
 			move.b	#1,VBDisable
 			jsr	ScopeStop
 
-			clr.w	FS_Current
+			clr.w	_FS_Current
 			clr.w	FS_ListPos
 
 			bsr	FS_Clear
 			bsr	FS_CopperClr
 
-			bsr	CIA_RemCIAInt
-			move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
+			;bsr	CIA_RemCIAInt
+			;move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
-			bsr	_pt1210_file_gen_list
-			move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
+			jsr	_pt1210_file_gen_list
+			;move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
-			bsr	CIA_AddCIAInt
-
-			bsr	FS_DrawDir
+			bsr	_FS_DrawDir
 			bsr	FS_Copper
 
+			clr.b	_pt1210_fs_rescan_pending
 			clr.b	VBDisable
 
 			movem.l	(sp)+,d0-a6
@@ -270,25 +258,25 @@ FS_Rescan	movem.l	d0-a6,-(sp)
 
 FS_LoadTune	movem.l	d0-a6,-(sp)
 
-			clr.b	mt_Enabled	; stop the current track
+			clr.b	_mt_Enabled	; stop the current track
 
-			jsr	mt_end
+			jsr	_mt_end
 
 			move.b	#1,VBDisable
 
 			jsr	ScopeStop
 
-			move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
+			;move.w	#TIMERSET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 
 			bsr	unallocchip
 
 			moveq	#0,d0
-			move.w	FS_Current,d0
+			move.w	_FS_Current,d0
 			mulu	#mi_Sizeof,d0
 			lea		_pt1210_file_list,a0
 			add.l	d0,a0
 			move.l	mi_FileSize(a0),memsize
-			move.w	mi_Frames(a0),FRAMES
+			move.w	mi_Frames(a0),_pt1210_cia_frames_per_beat
 			lea		mi_FileName(a0),a0
 			move.l	a0,a6
 			tst.l	memsize
@@ -302,7 +290,7 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 			move.l	memptr,-(sp)
 			move.l	a6,-(sp)
 
-			bsr		_pt1210_file_read
+			jsr		_pt1210_file_read
 
 			add.l 	#16,sp
 
@@ -315,12 +303,12 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 			bsr		FS_Reset
 
 
-			bsr		switch
+			jsr		_pt1210_action_switch_screen
 
-			move.b	#1,mt_Enabled
+			move.b	#1,_mt_Enabled
 
-.quit		clr.b	FS_DoLoad
-			move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
+.quit		clr.b	_pt1210_fs_load_pending
+			;move.w	#TIMERCLR!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
 			clr.b	VBDisable
 			movem.l	(sp)+,d0-a6
 			rts
@@ -334,32 +322,31 @@ FS_LoadTune	movem.l	d0-a6,-(sp)
 
 
 
-FS_Reset	move.b	#125,CIABPM
-			;clr.w	FRAMES
-			clr.w	OFFBPM
-			clr.b	BPMFINE
-			move.w	#%0000000000001111,chantog
+FS_Reset	move.b	#125,_pt1210_cia_base_bpm
+			;clr.w	_pt1210_cia_frames_per_beat
+			clr.w	_pt1210_cia_offset_bpm
+			clr.b	_pt1210_cia_fine_offset
+			move.w	#%0000000000001111,_channel_toggle
 
-			move.b #4,loopsize
-			move.b #0,loopactive
-			move.b #0,loopstart
-			move.b #0,loopend
+			move.b #4,_loop_size
+			move.b #0,_loop_active
+			move.b #0,_loop_start
+			move.b #0,_loop_end
 
-			move.b #0,patslipflag
-			move.b #0,patslippat
-			move.b	#1,slipon
-			move.b	#1,repitch
-			clr.b	mt_TuneEnd
-			move.b	#0,mt_PatternLock
-			move.b	#0,mt_PatLockStart
-			move.b	#0,mt_PatLockEnd
-			move.b	#0,mt_PatternCue
-			clr.b	Time_Frames
-			clr.b	Time_Seconds
-			clr.b	Time_Minutes
+			move.b #0,_pattern_slip_pending
+			move.b	#1,_slip_on
+			move.b	#1,_repitch_enabled
+			clr.b	_mt_TuneEnd
+			move.b	#0,_mt_PatternLock
+			move.b	#0,_mt_PatLockStart
+			move.b	#0,_mt_PatLockEnd
+			move.b	#0,_mt_PatternCue
+			clr.b	_Time_Frames
+			clr.b	_Time_Seconds
+			clr.b	_Time_Minutes
 
-			clr.b	mt_SLSongPos
-			clr.w	mt_SLPatternPos
+			clr.b	_mt_SLSongPos
+			clr.w	_mt_SLPatternPos
 
 			move.b	#-1,PT_PrevPat
 			bsr	PT_DrawPat2
@@ -374,9 +361,8 @@ FS_Reset	move.b	#125,CIABPM
 			rts
 
 FS_ListMax	=	21
-FS_Current	dc.w	0
+_FS_Current	dc.w	0
 FS_ListPos	dc.w	0
-FS_DoLoad	dc.b	0
 FS_DoScan	dc.b	0
 			even
 
@@ -415,6 +401,7 @@ FS_DrawOutRam
 
 		; d0 = load error code
 _FS_DrawLoadError
+		movem.l	d1-a6,-(sp)
 		lea	FS_LoadErrCode+32,a0
 		lea	PT_HexList,a1
 		moveq	#8-1,d7		; all d0
@@ -433,6 +420,7 @@ _FS_DrawLoadError
 		lea	10*7*40(a1),a1
 		moveq	#5-1,d7		; number of lines
 		bsr	ST_Type
+		movem.l	(sp)+,d1-a6
 		rts
 
 

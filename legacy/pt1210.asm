@@ -19,19 +19,29 @@ SW_Splash = 0		; Include splash screen
 	section pt1210,code
 
 ; Exports for C code (places them in global scope)
-	XDEF _START
+	XDEF _MAIN
 	XDEF _FS_LoadErrBuff
 	XDEF _FS_DrawLoadError
+	XDEF _pt1210_gfx_vblank_server_proc
 
 ; Imports from C code
 	XREF _pt1210_file_gen_list
 	XREF _pt1210_file_read
-	XREF _pt1210_file_count
 	XREF _pt1210_file_list
+	XREF _pt1210_keyboard_enable_processing
+	XREF _current_screen
+	XREF _quit
+
+	XREF _pt1210_cia_set_bpm
+	XREF _pt1210_cia_base_bpm
+	XREF _pt1210_cia_offset_bpm
+	XREF _pt1210_cia_fine_offset
+	XREF _pt1210_cia_nudge_bpm
+	XREF _pt1210_cia_adjusted_bpm
+	XREF _pt1210_cia_actual_bpm
+	XREF _pt1210_cia_frames_per_beat
 
 FONTWIDTH = 64
-
-INTENASET	= %1100000000100000
 
 TIMERSET	= %1100000000001000
 TIMERCLR	= %0100000000001000
@@ -44,19 +54,6 @@ TIMERCLR	= %0100000000001000
 ;	f: IO Ports/Timers
 ;	g: Software Int
 
-DMASET		= %1000001111111111
-;		   a----bcdefghi--j
-;	a: SET/CLR Bit
-;	b: Blitter Priority
-;	c: Enable DMA
-;	d: Bit Plane DMA
-;	e: Copper DMA
-;	f: Blitter DMA
-;	g: Sprite DMA
-;	h: Disk DMA
-;	i..j: Audio Channel 0-3
-
-
 
 ***************************************************
 *** MACRO DEFINITION				***
@@ -68,197 +65,39 @@ WAITBLIT	MACRO
 		bne.b	.\@
 		ENDM
 
-
-***************************************************
-*** SORT KEYS FOR FILE LIST				***
-***************************************************
-SORT_NAME = 0
-SORT_FILE_NAME = 1
-SORT_BPM = 2
-SORT_SIZE = 3
-
-***************************************************
-*** CLOSE DOWN SYSTEM - INIT PROGRAM		***
-***************************************************
-
-_START	bsr	_pt1210_file_gen_list
-
-.go
-	move.l	#0,-(sp)				; ascending
-	move.l	#SORT_NAME,-(sp)		; sort by name
-	bsr	_pt1210_file_sort_list
-	add.l #8,sp
-
-	movem.l	d0-a6,-(a7)
-	move.l	$4.w,a6
-	lea	.VARS_HW(pc),a5
-	lea	.GFXname(pc),a1
-	moveq	#0,d0
-	jsr	-552(a6)			; OpenLibrary()
-	move.l	d0,.GFXbase-.VARS_HW(a5)
-	beq.b	.END
-	move.l	d0,a6
-	move.l	34(a6),.OldView-.VARS_HW(a5)
-	sub.l	a1,a1
-	bsr.w	.DoView
-	move.l	$26(a6),.OldCop1-.VARS_HW(a5)	; Store old CL 1
-	move.l	$32(a6),.OldCop2-.VARS_HW(a5)	; Store old CL 2
-	bsr	.GetVBR
-	move.l	d0,VBRptr
-	move.l	d0,a0
-
-	***	Store Custom Regs	***
-
-	lea	$dff000,a6			; base address
-	move.w	$10(a6),.ADK-.VARS_HW(a5)	; Store old ADKCON
-	move.w	$1C(a6),.INTENA-.VARS_HW(a5)	; Store old INTENA
-	move.w	$02(a6),.DMA-.VARS_HW(a5)	; Store old DMA
-	move.w	#$7FFF,d0
-	bsr	WaitRaster
-	move.w	d0,$9A(a6)			; Disable Interrupts
-	move.w	d0,$96(a6)			; Clear all DMA channels
-	move.w	d0,$9C(a6)			; Clear all INT requests
-
-	move.l	$6c(a0),.OldVBI-.VARS_HW(a5)
-	lea	.NewVBI(pc),a1
-	move.l	a1,$6c(a0)
-
-	move.w	#INTENASET!$C000,$9A(a6)	; set Interrupts+ BIT 14/15
-	move.w	#DMASET!$8200,$96(a6)		; set DMA	+ BIT 09/15
-	bsr	MAIN
-
-
-***************************************************
-*** Restore Sytem Parameter etc.		***
-***************************************************
-
-.END	lea	.VARS_HW(pc),a5
-	lea	$dff000,a6
-	clr.l	VBIptr-.VARS_HW(a5)
-
-	move.w	#$8000,d0
-	or.w	d0,.INTENA-.VARS_HW(a5)		; SET/CLR-Bit to 1
-	or.w	d0,.DMA-.VARS_HW(a5)		; SET/CLR-Bit to 1
-	or.w	d0,.ADK-.VARS_HW(a5)		; SET/CLR-Bit to 1
-	subq.w	#1,d0
-	bsr	WaitRaster
-	move.w	d0,$9A(a6)			; Clear all INT bits
-	move.w	d0,$96(a6)			; Clear all DMA channels
-	move.w	d0,$9C(a6)			; Clear all INT requests
-
-	move.l	VBRptr(pc),a0
-	move.l	.OldVBI(pc),$6c(a0)
-
-	move.l	.OldCop1(pc),$80(a6)		; Restore old CL 1
-	move.l	.OldCop2(pc),$84(a6)		; Restore old CL 2
-	move.w	d0,$88(a6)			; start copper1
-	move.w	.INTENA(pc),$9A(a6)		; Restore INTENA
-	move.w	.DMA(pc),$96(a6)		; Restore DMAcon
-	move.w	.ADK(pc),$9E(a6)		; Restore ADKcon
-
-	move.l	.GFXbase(pc),a6
-	move.l	.OldView(pc),a1			; restore old viewport
-	bsr.b	.DoView
-
-	move.l	a6,a1
-	move.l	$4.w,a6
-	jsr	-414(a6)			; Closelibrary()
-	movem.l	(a7)+,d0-a6
-	moveq	#0,d0
-	rts
-
-
-.DoView	jsr	-222(a6)			; LoadView()
-	jsr	-270(a6)			; WaitTOF()
-	jmp	-270(a6)
-
-
 *******************************************
-*** Get Address of the VBR		***
+*** DATA AREA		FAST		***
 *******************************************
 
-.GetVBR	move.l	a5,-(a7)
-	moveq	#0,d0			; default at $0
-	move.l	$4.w,a6
-	btst	#0,296+1(a6)		; 68010+?
-	beq.b	.is68k			; nope.
-	lea	.getit(pc),a5
-	jsr	-30(a6)			; SuperVisor()
-.is68k	move.l	(a7)+,a5
-	rts
-
-.getit	;movec   vbr,d0
-	dc.l	$4e7a0801
-	rte				; back to user state code
-
+VBIptr		dc.l	0
 
 *******************************************
 *** VERTICAL BLANK (VBI)		***
 *******************************************
 
-.NewVBI	movem.l	d0-a6,-(a7)
-	;lea	$dff09c,a6
-	;moveq	#$20,d0
-	;move.w	d0,(a6)
-	;move.w	d0,(a6)			; twice to avoid a4k hw bug
-
+_pt1210_gfx_vblank_server_proc
+	movem.l	d2-d7/a2-a4,-(sp)
 	move.l	VBIptr(pc),d0
 	beq.b	.noVBI
+
+	move.l	#$dff000,a6					; Re-load copper lists as OS can trash them
+	move.l	#_hud_cop,cop1lc(a6)
+
+	tst.l	_current_screen
+	bne.b	.dj
+	move.l	#_select_cop,cop2lc(a6)
+	bra .nodj
+.dj
+	move.l	#_cCopper,cop2lc(a6)
+.nodj
+
 	move.l	d0,a0
 	jsr	(a0)
-.noVBI	lea	$dff09c,a6
-	moveq	#$20,d0
-	move.w	d0,(a6)
-	move.w	d0,(a6)			; twice to avoid a4k hw bug
-	movem.l	(a7)+,d0-a6
-	rte
-
-*******************************************
-*** DATA AREA		FAST		***
-*******************************************
-
-.VARS_HW
-.GFXname	dc.b	'graphics.library',0,0
-.GFXbase	dc.l	0
-.OldView	dc.l	0
-.OldCop1	dc.l	0
-.OldCop2	dc.l	0
-.VBRptr		dc.l	0
-.OldVBI		dc.l	0
-.ADK		dc.w	0
-.INTENA		dc.w	0
-.DMA		dc.w	0
-
-VBIptr		dc.l	0
-VBRptr		dc.l	0
-
-WaitRaster
-	move.l	d0,-(a7)
-.loop	move.l	$dff004,d0
-	and.l	#$1ff00,d0
-	cmp.l	#303<<8,d0
-	bne.b	.loop
-	move.l	(a7)+,d0
-	rts
-
-WaitRasterMid
-	move.l	d0,-(a7)
-.loop	move.l	$dff004,d0
-	and.l	#$1ff00,d0
-	cmp.l	#100<<8,d0
-	bne.b	.loop
-	move.l	(a7)+,d0
-	rts
-
-WaitRasterEnd
-	move.l	d0,-(a7)
-.loop	move.l	$dff004,d0
-	and.l	#$1ff00,d0
-	cmp.l	#303<<8,d0
-	beq.b	.loop
-	move.l	(a7)+,d0
-	rts
-
+.noVBI
+	movem.l	(sp)+,d2-d7/a2-a4
+	move.l #$dff000,a0
+	moveq #0,d0						; OS-friendly VBlank servers must set the Z flag
+	rts								; RTS and not RTE here
 
 ************************************
 ** The mega mod player by h0ffman **
@@ -278,30 +117,25 @@ splashkill	movem.l	d0-a6,-(sp)
 		rts
 
 		endc
-MAIN
+_MAIN
 		ifne	SW_Splash
 		jsr	splashgo
 		bsr	splashkill
 		endc
 
-		moveq	#1,d0
-		bsr	FS_DrawType
-
+		moveq	#0,d0
+		bsr	_FS_DrawType
 
 		movem.l	d0-a6,-(sp)
 
-		bsr	FS_DrawDir
+		moveq	#0,d5
+		bsr	_FS_DrawDir
 		bsr	FS_Copper
 		bsr	PT_Prep
 
 		bsr	UI_DrawChip
 
-		bsr	kbinit
-
-		move.l	VBRptr,a0
-		lea	$dff000,a6
-		move.l	#1773447,d0
-		jsr	CIA_AddCIAInt
+		;bsr	kbinit
 
 		bsr	ScopeInit
 		move.l	#VBInt,VBIptr		; set VB Int pointer
@@ -412,54 +246,60 @@ MAIN
 		move.w	d0,2(a0)
 
 
-
-		move.l	#_hud_cop,cop1lc(a6)
-		move.l	#_select_cop,cop2lc(a6)
-
-
-.lp 		tst.b	FS_DoLoad
+.lp
+		tst.b	_pt1210_fs_load_pending
 		beq.b	.skipload
-		clr.b	FS_DoLoad
-		bsr	kbrem
+
+		; Disable keyboard processing
+		move.l #0,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
+
 		bsr	FS_LoadTune
-		bsr	kbinit
+
+		; Re-enable keyboard processing
+		move.l #1,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
 .skipload
 
-		tst.b	FS_DoScan
+		tst.b	_pt1210_fs_rescan_pending
 		beq.b	.skipscan
-		clr.b	FS_DoScan
-		bsr	kbrem
+
+		move.l #0,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
+
 		bsr	FS_Rescan
-		bsr	kbinit
+
+		move.l #1,-(sp)
+		jsr _pt1210_keyboard_enable_processing
+		add #4,sp
 .skipscan
 
 
 
-		tst.w	quitmeplease
+		tst.b	_quit
 		beq.b	.lp
 
 ;		btst    #6,$bfe001
 ;	        bne.s   .lp
 
-		jsr	CIA_RemCIAInt
-	        jsr	mt_end
+		jsr	_mt_end
 		bsr	unallocchip
 
-		bsr	kbrem
+		;bsr	kbrem
 
 	        movem.l	(sp)+,d0-a6
 	    	rts
 
-		include keyboard.asm
 		include memory.asm
 		include vblank_int.asm
 		include time.asm
 		include ui.asm
-		include control.asm
 		include pattern_render.asm
 		include file_selector.asm
 		include scope.asm
-		include cia_int.asm
 		include player.asm
 		include data_fast.asm
 		include data_chip.asm

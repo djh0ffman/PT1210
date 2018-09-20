@@ -1,4 +1,32 @@
+; Imports from C code
+	XREF _channel_toggle
+	XREF _loop_size
+	XREF _loop_start
+	XREF _loop_end
+	XREF _loop_active
+	XREF _slip_on
+	XREF _repitch_enabled
 
+; Exports to C code
+	XDEF _mt_end
+	XDEF _mt_retune
+	XDEF _mt_music
+	XDEF _mt_TuneEnd
+	XDEF _mt_Enabled
+	XDEF _mt_PatternLock
+	XDEF _mt_PatLockStart
+	XDEF _mt_PatLockEnd
+	XDEF _mt_SongDataPtr
+	XDEF _mt_speed
+	XDEF _mt_counter
+	XDEF _mt_SongLen
+	XDEF _mt_SongPos
+	XDEF _mt_PatternPos
+	XDEF _mt_SLSongPos
+	XDEF _mt_SLPatternPos
+	XDEF _mt_PatternCue
+	XDEF _mt_PattDelTime
+	XDEF _mt_PattDelTime2
 
 ;---- Playroutine ----
 
@@ -37,9 +65,9 @@ n_offsetlen	EQU	50 ; W
 mt_DMALines	equ	5
 
 mt_init	;LEA	mt_data,A0
-	MOVE.L	A0,mt_SongDataPtr
+	MOVE.L	A0,_mt_SongDataPtr
 	MOVE.L	A0,A1
-	move.b	950(A0),mt_SongLen	; max patterns
+	move.b	950(A0),_mt_SongLen	; max patterns
 
 	LEA	952(A1),A1
 	MOVEQ	#127,D0
@@ -51,10 +79,10 @@ mtloop2	MOVE.B	(A1)+,D1
 	BGT.S	mtloop
 	DBRA	D0,mtloop2
 	ADDQ.B	#1,D2
-			
+
 
 	lea	_Sample,a3
-	
+
 	LEA	mt_SampleStarts(PC),A1
 	ASL.L	#8,D2
 	ASL.L	#2,D2
@@ -83,14 +111,14 @@ mtloop3	CLR.w	(A2)
 .fill	MOVE.L	A2,(A1)+
 .next	add.l	d1,a2
 	lea	30(a0),a0
-	
+
 	DBRA	D0,mtloop3
 
 	OR.B	#2,$BFE001
-	MOVE.B	#6,mt_speed
-	CLR.B	mt_counter
-	CLR.B	mt_SongPos
-	CLR.W	mt_PatternPos
+	MOVE.B	#6,_mt_speed
+	CLR.B	_mt_counter
+	CLR.B	_mt_SongPos
+	CLR.W	_mt_PatternPos
 	clr.b	mt_PBreakPos
 	clr.b	mt_PBreakFlag
 	clr.b	mt_PosJumpFlag
@@ -115,8 +143,8 @@ mtloop3	CLR.w	(A2)
 	clr.l	(a0)+
 	lea	mt_chansize(a1),a0
 	dbra	d7,.chanclr
-	
-mt_end	LEA	$DFF000,A0
+
+_mt_end	LEA	$DFF000,A0
 	CLR.W	$A8(A0)
 	CLR.W	$B8(A0)
 	CLR.W	$C8(A0)
@@ -124,7 +152,8 @@ mt_end	LEA	$DFF000,A0
 	MOVE.W	#$F,$DFF096
 	RTS
 
-mt_retune
+_mt_retune
+	movem.l	d5/a5-a6,-(sp)
 	LEA	$DFF0A0,A5
 	LEA	mt_chan1temp(PC),A6
 	move.w	n_altperiod(a6),d5
@@ -156,20 +185,20 @@ mt_retune
 	move.w	n_period(a6),d5
 .vib4	bsr	mt_tuneup
 	move.w	d5,6(a5)
+	movem.l	(sp)+,d5/a5-a6
 	rts
 
-mt_music
-	MOVEM.L	D0-D4/A0-A6,-(SP)
-	tst.l	mt_SongDataPtr
+_mt_music
+	MOVEM.L	D0-D6/A0-A6,-(SP)
+	tst.l	_mt_SongDataPtr
 	beq	mt_exit
-	;TST.B	mt_Enable
 	;BEQ	mt_exit
-	ADDQ.B	#1,mt_counter
-	MOVE.B	mt_counter(PC),D0
-	CMP.B	mt_speed(PC),D0
+	ADDQ.B	#1,_mt_counter
+	MOVE.B	_mt_counter(PC),D0
+	CMP.B	_mt_speed(PC),D0
 	BLO.S	mt_NoNewNote
-	CLR.B	mt_counter
-	TST.B	mt_PattDelTime2
+	CLR.B	_mt_counter
+	TST.B	_mt_PattDelTime2
 	BEQ.S	mt_GetNewNote
 	BSR.S	mt_NoNewAllChannels
 	BRA	mt_dskip
@@ -193,17 +222,17 @@ mt_NoNewAllChannels
 	BRA	mt_CheckEfx
 
 mt_GetNewNote
-	MOVE.L	mt_SongDataPtr(PC),A0
+	MOVE.L	_mt_SongDataPtr(PC),A0
 	LEA	12(A0),A3
 	LEA	952(A0),A2	;pattpo
 	LEA	1084(A0),A0	;patterndata
 	MOVEQ	#0,D0
 	MOVEQ	#0,D1
-	MOVE.B	mt_SongPos(PC),D0
+	MOVE.B	_mt_SongPos(PC),D0
 	MOVE.B	(A2,D0.W),D1
 	ASL.L	#8,D1
 	ASL.L	#2,D1
-	ADD.W	mt_PatternPos(PC),D1
+	ADD.W	_mt_PatternPos(PC),D1
 	CLR.W	mt_DMACONtemp
 
 	LEA	$DFF0A0,A5
@@ -250,7 +279,7 @@ mt_plvskip
 	MOVE.W	(A3,D4.L),n_length(A6)
 	MOVE.W	(A3,D4.L),n_reallength(A6)
 	MOVE.B	2(A3,D4.L),n_finetune(A6)
-	
+
 .noc	MOVE.B	3(A3,D4.L),n_volume(A6)
 .next	MOVE.W	4(A3,D4.L),D3 ; Get repeat
 	TST.W	D3
@@ -304,7 +333,7 @@ mt_SetRegs
 
 ;mt_OffsetFix
 ;	bsr	mt_SampleOffset
-;	bsr	mt_CheckMoreEfx	
+;	bsr	mt_CheckMoreEfx
 ;	bra.s	mt_SetPeriod
 
 mt_DoSetFineTune
@@ -361,12 +390,12 @@ mt_trenoc
 	MOVE.W	n_length(A6),4(A5)	; Set length
 	MOVE.W	D5,6(A5)		; Set period
 
-	
+
 	MOVE.W	n_dmabit(A6),D0
-;	or.w	chantog,d0
+;	or.w	_channel_toggle,d0
 	OR.W	D0,mt_DMACONtemp
 	BRA	mt_CheckMoreEfx
- 
+
 mt_SetDMA				; dma fix thanks to stringray!!
 	move.b	$dff006,d0
 	addq.b	#mt_DMALines,d0
@@ -378,7 +407,7 @@ mt_SetDMA				; dma fix thanks to stringray!!
 ;	DBRA	D0,mt_WaitDMA
 
 	MOVE.W	mt_DMACONtemp(PC),D0
-	and.w	chantog,d0
+	and.w	_channel_toggle,d0
 	OR.W	#$8000,D0
 	MOVE.W	D0,$DFF096
 
@@ -406,33 +435,33 @@ mt_SetDMA				; dma fix thanks to stringray!!
 	MOVE.W	n_replen(A6),$A4(A5)
 
 mt_dskip
-	ADD.W	#16,mt_PatternPos		; hmm  skip eh?
-	tst.b	slipon
+	ADD.W	#16,_mt_PatternPos		; hmm  skip eh?
+	tst.b	_slip_on
 	beq.b	.skip
-	add.w	#16,mt_SLPatternPos
-	CMP.W	#1024,mt_SLPatternPos
+	add.w	#16,_mt_SLPatternPos
+	CMP.W	#1024,_mt_SLPatternPos
 	BLO.S	.skip
-	clr.w	mt_SLPatternPos
-	add.b	#1,mt_SLSongPos
+	clr.w	_mt_SLPatternPos
+	add.b	#1,_mt_SLSongPos
 
-	cmp.b	#2,mt_PatternLock
+	cmp.b	#2,_mt_PatternLock
 	bne.b	.skip
-	move.b	mt_SLSongPos,d6
-	cmp.b	mt_PatLockEnd,d6
+	move.b	_mt_SLSongPos,d6
+	cmp.b	_mt_PatLockEnd,d6
 	ble.b	.skip
-	move.b	mt_PatLockStart,mt_SLSongPos
+	move.b	_mt_PatLockStart,_mt_SLSongPos
 
 
 .skip
-	MOVE.B	mt_PattDelTime,D0
+	MOVE.B	_mt_PattDelTime,D0
 	BEQ.S	mt_dskc
-	MOVE.B	D0,mt_PattDelTime2
-	CLR.B	mt_PattDelTime
-mt_dskc	TST.B	mt_PattDelTime2
+	MOVE.B	D0,_mt_PattDelTime2
+	CLR.B	_mt_PattDelTime
+mt_dskc	TST.B	_mt_PattDelTime2
 	BEQ.S	mt_dska
-	SUBQ.B	#1,mt_PattDelTime2
+	SUBQ.B	#1,_mt_PattDelTime2
 	BEQ.S	mt_dska
-	SUB.W	#16,mt_PatternPos
+	SUB.W	#16,_mt_PatternPos
 mt_dska	TST.B	mt_PBreakFlag
 	BEQ.S	mt_nnpysk
 	SF	mt_PBreakFlag
@@ -440,61 +469,61 @@ mt_dska	TST.B	mt_PBreakFlag
 	MOVE.B	mt_PBreakPos(PC),D0
 	CLR.B	mt_PBreakPos
 	LSL.W	#4,D0
-	MOVE.W	D0,mt_PatternPos
+	MOVE.W	D0,_mt_PatternPos
 mt_nnpysk
-	tst.b	loopactive
+	tst.b	_loop_active
 	beq.b	.dontloop
 	moveq	#0,d0
-	move.b	loopend,d0
+	move.b	_loop_end,d0
 	lsl.w	#4,d0
-	cmp.w	mt_PatternPos,d0
+	cmp.w	_mt_PatternPos,d0
 	bgt.b	.dontloop
 
 	moveq	#0,d0
-	move.b	loopstart,d0
+	move.b	_loop_start,d0
 	lsl.w	#4,d0
-	move.w	d0,mt_PatternPos	
+	move.w	d0,_mt_PatternPos
 
 
 .dontloop
-	CMP.W	#1024,mt_PatternPos
+	CMP.W	#1024,_mt_PatternPos
 	BLO.S	mt_NoNewPosYet
-mt_NextPosition	
+mt_NextPosition
 	MOVEQ	#0,D0
 	MOVE.B	mt_PBreakPos(PC),D0
 	LSL.W	#4,D0
-	MOVE.W	D0,mt_PatternPos
+	MOVE.W	D0,_mt_PatternPos
 	CLR.B	mt_PBreakPos
 	CLR.B	mt_PosJumpFlag
-	
-	ADDQ.B	#1,mt_SongPos
 
-	tst.b	patslipflag
+	ADDQ.B	#1,_mt_SongPos
+
+	tst.b	_pattern_slip_pending
 	beq.b	.noslip
-	move.b	mt_PatternCue,mt_SongPos
-	clr.b	patslipflag
+	move.b	_mt_PatternCue,_mt_SongPos
+	clr.b	_pattern_slip_pending
 	bra.b	.skip
 .noslip
 
-	cmp.b	#2,mt_PatternLock
+	cmp.b	#2,_mt_PatternLock
 	bne.b	.skip
-	move.b	mt_SongPos,d6
-	cmp.b	mt_PatLockEnd,d6
+	move.b	_mt_SongPos,d6
+	cmp.b	_mt_PatLockEnd,d6
 	ble.b	.skip
-	move.b	mt_PatLockStart,mt_SongPos
+	move.b	_mt_PatLockStart,_mt_SongPos
 
 .skip
-	AND.B	#$7F,mt_SongPos
-	MOVE.B	mt_SongPos(PC),D1
-	MOVE.L	mt_SongDataPtr(PC),A0
+	AND.B	#$7F,_mt_SongPos
+	MOVE.B	_mt_SongPos(PC),D1
+	MOVE.L	_mt_SongDataPtr(PC),A0
 	CMP.B	950(A0),D1
 	BLO.S	mt_NoNewPosYet
-	CLR.B	mt_SongPos
-	ST.B	mt_TuneEnd
-mt_NoNewPosYet	
+	CLR.B	_mt_SongPos
+	ST.B	_mt_TuneEnd
+mt_NoNewPosYet
 	TST.B	mt_PosJumpFlag
 	BNE.w	mt_NextPosition
-mt_exit	MOVEM.L	(SP)+,D0-D4/A0-A6
+mt_exit	MOVEM.L	(SP)+,D0-D6/A0-A6
 	RTS
 
 mt_CheckEfx
@@ -521,11 +550,11 @@ mt_CheckEfx
 	CMP.B	#$E,D0
 	BEQ	mt_E_Commands
 SetBack	;MOVE.W	n_period(A6),6(A5)		; Set Period
-	
+
 	move.w	n_period(a6),d5
 	bsr	mt_tuneup
 	move.w	d5,6(a5)
-	
+
 	CMP.B	#7,D0
 	BEQ	mt_Tremolo
 	CMP.B	#$A,D0
@@ -544,7 +573,7 @@ mt_PerNop
 mt_Arpeggio
 	clr.w	n_altperiod(a6)
 	MOVEQ	#0,D0
-	MOVE.B	mt_counter(PC),D0
+	MOVE.B	_mt_counter(PC),D0
 	DIVS	#3,D0
 	SWAP	D0
 	CMP.W	#0,D0
@@ -594,7 +623,7 @@ mt_Arpeggio4
 	RTS
 
 mt_FinePortaUp
-	TST.B	mt_counter
+	TST.B	_mt_counter
 	BNE	mt_Return
 	MOVE.B	#$0F,mt_LowMask
 mt_PortaUp
@@ -615,17 +644,17 @@ mt_PortaUskip
 	AND.W	#$0FFF,D0
 ;	MOVE.W	D0,6(A5)
 	move.w	d0,n_altperiod(a6)
-	
+
 	move.l	d5,-(sp)
 	move.w	d0,d5
 	bsr	mt_tuneup
 	move.w	d5,6(a5)
 	move.w	d5,d0
 	move.l	(sp)+,d5
-	RTS	
- 
+	RTS
+
 mt_FinePortaDown
-	TST.B	mt_counter
+	TST.B	_mt_counter
 	BNE	mt_Return
 	MOVE.B	#$0F,mt_LowMask
 mt_PortaDown
@@ -647,7 +676,7 @@ mt_PortaDskip
 
 	move.w	d0,n_altperiod(a6)
 	;MOVE.W	D0,6(A5)
-	
+
 	move.w	d0,d5
 	bsr	mt_tuneup
 	move.w	d5,6(a5)
@@ -686,7 +715,7 @@ mt_StpGoss
 ;	bsr	mt_tuneup
 ;	move.w	d5,6(a5)
 ;	move.w	d5,d2
-;	move.l	(sp)+,d5	
+;	move.l	(sp)+,d5
 
 	MOVE.W	D2,n_wantedperiod(A6)
 	MOVE.W	n_period(A6),D0
@@ -761,7 +790,7 @@ mt_GlissSkip
 	bsr	mt_tuneup
 	move.w	d5,6(a5)
 	move.w	d5,d2
-	move.l	(sp)+,d5	
+	move.l	(sp)+,d5
 	RTS
 
 mt_Vibrato
@@ -821,14 +850,14 @@ mt_VibratoNeg
 mt_Vibrato3
 	move.w	d0,n_altperiod(a6)
 	MOVE.W	D0,6(A5)
-	
+
 	;move.l	d5,-(sp)
 	;move.w	d0,d5
 	;bsr	mt_tuneup
 	;move.w	d5,6(a5)
 	;move.w	d5,d0
 	;move.l	(sp)+,d5
-	
+
 	MOVE.B	n_vibratocmd(A6),D0
 	LSR.W	#2,D0
 	AND.W	#$003C,D0
@@ -986,13 +1015,13 @@ mt_vsdskip
 	RTS
 
 mt_PositionJump
-	cmp.b	#2,mt_PatternLock
+	cmp.b	#2,_mt_PatternLock
 	bne.b	.do
 	rts
-	
+
 .do	MOVE.B	n_cmdlo(A6),D0
 	SUBQ.B	#1,D0
-	MOVE.B	D0,mt_SongPos
+	MOVE.B	D0,_mt_SongPos
 mt_pj2	CLR.B	mt_PBreakPos
 	ST 	mt_PosJumpFlag
 	RTS
@@ -1028,11 +1057,19 @@ mt_SetSpeed
 	BEQ	.fuckoff
 	CMP.B	#32,D0
 	;BHS	SetTempo			; granny
-	BHS	CIA_SetBPM
-	CLR.B	mt_counter
+	blo .skipsetbpm
+
+	; Save scratch registers; d0 is nicely at the top of stack for function call
+	movem.l d0-d1/a0-a1,-(sp)
+	jsr _pt1210_cia_set_bpm
+	movem.l (sp)+,d0-d1/a0-a1
+	rts
+
+.skipsetbpm
+	CLR.B	_mt_counter
 	tst.b	d0
 	beq.b	.fuckoff
-	MOVE.B	D0,mt_speed
+	MOVE.B	D0,_mt_speed
 .fuckoff
 	RTS
 
@@ -1119,7 +1156,7 @@ mt_FilterOnOff
 	ASL.B	#1,D0
 	AND.B	#$FD,$BFE001
 	OR.B	D0,$BFE001
-	RTS	
+	RTS
 
 mt_SetGlissControl
 	MOVE.B	n_cmdlo(A6),D0
@@ -1142,7 +1179,7 @@ mt_SetFineTune
 	RTS
 
 mt_JumpLoop
-	TST.B	mt_counter
+	TST.B	_mt_counter
 	BNE	mt_Return
 	MOVE.B	n_cmdlo(A6),D0
 	AND.B	#$0F,D0
@@ -1160,7 +1197,7 @@ mt_jumpcnt
 	BRA.S	mt_jmploop
 
 mt_SetLoop
-	MOVE.W	mt_PatternPos(PC),D0
+	MOVE.W	_mt_PatternPos(PC),D0
 	LSR.W	#4,D0
 	MOVE.B	D0,n_pattpos(A6)
 	RTS
@@ -1180,13 +1217,13 @@ mt_RetrigNote
 	AND.B	#$0F,D0
 	BEQ.S	mt_rtnend
 	MOVEQ	#0,D1
-	MOVE.B	mt_counter(PC),D1
+	MOVE.B	_mt_counter(PC),D1
 	BNE.S	mt_rtnskp
 	MOVE.W	(A6),D1
 	AND.W	#$0FFF,D1
 	BNE.S	mt_rtnend
 	MOVEQ	#0,D1
-	MOVE.B	mt_counter(PC),D1
+	MOVE.B	_mt_counter(PC),D1
 mt_rtnskp
 	DIVU	D0,D1
 	SWAP	D1
@@ -1204,7 +1241,7 @@ mt_DoRetrig
 
 
 	MOVE.W	n_dmabit(A6),D0
-	and.w	chantog,d0
+	and.w	_channel_toggle,d0
 	BSET	#15,D0
 	MOVE.W	D0,$DFF096
 
@@ -1221,7 +1258,7 @@ mt_rtnend
 	RTS
 
 mt_VolumeFineUp
-	TST.B	mt_counter
+	TST.B	_mt_counter
 	BNE	mt_Return
 	MOVEQ	#0,D0
 	MOVE.B	n_cmdlo(A6),D0
@@ -1229,7 +1266,7 @@ mt_VolumeFineUp
 	BRA	mt_VolSlideUp
 
 mt_VolumeFineDown
-	TST.B	mt_counter
+	TST.B	_mt_counter
 	BNE	mt_Return
 	MOVEQ	#0,D0
 	MOVE.B	n_cmdlo(A6),D0
@@ -1240,7 +1277,7 @@ mt_NoteCut
 	MOVEQ	#0,D0
 	MOVE.B	n_cmdlo(A6),D0
 	AND.B	#$0F,D0
-	CMP.B	mt_counter(PC),D0
+	CMP.B	_mt_counter(PC),D0
 	BNE	mt_Return
 	CLR.B	n_volume(A6)
 	MOVE.W	#0,8(A5)
@@ -1250,7 +1287,7 @@ mt_NoteDelay
 	MOVEQ	#0,D0
 	MOVE.B	n_cmdlo(A6),D0
 	AND.B	#$0F,D0
-	CMP.B	mt_counter,D0
+	CMP.B	_mt_counter,D0
 	BNE	mt_Return
 	MOVE.W	(A6),D0
 	BEQ	mt_Return
@@ -1259,19 +1296,19 @@ mt_NoteDelay
 	BRA	mt_DoRetrig
 
 mt_PatternDelay
-	TST.B	mt_counter
+	TST.B	_mt_counter
 	BNE	mt_Return
 	MOVEQ	#0,D0
 	MOVE.B	n_cmdlo(A6),D0
 	AND.B	#$0F,D0
-	TST.B	mt_PattDelTime2
+	TST.B	_mt_PattDelTime2
 	BNE	mt_Return
 	ADDQ.B	#1,D0
-	MOVE.B	D0,mt_PattDelTime
+	MOVE.B	D0,_mt_PattDelTime
 	RTS
 
 mt_FunkIt
-	TST.B	mt_counter
+	TST.B	_mt_counter
 	BNE	mt_Return
 	MOVE.B	n_cmdlo(A6),D0
 	AND.B	#$0F,D0
@@ -1316,7 +1353,7 @@ mt_funkend
 	; d5 = period
 
 mt_tuneup
-	tst.b	repitch
+	tst.b	_repitch_enabled
 	beq.b	.quit2
 	tst.w	d5
 	beq.b	.quit2
@@ -1326,20 +1363,20 @@ mt_tuneup
 	swap	d5
 	moveq	#0,d0
 	moveq	#0,d1
-	move.b	CIABPM,d0
+	move.b	_pt1210_cia_base_bpm,d0
 	beq.b	.quit
 	lsl.w	#4,d0
-	move.w	ACTUALBPM,d1
+	move.w	_pt1210_cia_actual_bpm,d1
 	beq.b	.quit
 	mulu	d0,d5
 	divu	d1,d5
 .quit	movem.l	(sp)+,d0-d1
 .quit2	rts
-	
+
 
 mt_FunkTable dc.b 0,5,6,7,8,10,11,13,16,19,22,26,32,43,64,128
 
-mt_VibratoTable	
+mt_VibratoTable
 	dc.b   0,24,49,74,97,120,141,161
 	dc.b 180,197,212,224,235,244,250,253
 	dc.b 255,253,250,244,235,224,212,197
@@ -1421,27 +1458,26 @@ mt_chansize	equ	14*4
 mt_SampleStarts	dc.l	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 		dc.l	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-mt_SongDataPtr	dc.l 0
-mt_speed	dc.b 6
-mt_counter	dc.b 0
-mt_SongPos	dc.b 0
+_mt_SongDataPtr	dc.l 0
+_mt_Enabled	dc.b 0
+_mt_speed	dc.b 6
+_mt_counter	dc.b 0
+_mt_SongPos	dc.b 0
 mt_PBreakPos	dc.b 0
 mt_PosJumpFlag	dc.b 0
 mt_PBreakFlag	dc.b 0
 mt_LowMask	dc.b 0
-mt_PattDelTime	dc.b 0
-mt_PattDelTime2	dc.b 0
-mt_Enable	dc.b 0
-mt_PatternPos	dc.w 0
+_mt_PattDelTime	dc.b 0
+_mt_PattDelTime2	dc.b 0
+_mt_PatternPos	dc.w 0
+_mt_SLPatternPos	dc.w 0
 mt_DMACONtemp	dc.w 0
-mt_TuneEnd	dc.b 0
-mt_Enabled	dc.b 0
-mt_PatternLock	dc.b 0
-mt_PatLockStart	dc.b 0
-mt_PatLockEnd	dc.b 0
-mt_SLSongPos	dc.b 0
-mt_SLPatternPos	dc.w 0
-mt_PatternCue	dc.b 0
-mt_SongLen	dc.b 0
+_mt_TuneEnd	dc.b 0
+_mt_PatternLock	dc.b 0
+_mt_PatLockStart	dc.b 0
+_mt_PatLockEnd	dc.b 0
+_mt_SLSongPos	dc.b 0
+_mt_PatternCue	dc.b 0
+_mt_SongLen	dc.b 0
 		even
-		
+

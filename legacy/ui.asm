@@ -6,7 +6,7 @@
 
 UI_CuePos	moveq	#0,d0
 		moveq	#0,d1
-		move.b	mt_PatternCue,d0
+		move.b	_mt_PatternCue,d0
 		move.b	UI_PatternCue,d1
 		cmp.b	d0,d1
 		beq.b	.quit
@@ -27,8 +27,8 @@ UI_CuePos	moveq	#0,d0
 
 		; d0 = song length patterns
 UI_TrackDraw	moveq	#0,d0
-		move.b	mt_SongLen,d0
-;		MOVE.L	mt_SongDataPtr,A0
+		move.b	_mt_SongLen,d0
+;		MOVE.L	_mt_SongDataPtr,A0
 ;		cmp.l	d0,a0
 ;		beq.b	.quit
 ;		move.b	950(A0),D0
@@ -51,7 +51,7 @@ UI_TrackDraw	moveq	#0,d0
 		move.l	a1,a2
 .clrloop	clr.l	(a2)+
 		dbra	d7,.clrloop
-		
+
 		subq.w	#1,d0
 		moveq	#1,d6
 .drawloop	move.w	(a0)+,d1
@@ -76,7 +76,7 @@ UI_PixDraw	cmp.w	d2,d3
 		subq.w	#1,d3
 
 .pixloop	move.w	d1,d4	; current pixel
-				
+
 		lsr.w	#3,d4
 		move.w	d1,d5
 		not.b	d5
@@ -86,7 +86,7 @@ UI_PixDraw	cmp.w	d2,d3
 		bra.b	.next
 .clr		bclr	d5,(a1,d4.w)
 .next		addq.w	#1,d1
-		dbra	d3,.pixloop		
+		dbra	d3,.pixloop
 
 .quit		rts
 
@@ -94,16 +94,16 @@ UI_PixDraw	cmp.w	d2,d3
 
 UI_TrackPos	lea	_track_pos,a1
 		moveq	#0,d0
-		MOVE.L	mt_SongDataPtr,A0
+		MOVE.L	_mt_SongDataPtr,A0
 		cmp.l	d0,a0
 		beq.b	.quit
 		move.b	950(A0),D0	; max patterns
-		
+
 		moveq	#0,d1
-		move.b	mt_SongPos,d1	; current pattern
+		move.b	_mt_SongPos,d1	; current pattern
 
 		moveq	#0,d2
-		move.w	mt_PatternPos,d2
+		move.w	_mt_PatternPos,d2
 
 		lsr.w	#7,d2
 
@@ -117,7 +117,7 @@ UI_TrackPos	lea	_track_pos,a1
 		cmp.w	#280,d1
 		blo.b	.flash
 		clr.b	UI_WarnEnable
-		bra.b	.gogo		
+		bra.b	.gogo
 .flash		move.b	#1,UI_WarnEnable
 
 .gogo		moveq	#40-1,d7
@@ -126,7 +126,7 @@ UI_TrackPos	lea	_track_pos,a1
 		lsr.w	#3,d1
 		lea	(a1,d1.w),a2
 
-		
+
 .fillloop	tst.b	d1
 		beq.b	.clearpix
 		move.b	d6,(a1)+
@@ -135,7 +135,7 @@ UI_TrackPos	lea	_track_pos,a1
 		bra.b	.fillloop
 .clearpix	clr.b	(a1)+
 		dbra	d7,.clearpix
-		
+
 		not.b	d2
 		and.b	#$7,d2
 .pixloop	bset	d2,(a2)
@@ -173,13 +173,13 @@ UI_WarnFlash	lea	_track_flash,a0
 UI_WarnCount	dc.b	0
 UI_WarnEnable	dc.b	0
 
-UI_WarnCol	dc.w	$1fc,$1fc		
+UI_WarnCol	dc.w	$1fc,$1fc
 		dc.w	$f00,$f00
 
 
 UI_CueFlash	lea	_cue_flash,a0
 		lea	UI_CueCol,a1
-		tst.b	patslipflag
+		tst.b	_pattern_slip_pending
 		bne.b	.doflash
 		clr.b	UI_CueCount
 		move.w	(a1),2(a0)
@@ -211,7 +211,7 @@ UI_CueEnable	dc.b	0
 
 UI_CueCol	dc.w	$811,$811,$f11,$f11
 		dc.w	$181,$181,$1f1,$1f1
-		
+
 
 
 
@@ -223,7 +223,7 @@ UI_TrackPosPix	dcb.w	129,0
 UI_TextBits	movem.l	d0-a6,-(sp)
 		lea	_hud,a6		; screen pointer
 
-UI_BPMFine	lea	BPMFINE,a3
+UI_BPMFine	lea	_pt1210_cia_fine_offset,a3
 		lea	UI_BPMFINE,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -232,14 +232,14 @@ UI_BPMFine	lea	BPMFINE,a3
 		move.b	d0,(a4)
 
 
-		move.w	ACTUALBPM,d0
+		move.w	_pt1210_cia_actual_bpm,d0
 		lsl.w	#4,d0
 
-		move.w	FRAMES,d1
+		move.w	_pt1210_cia_frames_per_beat,d1
 		beq.b	.noframe
 		mulu	#24,d0
 		divu	d1,d0
-		
+
 .noframe	and.w	#$ff,d0
 		mulu.w	#100,d0
 		divu.w	#256,d0
@@ -249,20 +249,20 @@ UI_BPMFine	lea	BPMFINE,a3
 		bsr	UI_Decimal
 		bsr	UI_DigiType
 
-.skip		
+.skip
 
 UI_BPMDiff	lea	UI_BPMCent,a0
 		move.b	#"+",(a0)
-		lea	ACTUALBPM,a3
+		lea	_pt1210_cia_actual_bpm,a3
 		lea	UI_ActualBPM,a4
 		moveq	#0,d0
 		move.w	(a3),d0
 		cmp.w	(a4),d0
 		beq.b	.skip
 		move.w	d0,(a4)
-		
+
  		moveq	#0,d1
-		move.b	CIABPM,d1
+		move.b	_pt1210_cia_base_bpm,d1
 		lsl.w	#4,d1
 
 		tst.w	d0
@@ -290,10 +290,10 @@ UI_BPMDiff	lea	UI_BPMCent,a0
 		moveq	#0,d4
 		bsr	UI_TypeSmall
 
-.skip		
+.skip
 
 
-UI_TrackBPM	lea	CIABPM,a3
+UI_TrackBPM	lea	_pt1210_cia_base_bpm,a3
 		lea	UI_BPM,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -304,9 +304,9 @@ UI_TrackBPM	lea	CIABPM,a3
 		moveq	#3-1,d6			; num chars
 		bsr	UI_Decimal
 		bsr	UI_ValType
-.skip		
+.skip
 
-UI_SpeedText	lea	mt_speed,a3
+UI_SpeedText	lea	_mt_speed,a3
 		lea	UI_Speed,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -317,10 +317,10 @@ UI_SpeedText	lea	mt_speed,a3
 		moveq	#2-1,d6			; num chars
 		bsr	UI_Decimal
 		bsr	UI_ValType
-.skip		
+.skip
 
 
-UI_SlipText1	lea	mt_SLSongPos,a3
+UI_SlipText1	lea	_mt_SLSongPos,a3
 		lea	UI_SLSongPos,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -331,9 +331,9 @@ UI_SlipText1	lea	mt_SLSongPos,a3
 		moveq	#3-1,d6			; num chars
 		bsr	UI_Decimal
 		bsr	UI_ValType
-.skip		
+.skip
 
-UI_SlipText2	lea	mt_SLPatternPos,a3
+UI_SlipText2	lea	_mt_SLPatternPos,a3
 		lea	UI_SLPatternPos,a4
 		moveq	#0,d0
 		move.w	(a3),d0
@@ -345,7 +345,7 @@ UI_SlipText2	lea	mt_SLPatternPos,a3
 		moveq	#2-1,d6			; num chars
 		bsr	UI_Decimal
 		bsr	UI_ValType
-.skip		
+.skip
 
 		movem.l	(sp)+,d0-a6
 		rts
@@ -454,18 +454,18 @@ UI_ValType	lea	(a6,d5.w),a0
 		dbra	d6,.valueloop
 		rts
 
-UI_SpritePos	
+UI_SpritePos
 		movem.l	d0-a6,-(sp)
 		lea	UI_TrackPosPix(pc),a1
 		moveq	#0,d0
 
 		moveq	#0,d6
-		move.b	mt_PatternLock,d6
+		move.b	_mt_PatternLock,d6
 
 		moveq	#0,d1
 		lea	_spritelefttop,a0
 		lea	_spriteleftbot,a2
-		move.b	mt_PatLockStart,d1
+		move.b	_mt_PatLockStart,d1
 		cmp.b	#0,d6
 		bgt.b	.skipfirst
 		move.b	#0,1(a0)
@@ -485,7 +485,7 @@ UI_SpritePos
 .next		moveq	#0,d1
 		lea	_spriterighttop,a0
 		lea	_spriterightbot,a2
-		move.b	mt_PatLockEnd,d1
+		move.b	_mt_PatLockEnd,d1
 		cmp.b	#1,d6
 		bgt.b	.skipend
 		move.b	#0,1(a0)
@@ -505,7 +505,7 @@ UI_SpritePos
 		move.b	d2,3(a0)
 		move.b	d1,1(a2)
 		move.b	d2,3(a2)
-		
+
 .nextend	movem.l	(sp)+,d0-a6
 		rts
 
@@ -525,10 +525,10 @@ howmuch		dc.b	"CHIP RAM:           "
 UI_DrawChip	movem.l	d0-a6,-(sp)
 		bsr	freechip
 		divu	#1024,d0
-		and.l	#$ffff,d0		
+		and.l	#$ffff,d0
 		moveq	#8-1,d6
 		bsr	UI_Decimal
-		
+
 		moveq	#8-1,d7
 		moveq	#0,d6
 .kbloop		move.l	d1,d2
@@ -538,7 +538,7 @@ UI_DrawChip	movem.l	d0-a6,-(sp)
 		lsl.l	#4,d1
 		dbra	d7,.kbloop
 .gotit		lea	howmuch+10(pc),a0
-			
+
 .chloop		moveq	#0,d2
 		rol.l	#4,d1
 		move.b	d1,d2
@@ -555,31 +555,31 @@ UI_DrawChip	movem.l	d0-a6,-(sp)
 		lea	_hud+42,a1
 		lea	_font_big,a5
 		moveq	#20-1,d4
-		bsr	UI_Type						
+		bsr	UI_Type
 
 		lea	howmuch(pc),a0
 		lea	_hud+2,a1
 		lea	22(a1),a4
 		lea	_font_big,a5
 		moveq	#20-1,d4
-		bsr	UI_TypeOR					
+		bsr	UI_TypeOR
 		movem.l	(sp)+,d0-a6
 		rts
 
 
 UI_DrawTitle	movem.l	d0-a6,-(sp)
-		move.l	mt_SongDataPtr,a0
+		move.l	_mt_SongDataPtr,a0
 		lea	_hud+42,a1
 		lea	_font_big,a5
 		moveq	#20-1,d4
-		bsr	UI_Type						
+		bsr	UI_Type
 
-		move.l	mt_SongDataPtr,a0
+		move.l	_mt_SongDataPtr,a0
 		lea	_hud+2,a1
 		lea	22(a1),a4
 		lea	_font_big,a5
 		moveq	#20-1,d4
-		bsr	UI_TypeOR					
+		bsr	UI_TypeOR
 		movem.l	(sp)+,d0-a6
 		rts
 
@@ -610,7 +610,7 @@ UI_TypeSmall	lea	(a6,d5.w),a1
 .notnull	sub.b	#$20,d0
 		lea	(a5),a2
 		add.l	d0,a2
-		
+
 		lea	(a1),a3
 
 .charloop	move.b	(a2),(a3)
@@ -636,7 +636,7 @@ UI_TypeSmall	lea	(a6,d5.w),a1
 
 		lea	1(a1),a1
 		dbra	d4,.nextchar
-		
+
 ;		lea	(UI_TotWidth*7)(a1),a1		; next plane line
 ;		dbra	d7,.nextline
 		rts
@@ -664,7 +664,7 @@ UI_Type		;lea	font,a5
 .notnull	sub.b	#$20,d0
 		lea	(a5),a2
 		add.l	d0,a2
-		
+
 		lea	(a1),a3
 
 .charloop	move.b	(a2),(a3)
@@ -691,7 +691,7 @@ UI_Type		;lea	font,a5
 
 		lea	1(a1),a1
 		dbra	d4,.nextchar
-		
+
 ;		lea	(UI_TotWidth*7)(a1),a1		; next plane line
 ;		dbra	d7,.nextline
 		rts
@@ -712,7 +712,7 @@ UI_TypeOR	;lea	font,a5
 .notnull	sub.b	#$20,d0
 		lea	(a5),a2
 		add.l	d0,a2
-		
+
 		lea	(a1),a3
 
 		move.l	a4,-(sp)
@@ -759,10 +759,10 @@ UI_TypeOR	;lea	font,a5
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.l	(sp)+,a4
-		
+
 		lea	1(a1),a1
 		dbra	d4,.nextchar
-		
+
 ;		lea	(UI_TotWidth*7)(a1),a1		; next plane line
 ;		dbra	d7,.nextline
 		rts
@@ -789,9 +789,9 @@ UI_Draw		movem.l	d0-a6,-(sp)
 .skip
 
 UI_ALL		lea	$dff000,a6
-		
+
 		lea	_hud+UI_TogStart,a0		; a0 = dest source
-		
+
 		lea	_hud_on,a1	; hudon
 		lea	_hud_off,a2	; hudoff
 
@@ -799,7 +799,7 @@ UI_ALL		lea	$dff000,a6
 UI_RPDraw	moveq	#0,d0
 		move.w	#38,d5		; pos onscreen
 		move.w	#20,d6			; pos in lights
-		lea	repitch,a3
+		lea	_repitch_enabled,a3
 		lea	UI_Repitch,a4
 		bsr	UI_CompBlit
 
@@ -807,7 +807,7 @@ UI_RPDraw	moveq	#0,d0
 UI_LPDraw	moveq	#0,d0
 		move.w	#4,d5			; pos onscreen
 		move.w	#0,d6			; pos in lights
-		lea	loopactive,a3
+		lea	_loop_active,a3
 		lea	UI_LoopActive,a4
 		bsr	UI_CompBlit
 
@@ -815,15 +815,15 @@ UI_LPDraw	moveq	#0,d0
 UI_SlipDraw	moveq	#0,d0
 		move.w	#22,d5			; pos onscreen
 		move.w	#14,d6			; pos in lights
-		lea	slipon,a3
+		lea	_slip_on,a3
 		tst.b	(a3)
 		beq.b	.skip
 
-		tst.b	loopactive
+		tst.b	_loop_active
 		bne.b	.skip
 
-		move.b	mt_SongPos,mt_SLSongPos
-		move.w	mt_PatternPos,mt_SLPatternPos
+		move.b	_mt_SongPos,_mt_SLSongPos
+		move.w	_mt_PatternPos,_mt_SLPatternPos
 
 .skip		lea	UI_SlipOn,a4
 		bsr	UI_CompBlit
@@ -833,7 +833,7 @@ UI_SlipDraw	moveq	#0,d0
 UI_PatLockDraw	moveq	#0,d0
 		move.w	#28,d5			; pos onscreen
 		move.w	#16,d6			; pos in lights
-		lea	mt_PatternLock,a3
+		lea	_mt_PatternLock,a3
 		lea	UI_PatternLock,a4
 
 		move.b	(a3),d0
@@ -868,12 +868,12 @@ UI_PatLockDraw	moveq	#0,d0
 		addq.w	#2,d5
 		addq.w	#2,d6
 		bsr	UI_BlitTog
-.skip		
+.skip
 
 UI_LoopSizeDraw	moveq	#0,d0
 		move.w	#6,d5			; pos onscreen
 		move.w	#2,d6			; pos in lights
-		lea	loopsize,a3
+		lea	_loop_size,a3
 		lea	UI_LoopSize,a4
 
 		move.b	(a3),d0
@@ -881,7 +881,7 @@ UI_LoopSizeDraw	moveq	#0,d0
 		beq.b	.skip
 		move.b	d0,(a4)
 
-		move.l	a2,a3		
+		move.l	a2,a3
 		bsr	UI_LoopClr
 
 		move.l	a1,a3		; now light on
@@ -892,7 +892,7 @@ UI_LoopSizeDraw	moveq	#0,d0
 		addq.b	#2,d6
 		addq.b	#2,d5
 		dbra	d7,.loop
-		
+
 .gotit		bsr	UI_BlitTog
 .skip
 
@@ -903,8 +903,8 @@ UI_LoopSizeDraw	moveq	#0,d0
 UI_ChanDraw	lea	_track,a0
 		lea	_trackon,a1
 		lea	_trackoff,a2
-		
-		lea	chantog,a3
+
+		lea	_channel_toggle,a3
 		lea	UI_ChanTogs,a4
 		move.w	(a3),d0
 		cmp.w	(a4),d0
@@ -916,8 +916,8 @@ UI_ChanDraw	lea	_track,a0
 .chanloop	btst	#0,d0
 		beq.b	.chanoff
 		move.l	a1,a3
-		bra.b	.go		
-.chanoff	move.l	a2,a3		
+		bra.b	.go
+.chanoff	move.l	a2,a3
 .go		move.w	d5,d6
 		bsr	UI_ChanBlit
 		add.b	#10,d5
@@ -931,18 +931,18 @@ UI_ChanDraw	lea	_track,a0
 		lea	_hud+UI_DigiLine+40,a0
 		lea	_font_digi,a1
 
-		
-UI_BPMDrawDigi	lea	CURBPM,a3
+
+UI_BPMDrawDigi	lea	_pt1210_cia_adjusted_bpm,a3
 		lea	UI_CurBPM,a4
 		move.w	(a3),d0
 		cmp.w	(a4),d0
 		beq.b	.skip
 		move.w	d0,(a4)
 
-		move.w	FRAMES,d1
+		move.w	_pt1210_cia_frames_per_beat,d1
 		beq.b	.skipframe
-		
-		move.w	ACTUALBPM,d0
+
+		move.w	_pt1210_cia_actual_bpm,d0
 		muls	#24,d0
 		divs	d1,d0
 		swap	d0
@@ -954,13 +954,13 @@ UI_BPMDrawDigi	lea	CURBPM,a3
 .skipframe	bsr	UI_Decimal
 		move.w	d1,d0
 
-		moveq	#3-1,d7		
-		moveq	#34,d5		; digi pos		
+		moveq	#3-1,d7
+		moveq	#34,d5		; digi pos
 		bsr	UI_DigiBlit
 .skip
 
 
-UI_SecDraw	lea	Time_Seconds,a3
+UI_SecDraw	lea	_Time_Seconds,a3
 		lea	UI_Seconds,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -971,12 +971,12 @@ UI_SecDraw	lea	Time_Seconds,a3
 		bsr	UI_Decimal
 		move.w	d1,d0
 
-		moveq	#2-1,d7		
-		moveq	#10,d5		; digi pos		
+		moveq	#2-1,d7
+		moveq	#10,d5		; digi pos
 		bsr	UI_DigiBlit
 .skip
 
-UI_MinDraw	lea	Time_Minutes,a3
+UI_MinDraw	lea	_Time_Minutes,a3
 		lea	UI_Minutes,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -987,13 +987,13 @@ UI_MinDraw	lea	Time_Minutes,a3
 		bsr	UI_Decimal
 		move.w	d1,d0
 
-		moveq	#2-1,d7		
-		moveq	#4,d5		; digi pos		
+		moveq	#2-1,d7
+		moveq	#4,d5		; digi pos
 		bsr	UI_DigiBlit
 .skip
 
 
-UI_PatPosDraw	lea	mt_PatternPos,a3
+UI_PatPosDraw	lea	_mt_PatternPos,a3
 		lea	UI_PatternPos,a4
 		moveq	#0,d0
 		move.w	(a3),d0
@@ -1006,12 +1006,12 @@ UI_PatPosDraw	lea	mt_PatternPos,a3
 		bsr	UI_Decimal
 		move.w	d1,d0
 
-		moveq	#2-1,d7		
-		moveq	#24,d5		; digi pos		
+		moveq	#2-1,d7
+		moveq	#24,d5		; digi pos
 		bsr	UI_DigiBlit
 .skip
 
-UI_SongPosDraw	lea	mt_SongPos,a3
+UI_SongPosDraw	lea	_mt_SongPos,a3
 		lea	UI_SongPos,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -1022,18 +1022,18 @@ UI_SongPosDraw	lea	mt_SongPos,a3
 		bsr	UI_Decimal
 		move.w	d1,d0
 
-		moveq	#3-1,d7		
-		moveq	#18,d5		; digi pos		
+		moveq	#3-1,d7
+		moveq	#18,d5		; digi pos
 		bsr	UI_DigiBlit
 
-		
+
 .skip
 
 
 		movem.l	(sp)+,d0-a6
 		rts
 
-		;a0 = hud 
+		;a0 = hud
 		;a1 = font
 		;d0 = value
 		;d7 = number of digits
@@ -1054,7 +1054,7 @@ UI_DigiBlit	moveq	#0,d6
 		move.w	#32-2,bltamod(a6)
 		move.w	#(40*5)-2,bltdmod(a6)
 		move.w	#(24)<<6+1,bltsize(a6)
-	
+
 		lsr.w	#4,d0
 		subq.w	#2,d5
 		dbra	d7,.loop
@@ -1081,10 +1081,10 @@ UI_CompBlit	move.b	(a3),d0
 		bne.b	.off
 		move.l	a2,a3
 		bra	.go
-.off		move.l	a1,a3				
+.off		move.l	a1,a3
 .go		bsr	UI_BlitTog
 .skip		rts
-	
+
 
 UI_LoopClr	WAITBLIT
 		lea	(a3,d6.w),a3
@@ -1125,7 +1125,7 @@ UI_Decimal	moveq	#3,d7
 		rts
 
 
-; vars 		
+; vars
 
 UI_ActualBPM	dc.w	-1
 UI_PatternPos	dc.w	-1

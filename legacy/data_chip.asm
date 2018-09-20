@@ -1,9 +1,10 @@
 
 ** GFX data for chip ram
 
-        section gfxdata,data_c           ;  keep data & code seperate!
 
-
+; When linking with amiga-gcc, we need to use the
+; magic section name '.data_chip' to get a chip RAM data hunk.
+		section .data_chip,data_c
 
 _cCopper	dc.w	$83df,$fffe
 		dc.w	bplcon0,$2200	; set as 1 bp display
@@ -29,9 +30,9 @@ _cpat		dc.w	bplpt+4,$0
 
 _cScope		dc.w	bplpt,$0
 		dc.w	bplpt+2,$0
-		
 
-		; high lighter!	
+
+		; high lighter!
 _pathide1	dc.w	$8401,$fffe,$184,$111
 		dc.w	$8B01,$fffe,$184,$222
 		dc.w	$9201,$fffe,$184,$333
@@ -66,7 +67,7 @@ _cscreen	dc.w	bplpt,$0
 
                 dc.w    $ffff,$fffe
                 dc.w    $ffff,$fffe
-                
+
 
 
 
@@ -103,7 +104,7 @@ _hud_sprites	dc.w	sprpt,0
 
 
 
-		
+
 _hud_planes	dc.w	bplpt,$0
 		dc.w	bplpt+2,$0
 		dc.w	bplpt+4,$0
@@ -133,7 +134,7 @@ _hud_planes	dc.w	bplpt,$0
 		; sprite colours
 		dc.w	$1a2,$f81
 		dc.w	$1a4,$f81
-		
+
 		dc.w	$1aa,$f81
 		dc.w	$1ac,$f81
 
@@ -154,11 +155,11 @@ _track_plane	dc.w	bplpt,$0
 		dc.w	bplpt+6,$0
 		dc.w	bplpt+8,$0
 		dc.w	bplpt+10,$0
-		
+
 		dc.w	$180,$000
 		dc.w	$182,$143
 _track_flash	dc.w	$184,$1fc
-		dc.w	$186,$1fc		
+		dc.w	$186,$1fc
 _cue_flash	dc.w	$188,$811
 		dc.w	$18a,$811
 		dc.w	$18c,$f11
@@ -172,7 +173,7 @@ _grid_planes2	dc.w	bplpt,$0
 		dc.w	$79df,$fffe
 _grid_planes2c	dc.w	bplpt,$0
 		dc.w	bplpt+2,$2
-	
+
 
 		; track mute planes
 		dc.w	$7adf,$fffe
@@ -200,9 +201,9 @@ _track_planes	dc.w	bplpt,$0
 ; time to jump?
 
 ;		dc.w	$83df,$fffe
-		
+
 		dc.w	copjmp2,0
-		
+
 		dc.w    $ffff,$fffe
                 dc.w    $ffff,$fffe
 
@@ -217,16 +218,16 @@ _select_planes	dc.w	bplpt,$0
 		dc.w	bplpt+4,$0
 		dc.w	bplpt+6,$0
 		dc.w	bpl1mod,40
-		dc.w	bpl2mod,40		
+		dc.w	bpl2mod,40
 
 		dc.w	$0180,$0000,$0182,$0222,$0184,$0333,$0186,$00fc
-		
+
 		dc.w	$8edf,$fffe
 		dc.w	bplcon0,$3100
 		dc.w	bplcon1,$0040
 		dc.w	bpl1mod,-40
 		dc.w	bpl2mod,0
-		
+
 _filla_planes	dc.w	bplpt,$0
 		dc.w	bplpt+2,$0
 _dir_planes	dc.w	bplpt+4,$0
@@ -236,7 +237,7 @@ _fillb_planes	dc.w	bplpt+8,$0
 
 		dc.w	$184,$fff
 		dc.w	$188,$000
-	
+
 _selectaline	dc.w	$9101,$fffe,$188,$00,$9601,$fffe,$188,$000,$188,$000
 _selectanext	dc.w	$9801,$fffe,$188,$00,$9d01,$fffe,$188,$000,$188,$000
 		dc.w	$9f01,$fffe,$188,$00,$a401,$fffe,$188,$000,$188,$000
@@ -285,7 +286,7 @@ _cSwitch3	dc.w	$ffdf,$fffe
 		dc.w	$2501,$fffe
 		dc.w	bplcon0,$0100
 
-		
+
 		dc.w	$ffff,$fffe
 		dc.w	$ffff,$fffe
 
@@ -327,8 +328,8 @@ _spritelist	dc.l	_spritelefttop
 		dc.l	_spriteblank
 		dc.l	_spriteblank
 		dc.l	_spriteblank
-		
-		
+
+
 		; hud gfx
 _hud		incbin	"gfx/hud.raw"
 _hud_on		incbin	"gfx/hud_on2.raw"
@@ -348,7 +349,7 @@ _track_fill	dcb.b	40,$ff
 _track_pos	dcb.b	40,$00
 _track_cue	dcb.b	40,$00
 
-				
+
 _song_grid	dcb.b	40,$aa
 _song_grid_clr	dcb.b	40,$00
 		; track area
@@ -356,8 +357,8 @@ _track		dcb.b	40*9*3
 
 
 
-
-	section gfx_mem,bss_c
+; Another magic section name '.bss_chip' to get a chip RAM BSS hunk.
+	section .bss_chip,bss_c
 
 _dir		dcb.b	FS_ListMax*7*40+(40*3),0
 _dirend
@@ -365,7 +366,7 @@ _dirend
 _basepattern	dcb.b	40*PT_LineHeight
 
 _pattern1_start	dcb.b	40*PT_LineHeight*PT_Offset
-_pattern1	dcb.b	40*PT_LineHeight*64         
+_pattern1	dcb.b	40*PT_LineHeight*64
 		dcb.b	40*PT_LineHeight*3
 _pattern2_start	dcb.b	40*PT_LineHeight*PT_Offset
 _pattern2	dcb.b	40*PT_LineHeight*64
