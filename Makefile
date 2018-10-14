@@ -1,3 +1,11 @@
+# The following variable should be either passed to 'make' or set as an environment variable
+ifndef AMIGA_GCC
+$(error AMIGA_GCC is not set; please set AMIGA_GCC to the root of your Amiga GCC directory)
+endif
+
+# Swap all backslashes for forward slashes - can avoid confusing some tools under Windows
+AMIGA_GCC := $(subst \,/,$(AMIGA_GCC))
+
 SOURCES :=	action.c audiodevice.c cia.c consoledevice.c filesystem.c \
 			gameport.c graphics.c input.c inputdevice.c keyboard.c \
 			libraries.c main.c
@@ -19,40 +27,16 @@ BUILD_DIR = build
 
 # Assembler flags
 AS := vasmm68k_mot
-ASFLAGS += -m68000 -Fhunk -x -quiet
+ASFLAGS += -m68000 -Fhunk -x -quiet -I$(AMIGA_GCC)/m68k-amigaos/ndk-include
 
 # Define CC=vc to compile with VBCC
 ifeq ($(CC),vc)
 # VBCC compiler setup
-# The following variables should be either passed to 'make' or set as environment variables
-ifndef NDK
-$(error NDK is not set; please set NDK to the root of your OS3.9 NDK directory)
-endif
-
-ifndef VBCC
-$(error VBCC is not set; please set VBCC to the root of your vbcc installation)
-endif
-
-# Swap all backslashes for forward slashes - can avoid confusing some tools under Windows
-NDK := $(subst \,/,$(NDK))
-VBCC := $(subst \,/,$(VBCC))
-
-VBCC_INCLUDE_PATH := $(VBCC)/targets/m68k-kick13/include
-NDK_INCLUDE_PATH := $(NDK)/Include/include_h
-NDK_LINKER_PATH := $(NDK)/Include/linker_libs
-
-ASFLAGS += -I$(NDK)/Include/include_i
-CFLAGS += +vc.config -lamiga -c99 -Iinclude -I$(VBCC_INCLUDE_PATH) -I$(NDK_INCLUDE_PATH) -L$(NDK_LINKER_PATH)
+CFLAGS += +vc.config -lamiga -c99 -Iinclude -L$(AMIGA_GCC)/m68k-amigaos/ndk/lib/linker_libs
 
 else
 # GCC compiler setup
-# The following variable should be either passed to 'make' or set as an environment variable
-ifndef AMIGA_GCC
-$(error AMIGA_GCC is not set; please set AMIGA_GCC to the root of your Amiga GCC directory)
-endif
-
 CC := m68k-amigaos-gcc
-ASFLAGS += -I$(AMIGA_GCC)/m68k-amigaos/ndk-include
 CFLAGS += -mcrt=nix13 -std=c99 -Wall -Werror -Wno-pointer-sign -Iinclude
 
 # Optimized CFLAGS
