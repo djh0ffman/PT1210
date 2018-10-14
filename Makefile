@@ -29,15 +29,22 @@ BUILD_DIR = build
 AS := vasmm68k_mot
 ASFLAGS += -m68000 -Fhunk -x -quiet -I$(AMIGA_GCC)/m68k-amigaos/ndk-include
 
+# Cppcheck flags
+CPPCHECKFLAGS += --enable=all --std=c99 --verbose --quiet -Iinclude -I$(AMIGA_GCC)/m68k-amigaos/ndk13-include -I$(AMIGA_GCC)/m68k-amigaos/ndk-include
+
 # Define CC=vc to compile with VBCC
 ifeq ($(CC),vc)
 # VBCC compiler setup
 CFLAGS += +vc.config -lamiga -c99 -Iinclude -L$(AMIGA_GCC)/m68k-amigaos/ndk/lib/linker_libs
+CPPCHECKFLAGS += -D__VBCC__ -I$(AMIGA_GCC)/m68k-amigaos/vbcc/include
 
 else
 # GCC compiler setup
 CC := m68k-amigaos-gcc
 CFLAGS += -mcrt=nix13 -std=c99 -Wall -Werror -Wno-pointer-sign -Iinclude
+CPPCHECKFLAGS +=	-D__GNUC__ -D__m68k__ -D__INTPTR_TYPE__=int -D__INT32_TYPE__=int \
+					-I$(AMIGA_GCC)/lib/gcc/m68k-amigaos/6.4.1b/include \
+					-I$(AMIGA_GCC)/m68k-amigaos/sys-include
 
 # Optimized CFLAGS
 ifndef DEBUG
@@ -53,6 +60,7 @@ endif
 ifeq ($(DEBUG),1)
 # Debug CFLAGS
 CFLAGS += -g -DDEBUG -ldebug
+CPPCHECKFLAGS += -DDEBUG
 else
 # Optimized CFLAGS
 CFLAGS += -Os
@@ -91,7 +99,7 @@ run-fs: $(OUTPUT_EXE)
 
 .PHONY: cppcheck
 cppcheck:
-	cppcheck --enable=all --std=c99 --verbose --quiet .
+	cppcheck $(CPPCHECKFLAGS) .
 
 $(BUILD_DIR)/%.d: ;
 .PRECIOUS: $(BUILD_DIR)/%.d
