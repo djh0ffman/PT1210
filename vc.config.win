@@ -1,0 +1,14 @@
+-cc=vbccm68k -hunkdebug %s -o= %s %s -O=%ld -quiet -IC:/amiga-gcc/m68k-amigaos/vbcc13/include -IC:/amiga-gcc/m68k-amigaos/ndk13-include -IC:/amiga-gcc/m68k-amigaos/ndk-include
+-ccv=vbccm68k -hunkdebug %s -o= %s %s -O=%ld -IC:/amiga-gcc/m68k-amigaos/vbcc13/include -IC:/amiga-gcc/m68k-amigaos/ndk13-include -IC:/amiga-gcc/m68k-amigaos/ndk-include
+-as=vasmm68k_mot -Fhunk -kick1hunks -phxass -opt-fconst -nowarn=62 -quiet -IC:/amiga-gcc/m68k-amigaos/ndk-include %s -o %s
+-asv=vasmm68k_mot -Fhunk -kick1hunks -phxass -opt-fconst -nowarn=62 -IC:/amiga-gcc/m68k-amigaos/ndk-include %s -o %s
+-rm=rm %s
+-rmv=rm -v %s
+-ld=vlink -bamigahunk -x -Bstatic -Cvbcc -nostdlib -Z -mrel C:/amiga-gcc/m68k-amigaos/vbcc13/lib/startup.o %s %s -LC:/amiga-gcc/m68k-amigaos/vbcc13/lib -LC:/amiga-gcc/m68k-amigaos/vbcc13/include -lvc -o %s
+-l2=vlink -bamigahunk -x -Bstatic -Cvbcc -nostdlib -Z -mrel %s %s -LC:/amiga-gcc/m68k-amigaos/vbcc13/lib -LC:/amiga-gcc/m68k-amigaos/vbcc13/include -o %s
+-ldv=vlink -bamigahunk -t -x -Bstatic -Cvbcc -nostdlib -Z -mrel C:/amiga-gcc/m68k-amigaos/vbcc13/lib/startup.o %s %s -LC:/amiga-gcc/m68k-amigaos/vbcc13/lib -LC:/amiga-gcc/m68k-amigaos/vbcc13/include -lvc -o %s
+-l2v=vlink -bamigahunk -t -x -Bstatic -Cvbcc -nostdlib -Z -mrel %s %s -LC:/amiga-gcc/m68k-amigaos/vbcc13/lib -LC:/amiga-gcc/m68k-amigaos/vbcc13/include -o %s
+-ldnodb=-s
+-ul=-l%s
+-cf=-F%s
+-ml=500
