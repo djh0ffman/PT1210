@@ -151,7 +151,7 @@ static uint16_t read_gamepad_buttons(gameport_port_t port, bool read_extra_butto
 		__asm("\ttst.b (a1)");
 
 		/* Read pin 9 and clock in the next bit */
-		button_state |= (!(custom.potinp >> potgo_pin9_bit) & 1) << (EVENT_BUTTON_BLUE + i);
+		button_state |= (~(custom.potinp >> potgo_pin9_bit) & 1) << (EVENT_BUTTON_BLUE + i);
 		ciaa.ciapra |= cia_pin6_bitmask;
 		ciaa.ciapra &= ~cia_pin6_bitmask;
 	}

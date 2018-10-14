@@ -60,9 +60,11 @@ void pt1210_input_process_bindings(input_binding_t* binding_list, size_t length)
 						break;
 					}
 
-					++*frames_held;
-					if (*frames_held <= 30 || *frames_held <= 32)
+					if (*frames_held <= 32)
+					{
+						++*frames_held;
 						break;
+					}
 
 					*frames_held = 30;
 					binding->handler();
