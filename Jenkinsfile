@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        stash 'source'
+        stash name: 'source', useDefaultExcludes: false
         deleteDir()
       }
     }
