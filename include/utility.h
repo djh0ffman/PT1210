@@ -27,4 +27,7 @@
 /* Macro for clamping a value between a minimum and a maximum */
 #define CLAMP(VALUE, MIN, MAX) ((VALUE < MIN) ? MIN : (VALUE > MAX) ? MAX : VALUE)
 
+/* Macro for dividing one positive value by another, rounding up if there is a remainder */
+#define CEIL_DIV(X, Y) (((X) + (Y) - 1) / (Y))
+
 #endif /* UTILITY_H */

@@ -150,19 +150,13 @@ typedef enum
 	/* (undefined)					= 0x7C, */
 	/* (undefined)					= 0x7D, */
 	/* (undefined)					= 0x7E, */
-	/* (undefined)					= 0x7F  */
+	/* (undefined)					= 0x7F, */
+	KEYCODE_NONE,
+	KEYCODE_MAX = KEYCODE_NONE
 } keyboard_keycode_t;
 
-/* Modifier keys */
-typedef enum
-{
-	MODIFIER_CTRL,
-	MODIFIER_ALT,
-	MODIFIER_AMIGA,
-	MODIFIER_SHIFT,
-	MODIFIER_NONE,
-	MODIFIER_MAX = MODIFIER_NONE
-} keyboard_modifier_t;
+/* The number of bytes required to hold the state of all keyboard keys */
+#define KEYCODE_STATE_BYTES CEIL_DIV(KEYCODE_MAX, 8)
 
 void pt1210_keyboard_enable_processing(bool enabled);
 void pt1210_keyboard_switch_binding_list(pt1210_screen_t screen);
