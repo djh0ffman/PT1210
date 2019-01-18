@@ -91,7 +91,7 @@ $(OUTPUT_ADF): $(OUTPUT_EXE)
 	xdftool -f $(OUTPUT_ADF) $(XDFTOOL_CMDS)
 
 $(OUTPUT_EXE): $(BUILD_DIR)/pt1210.o $(SOURCES:%.c=$(BUILD_DIR)/%.o)
-	$(CC) $(CFLAGS) -o $(OUTPUT_EXE) $^
+	$(CC) -o $(OUTPUT_EXE) $^ $(CFLAGS)
 
 # Assembly code
 $(BUILD_DIR)/pt1210.o: $(wildcard legacy/*.asm)
@@ -100,7 +100,7 @@ $(BUILD_DIR)/pt1210.o: $(wildcard legacy/*.asm)
 # C code
 $(BUILD_DIR)/%.o : %.c
 $(BUILD_DIR)/%.o : %.c $(BUILD_DIR)/%.d
-	$(CC) $(DEPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(CC) $(DEPFLAGS) -c -o $@ $< $(CFLAGS)
 	$(POST_COMPILE)
 
 .PHONY: clean
