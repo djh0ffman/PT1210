@@ -20,6 +20,7 @@
 #include "audiodevice.h"
 #include "cia.h"
 #include "consoledevice.h"
+#include "fileselector.h"
 #include "filesystem.h"
 #include "gameport.h"
 #include "graphics.h"
@@ -29,6 +30,9 @@ void MAIN();
 
 int main(int argc, char** argv)
 {
+	/* Init filesystem */
+	pt1210_file_initialize();
+
 	/* Attempt to open console device */
 	if (!pt1210_console_open_device())
 		return EXIT_FAILURE;
@@ -59,8 +63,8 @@ int main(int argc, char** argv)
 	if (!pt1210_gfx_install_vblank_server())
 		return EXIT_FAILURE;
 
-	pt1210_file_gen_list();
-	pt1210_file_sort_list(SORT_DISPLAY_NAME, false);
+	/* Generate initial file selector listing */
+	pt1210_fs_rescan();
 
 	/* Start timer interrupt */
 	pt1210_cia_start_timer();
@@ -79,6 +83,7 @@ int main(int argc, char** argv)
 	pt1210_input_remove_handler();
 	pt1210_input_close_device();
 	pt1210_console_close_device();
+	pt1210_file_shutdown();
 
 	return EXIT_SUCCESS;
 }

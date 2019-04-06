@@ -24,7 +24,6 @@ struct Device* ConsoleDevice;
 
 static struct IOStdReq* console_io = NULL;	/* storage for console IORequest pointer */
 static struct MsgPort* console_port = NULL;	/* storage for console port pointer */
-static bool device_open = false;			/* flag to denote device open */
 
 bool pt1210_console_open_device()
 {
@@ -43,8 +42,7 @@ bool pt1210_console_open_device()
 	}
 
 	/* We don't want an actual console; just the library base, hence unit is CONU_LIBRARY */
-	device_open = !OpenDevice("console.device", CONU_LIBRARY, (struct IORequest*) console_io, 0L);
-	if (!device_open)
+	if (OpenDevice("console.device", CONU_LIBRARY, (struct IORequest*) console_io, 0L))
 	{
 		fprintf(stderr, "Failed to open console.device, error code: %d\n", console_io->io_Error);
 		return false;
@@ -58,11 +56,10 @@ bool pt1210_console_open_device()
 
 void pt1210_console_close_device()
 {
-	if (device_open)
+	if (ConsoleDevice)
 	{
 		CloseDevice((struct IORequest*) console_io);
 		ConsoleDevice = NULL;
-		device_open = false;
 	}
 
 	if (console_io)

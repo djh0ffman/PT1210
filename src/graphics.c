@@ -30,6 +30,7 @@ extern struct Custom custom;
 
 static struct Screen* screen = NULL;
 static struct Interrupt* vblank_server = NULL;
+/*static*/ bool vblank_enabled = true;
 
 bool pt1210_gfx_open_screen()
 {
@@ -95,4 +96,9 @@ void pt1210_gfx_remove_vblank_server()
 {
 	RemIntServer(INTB_VERTB, vblank_server);
 	FreeMem(vblank_server, sizeof(struct Interrupt));
+}
+
+void pt1210_gfx_enable_vblank_server(bool enabled)
+{
+	vblank_enabled = enabled;
 }

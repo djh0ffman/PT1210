@@ -17,6 +17,8 @@
 **
 ***********************************
 
+			XDEF	_ST_Type
+
 PT_FontWidth	= 64
 PT_FontHeight	= 5			; this is never used but our font is 5 pixels high
 PT_VPos			= 100
@@ -29,7 +31,7 @@ PT_Prep		lea		PT_BaseLine,a0
 			lea		_basepattern,a1
 
 			moveq	#0,d7
-			bsr		ST_Type								; char plot the template line
+			bsr		_ST_Type								; char plot the template line
 
 			lea		$dff000,a6
 			WAITBLIT
@@ -187,7 +189,9 @@ PT_PatPos2	move.l	PT_PlanePtr(pc),d0
 
 			; a0 = text
 			; a1 = plane area
-ST_Type		lea		_font_small,a5
+_ST_Type
+			movem.l	d0-a6,-(sp)
+			lea		_font_small,a5
 
 .nextline	moveq	#40-1,d4				; character line counter
 
@@ -203,6 +207,7 @@ ST_Type		lea		_font_small,a5
 
 			lea		(40*6)(a1),a1			; move to next character line on the plane
 			dbra	d7,.nextline
+			movem.l	(sp)+,d0-a6
 			rts
 
 PT_PlanePtr	dc.l	_pattern1

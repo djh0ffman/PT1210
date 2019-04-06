@@ -177,6 +177,7 @@ add_executable(pt1210
 	src/audiodevice.c
 	src/cia.c
 	src/consoledevice.c
+	src/fileselector.c
 	src/filesystem.c
 	src/gameport.c
 	src/graphics.c
@@ -190,7 +191,9 @@ add_executable(pt1210
 	include/audiodevice.h
 	include/cia.h
 	include/consoledevice.h
+	include/fileselector.h
 	include/filesystem.h
+	include/font.h
 	include/gameport.h
 	include/graphics.h
 	include/input.h

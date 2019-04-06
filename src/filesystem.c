@@ -14,11 +14,18 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <clib/debug_protos.h>
+#include <proto/exec.h>
+
 #include "filesystem.h"
 #include "utility.h"
 
 file_list_t pt1210_file_list[MAX_FILE_COUNT];
 uint16_t pt1210_file_count;
+
+/* Directory locks */
+static BPTR old_dir_lock = 0;
+static BPTR current_dir_lock = 0;
 
 /* Imported from ASM code */
 extern char FS_LoadErrBuff[80];
@@ -31,66 +38,255 @@ typedef int (*comparator_t)(const void*, const void*);
 static bool cmp_swap = false;
 
 /* Comparator functions for sorting each of the file structure fields */
+/* FIXME: Turn this into a function and only check vols/assigns when FS in volume mode */
+#define CMP_NON_FILE_ENTRIES()														\
+	/* Parent entries first... */ 													\
+	if (lhs->type == ENTRY_PARENT && rhs->type != ENTRY_PARENT)						\
+		return -1;																	\
+																					\
+	if (rhs->type == ENTRY_PARENT && lhs->type != ENTRY_PARENT) 					\
+		return 1;																	\
+																					\
+	/* ...followed by directories in ascending order */								\
+	if (lhs->type == ENTRY_DIRECTORY && rhs->type != ENTRY_DIRECTORY)				\
+		return -1;																	\
+																					\
+	if (rhs->type == ENTRY_DIRECTORY && lhs->type != ENTRY_DIRECTORY)				\
+		return 1;																	\
+																					\
+	/* ...followed by volumes in ascending order */									\
+	if (lhs->type == ENTRY_VOLUME && rhs->type != ENTRY_VOLUME)						\
+		return -1;																	\
+																					\
+	if (rhs->type == ENTRY_VOLUME && lhs->type != ENTRY_VOLUME)						\
+		return 1;																	\
+																					\
+	/* ...followed by assigns in ascending order */									\
+	if (lhs->type == ENTRY_ASSIGN && rhs->type != ENTRY_ASSIGN)						\
+		return -1;																	\
+																					\
+	if (rhs->type == ENTRY_ASSIGN && lhs->type != ENTRY_ASSIGN)						\
+		return 1;																	\
+																					\
+	if (lhs->type != ENTRY_FILE && lhs->type == rhs->type)							\
+		return strncasecmp(lhs->file_name, rhs->file_name, MAX_FILE_NAME_LENGTH);
+
 static int cmp_bpm(const void* a, const void* b)
 {
-	const file_list_t* lhs = cmp_swap ? b : a;
-	const file_list_t* rhs = cmp_swap ? a : b;
-	return lhs->bpm - rhs->bpm;
-}
+	const file_list_t* lhs = a;
+	const file_list_t* rhs = b;
 
-static int cmp_file_name(const void* a, const void* b)
-{
-	const file_list_t* lhs = cmp_swap ? b : a;
-	const file_list_t* rhs = cmp_swap ? a : b;
-	return strncmp(lhs->file_name, rhs->file_name, MAX_FILE_NAME_LENGTH);
+	CMP_NON_FILE_ENTRIES();
+
+	return cmp_swap ? rhs->bpm - lhs->bpm : lhs->bpm - rhs->bpm;
 }
 
 static int cmp_name(const void* a, const void* b)
 {
-	const file_list_t* lhs = cmp_swap ? b : a;
-	const file_list_t* rhs = cmp_swap ? a : b;
-	return strncmp(lhs->name, rhs->name, MAX_FILE_NAME_DISPLAY);
+	const file_list_t* lhs = a;
+	const file_list_t* rhs = b;
+
+	CMP_NON_FILE_ENTRIES();
+
+	/* Ignore any MOD. prefixes */
+	const char* lhs_name = lhs->file_name;
+	const char* rhs_name = rhs->file_name;
+
+	if (has_mod_prefix(lhs_name) && lhs_name[4] != '\0')
+		lhs_name += 4;
+	if (has_mod_prefix(rhs_name) && rhs_name[4] != '\0')
+		rhs_name += 4;
+
+	return cmp_swap ?
+		strncasecmp(rhs_name, lhs_name, MAX_FILE_NAME_LENGTH) :
+		strncasecmp(lhs_name, rhs_name, MAX_FILE_NAME_LENGTH);
 }
 
-void pt1210_file_gen_list()
+void pt1210_file_initialize()
 {
-	BPTR folder_lock;
-	struct FileInfoBlock fib;
-
-	pt1210_file_count = 0;
-
-	/* Lock the current directory for reading */
-	folder_lock = Lock("", ACCESS_READ);
-	if (!folder_lock)
+	if (old_dir_lock)
 		return;
 
+	/* Find our own process and retrieve lock */
+	struct Process* process = (struct Process*) FindTask(NULL);
+	old_dir_lock = process->pr_CurrentDir;
+
+	/* Create a copy of the old lock and change to it */
+	current_dir_lock = DupLock(old_dir_lock);
+	CurrentDir(current_dir_lock);
+}
+
+void pt1210_file_shutdown()
+{
+	/* Restore current directory to old lock and free our own */
+	CurrentDir(old_dir_lock);
+	UnLock(current_dir_lock);
+
+	current_dir_lock = 0;
+	old_dir_lock = 0;
+}
+
+bool pt1210_file_change_dir(const char* path)
+{
+	/* Attempt to get a lock on the selected directory */
+	BPTR dir_lock = Lock(path, ACCESS_READ);
+	if (!dir_lock)
+		return false;
+
+	/* Free current lock and change directory */
+	UnLock(current_dir_lock);
+	current_dir_lock = dir_lock;
+	CurrentDir(dir_lock);
+	return true;
+}
+
+bool pt1210_file_parent_dir()
+{
+	BPTR parent_lock = ParentDir(current_dir_lock);
+	if (parent_lock)
+	{
+		UnLock(current_dir_lock);
+		current_dir_lock = parent_lock;
+		CurrentDir(current_dir_lock);
+		return true;
+	}
+
+	return false;
+}
+
+void pt1210_file_gen_file_list()
+{
+	file_list_t* list_entry = &pt1210_file_list[0];
+
+	/* Get a longword-aligned block of memory to store the file information block */
+	struct FileInfoBlock* fib = AllocMem(sizeof(*fib), MEMF_CLEAR | MEMF_PUBLIC);
+	if (!fib)
+		return;
+
+	/* Add "parent directory" entry */
+	list_entry->type = ENTRY_PARENT;
+	strcpy(list_entry->file_name, "PARENT");
+	pt1210_file_count = 1;
+
 	/* Iterate over directory contents and search for modules */
-	if (Examine(folder_lock, &fib))
+	if (Examine(current_dir_lock, fib))
 	{
 		while (pt1210_file_count < MAX_FILE_COUNT)
 		{
-			if (!ExNext(folder_lock, &fib))
+			if (!ExNext(current_dir_lock, fib))
 				break;
 
-			/* Check this file is a module and add it to the file browser if so */
-			pt1210_file_check_module(&fib);
+			/* If DirEntryType is >0, it's a directory) */
+			if (fib->fib_DirEntryType > 0)
+			{
+				list_entry = &pt1210_file_list[pt1210_file_count];
+				list_entry->type = ENTRY_DIRECTORY;
+				strncpy(list_entry->file_name, fib->fib_FileName, MAX_FILE_NAME_LENGTH);
+				++pt1210_file_count;
+			}
+			else
+			{
+				/* Check this file is a module and add it to the file browser if so */
+				pt1210_file_check_module(fib);
+			}
 		}
 	}
 
-	UnLock(folder_lock);
+	FreeMem(fib, sizeof(*fib));
 }
 
-/* Function for white spacing and uppercase display name */
-void pt1210_display_name(char* input, size_t count)
+void pt1210_file_gen_volume_list()
 {
-	for (int i = 0; i < count; i++)
-	{
-		char temp = input[i];
-		if (temp == '\0')
-			temp = ' ';
+	pt1210_file_count = 0;
 
-		input[i] = (char) toupper(temp);
-	}
+	/* Start of critical section */
+	Forbid();
+
+	struct DosInfo* dos_info = (struct DosInfo*) BADDR(DOSBase->dl_Root->rn_Info);
+	struct DevInfo* dvi = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
+
+	do
+	{
+#ifdef DEBUG
+		kprintf("Checking %s %ld\n", ((char*)BADDR(dvi->dvi_Name) + 1), dvi->dvi_Type);
+#endif
+		file_list_t* list_entry = &pt1210_file_list[pt1210_file_count];
+
+		switch(dvi->dvi_Type)
+		{
+			case DLT_VOLUME:		list_entry->type = ENTRY_VOLUME; break;
+			case DLT_DIRECTORY:		list_entry->type = ENTRY_ASSIGN; break;
+			case DLT_LATE:			list_entry->type = ENTRY_ASSIGN; break;
+			case DLT_NONBINDING:	list_entry->type = ENTRY_ASSIGN; break;
+			default:				continue;
+		}
+
+		/* BCPL strings have the length as the first byte */
+		void* vol_name_bstr = BADDR(dvi->dvi_Name);
+		uint8_t vol_name_len = *(uint8_t*) vol_name_bstr;
+		char* vol_name = (char*) vol_name_bstr + 1;
+		strncpy(list_entry->file_name, vol_name, MAX_FILE_NAME_LENGTH);
+
+		/* Add colon */
+		list_entry->file_name[vol_name_len] = ':';
+		list_entry->file_name[vol_name_len + 1] = '\0';
+
+		++pt1210_file_count;
+	} while ((dvi = (struct DevInfo*) BADDR(dvi->dvi_Next)) && pt1210_file_count < MAX_FILE_COUNT);
+
+	/* End of critical section */
+	Permit();
+}
+
+const char* pt1210_file_dev_name_from_vol_name(const char* vol_name)
+{
+	/* Start of critical section */
+	Forbid();
+
+	struct DosInfo* dos_info = (struct DosInfo*) BADDR(DOSBase->dl_Root->rn_Info);
+	struct DevInfo* dvi_vol = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
+	struct DevInfo* dvi_dev = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
+	const char* dev_name = NULL;
+
+	/* Trim the colon from the end */
+	char vol_name_trimmed[MAX_FILE_NAME_LENGTH + 1];
+	char* cur_char = vol_name_trimmed;
+	while (*vol_name != '\0' && *vol_name != ':')
+		*cur_char++ = *vol_name++;
+	*cur_char = '\0';
+
+	/* Find our volume in the DOS list*/
+	do
+	{
+		if (dvi_vol->dvi_Type != DLT_VOLUME)
+			continue;
+
+		const char* dvi_vol_name = (const char*) BADDR(dvi_vol->dvi_Name) + 1;
+
+		/* Found it */
+		if (!strcmp(vol_name_trimmed, dvi_vol_name))
+		{
+			/* Now look for the device that shares the same Task */
+			do
+			{
+				if (dvi_dev->dvi_Type != DLT_DEVICE)
+					continue;
+
+				if (dvi_dev->dvi_Task != dvi_vol->dvi_Task)
+					continue;
+
+				/* Found it, return the device name */
+				dev_name = (const char*) BADDR(dvi_dev->dvi_Name) + 1;
+				break;
+			} while ((dvi_dev = (struct DevInfo*) BADDR(dvi_dev->dvi_Next)));
+			break;
+		}
+	} while ((dvi_vol = (struct DevInfo*) BADDR(dvi_vol->dvi_Next)));
+
+	/* End of critical section */
+	Permit();
+
+	return dev_name;
 }
 
 void pt1210_file_sort_list(file_sort_key_t key, bool descending)
@@ -104,10 +300,9 @@ void pt1210_file_sort_list(file_sort_key_t key, bool descending)
 
 	switch (key)
 	{
-		case SORT_DISPLAY_NAME: 	comparator = cmp_name;			break;
-		case SORT_FILE_NAME:		comparator = cmp_file_name;		break;
-		case SORT_BPM:				comparator = cmp_bpm;			break;
-		default:					return;
+		case SORT_NAME:		comparator = cmp_name;		break;
+		case SORT_BPM:		comparator = cmp_bpm;		break;
+		default:			return;
 	}
 
 	/* Perform quicksort */
@@ -121,7 +316,6 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	uint8_t first_pattern = 0;
 	uint32_t pattern_row[4];
 	uint32_t fpb_tag[2];
-	uint32_t mod_tag = 0;
 
 	/* Ignore files too small to be valid Protracker modules */
 	if (fib->fib_Size < MIN_MODULE_FILE_SIZE)
@@ -183,23 +377,11 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 		}
 	}
 
+	/* Set list entry type as file */
+	list_entry->type = ENTRY_FILE;
+
 	/* Store file name */
 	strncpy(list_entry->file_name, fib->fib_FileName, MAX_FILE_NAME_LENGTH);
-
-	mod_tag = fib->fib_FileName[0] << 24 |
-			  fib->fib_FileName[1] << 16 |
-			  fib->fib_FileName[2] << 8 |
-			  fib->fib_FileName[3];
-	mod_tag &= FS_MOD_PREFIX_UPPER;
-
-	/* Create display name removing mod. prefix */
-	if (mod_tag == FS_MOD_PREFIX)
-		strncpy(list_entry->name, fib->fib_FileName + 4, MAX_FILE_NAME_DISPLAY - 4);
-	else
-		strncpy(list_entry->name, fib->fib_FileName, MAX_FILE_NAME_DISPLAY);
-
-	/* Clear display string with white space for text display */
-	pt1210_display_name(list_entry->name, MAX_FILE_NAME_DISPLAY);
 
 	/* Store file size */
 	list_entry->file_size = fib->fib_Size;
@@ -249,18 +431,4 @@ void pt1210_file_read_error()
 	/* Fault(error, "", FS_LoadErrBuff, sizeof(FS_LoadErrBuff)); */
 
 	FS_DrawLoadError(error);
-}
-
-bool pt1210_file_find_first(char key, size_t* index)
-{
-	for (size_t i = 0; i < ARRAY_LENGTH(pt1210_file_list); ++i)
-	{
-		if (pt1210_file_list[i].name[0] == key)
-		{
-			*index = i;
-			return true;
-		}
-	}
-
-	return false;
 }

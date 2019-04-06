@@ -51,7 +51,7 @@ static input_binding_t bindings_fs[] =
 {
 	{ EVENT_UP,					EVENT_NONE,					PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_up 			},
 	{ EVENT_DOWN,				EVENT_NONE,					PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_down 			},
-	{ EVENT_BUTTON_1,			EVENT_NONE,					PRESS_TYPE_ONESHOT, 		pt1210_action_fs_load_tune 			}
+	{ EVENT_BUTTON_1,			EVENT_NONE,					PRESS_TYPE_ONESHOT, 		pt1210_action_fs_select 			}
 };
 
 static gameport_type_t gameport_0_type = TYPE_NONE;

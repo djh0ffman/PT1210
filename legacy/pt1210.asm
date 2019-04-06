@@ -25,7 +25,6 @@ SW_Splash = 0		; Include splash screen
 	XDEF _pt1210_gfx_vblank_server_proc
 
 ; Imports from C code
-	XREF _pt1210_file_gen_list
 	XREF _pt1210_file_read
 	XREF _pt1210_file_list
 	XREF _pt1210_keyboard_enable_processing
@@ -164,8 +163,8 @@ _MAIN
 		movem.l	d0-a6,-(sp)
 
 		moveq	#0,d5
-		bsr	_FS_DrawDir
-		bsr	FS_Copper
+		jsr	_pt1210_fs_draw_dir
+		jsr	_FS_Copper
 		bsr	PT_Prep
 
 		bsr	UI_DrawChip
@@ -280,38 +279,39 @@ _MAIN
 
 
 .lp
-		tst.b	_pt1210_fs_load_pending
-		beq.b	.skipload
+		tst.l	_pt1210_fs_state
+		beq.b	.skipfs
 
 		; Disable keyboard processing
 		move.l #0,-(sp)
 		jsr _pt1210_keyboard_enable_processing
 		add #4,sp
 
-		bsr	FS_LoadTune
+		cmp.l	#1,_pt1210_fs_state
+		beq.b	.select
+
+		cmp.l	#2,_pt1210_fs_state
+		beq.b	.parent
+
+		jsr	_pt1210_fs_rescan
+		bra.b	.done
+
+.parent
+		jsr	_pt1210_fs_parent
+		bra.b	.done
+
+.select
+		jsr	_pt1210_fs_select
+
+.done
+		clr.l	_pt1210_fs_state
 
 		; Re-enable keyboard processing
 		move.l #1,-(sp)
 		jsr _pt1210_keyboard_enable_processing
 		add #4,sp
-.skipload
 
-		tst.b	_pt1210_fs_rescan_pending
-		beq.b	.skipscan
-
-		move.l #0,-(sp)
-		jsr _pt1210_keyboard_enable_processing
-		add #4,sp
-
-		bsr	FS_Rescan
-
-		move.l #1,-(sp)
-		jsr _pt1210_keyboard_enable_processing
-		add #4,sp
-.skipscan
-
-
-
+.skipfs
 		tst.b	_quit
 		beq.b	.lp
 

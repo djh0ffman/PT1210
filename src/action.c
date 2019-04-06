@@ -16,6 +16,7 @@
 
 #include "action.h"
 #include "cia.h"
+#include "fileselector.h"
 #include "filesystem.h"
 #include "gameport.h"
 #include "keyboard.h"
@@ -24,6 +25,7 @@
 /* TODO: Move these somewhere where overall program state is managed */
 bool quit = false;
 pt1210_screen_t current_screen = SCREEN_FILE_SELECTOR;
+file_selector_state_t pt1210_fs_state = STATE_IDLE;
 
 uint16_t channel_toggle = 0xF;
 
@@ -35,11 +37,6 @@ bool slip_on = true;
 
 bool repitch_enabled = true;
 bool pattern_slip_pending = false;
-
-/* TODO: Move these to file selector C module */
-bool pt1210_fs_load_pending = false;
-bool pt1210_fs_rescan_pending = false;
-bool pt1210_fs_show_kb = false;
 
 /* ASM player variables */
 /* TODO: Rename so the names are more in line with our new C code */
@@ -67,13 +64,7 @@ extern uint8_t Time_Frames;
 extern uint8_t Time_Seconds;
 extern uint8_t Time_Minutes;
 
-/* ASM file selector variables */
-extern uint16_t FS_Current;
-
 /* ASM functions */
-void FS_DrawDir(REG(d5, bool show_kb));
-void FS_DrawType(REG(d0, bool show_kb));
-void FS_Move(REG(d2, int16_t count));
 void mt_end();
 
 void pt1210_action_switch_screen()
@@ -362,8 +353,8 @@ void pt1210_action_quit()
 
 void pt1210_action_fs_char_handler(char character)
 {
-	/* Ignore non-alpha characters */
-	if (!isalpha(character))
+	/* Ignore non-printable characters */
+	if (!isprint(character))
 		return;
 
 	/* Uppercase our character */
@@ -372,55 +363,60 @@ void pt1210_action_fs_char_handler(char character)
 	/* Find the first matching item in the file list and move to it */
 	size_t index;
 
-	if (pt1210_file_find_first(character, &index))
-		FS_Move(index - FS_Current);
+	/* TODO: Move this into FS */
+	if (pt1210_fs_find_next(character, &index))
+		pt1210_fs_move(index - pt1210_fs_current_index());
+}
+
+void pt1210_action_fs_page_up()
+{
+	pt1210_fs_move(-FS_HEIGHT_CHARS);
+}
+
+void pt1210_action_fs_page_down()
+{
+	pt1210_fs_move(FS_HEIGHT_CHARS);
 }
 
 void pt1210_action_fs_move_up()
 {
-	FS_Move(-1);
+	pt1210_fs_move(-1);
 }
 
 void pt1210_action_fs_move_down()
 {
-	FS_Move(1);
+	pt1210_fs_move(1);
 }
 
-void pt1210_action_fs_load_tune()
+void pt1210_action_fs_parent()
 {
-	/* Trigger tune loading in the main loop */
-	pt1210_fs_load_pending = true;
+	/* Trigger parent in main loop */
+	pt1210_fs_state = STATE_PENDING_PARENT;
+}
+
+void pt1210_action_fs_select()
+{
+	/* Trigger selection in the main loop */
+	pt1210_fs_state = STATE_PENDING_SELECT;
 }
 
 void pt1210_action_fs_sort_name()
 {
-	static bool descending = false;
-
-	descending = !descending;
-	pt1210_file_sort_list(SORT_DISPLAY_NAME, descending);
-
-	FS_DrawDir(pt1210_fs_show_kb);
+	pt1210_fs_set_sort(SORT_NAME);
 }
 
 void pt1210_action_fs_sort_bpm()
 {
-	static bool descending = false;
-
-	descending = !descending;
-	pt1210_file_sort_list(SORT_BPM, descending);
-
-	FS_DrawDir(pt1210_fs_show_kb);
+	pt1210_fs_set_sort(SORT_BPM);
 }
 
 void pt1210_action_fs_toggle_show_kb()
 {
-	pt1210_fs_show_kb = !pt1210_fs_show_kb;
-	FS_DrawType(pt1210_fs_show_kb);
-	FS_DrawDir(pt1210_fs_show_kb);
+	pt1210_fs_toggle_show_kb();
 }
 
 void pt1210_action_fs_rescan()
 {
 	/* Trigger rescan in the main loop */
-	pt1210_fs_rescan_pending = true;
+	pt1210_fs_state = STATE_PENDING_RESCAN;
 }

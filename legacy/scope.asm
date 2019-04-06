@@ -3,6 +3,8 @@
 ** mega scope!!
 ***************************************************
 
+	XDEF _ScopeStop
+
 ;---- Scope ----
 
 ns_sampleptr =  0
@@ -45,14 +47,14 @@ ScopeInit	lea	VolCalc(pc),a0
 
 Scope		bsr	ScopeClr
 		tst.b	_mt_Enabled
-		beq.b	ScopeStop
+		beq.b	_ScopeStop
 		bsr	ScopeD
 		bsr.b	ScopeBlitFill
 ScopeCont	bsr.b	ScopeRt
 		bsr	ScopeShow
 		rts
 		
-ScopeStop	LEA	ScopeInfo(pc),A2
+_ScopeStop	LEA	ScopeInfo(pc),A2
 		clr.l	ns_sampleptr(A2)
 		lea	20(a2),a2
 		clr.l	ns_sampleptr(A2)
@@ -258,9 +260,9 @@ ScoDraw	LSR.W	#1,D5		; volume calc..
 	MOVE.L	(A2),A0				; sample ptr
 	ADD.L	ScopePtr+4(pc),A1		; draw pos
 	MOVEQ	#scopebytewd-1,D2				; draw length!
-
-	lea	VolCalc(pc),a3
 	
+	lea	VolCalc(pc),a3
+
 	moveq	#9,d0
 	lsl.w	d0,d5
 	add.l	d5,a3	

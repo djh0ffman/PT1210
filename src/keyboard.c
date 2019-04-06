@@ -67,11 +67,19 @@ static input_binding_t bindings_dj[] =
 /* Default bindings for 'file selector' mode */
 static input_binding_t bindings_fs[] =
 {
+	/* Bindings with modifier keys (these need to come first in the list) */
+	{ KEYCODE_UP,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT, 	pt1210_action_fs_page_up 				},
+	{ KEYCODE_DOWN,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT,		pt1210_action_fs_page_down				},
+
+	/* Bindings without modifier keys */
 	{ KEYCODE_ESCAPE,	KEYCODE_NONE,	PRESS_TYPE_HOLD_ONESHOT,	pt1210_action_quit						},
 	{ KEYCODE_HELP,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_switch_screen				},
 	{ KEYCODE_UP,		KEYCODE_NONE,	PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_up 				},
 	{ KEYCODE_DOWN,		KEYCODE_NONE,	PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_down 				},
-	{ KEYCODE_RETURN,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT, 		pt1210_action_fs_load_tune 				},
+	{ KEYCODE_LEFT,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_parent					},
+	{ KEYCODE_RIGHT,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_select					},
+	{ KEYCODE_ESCAPE,	KEYCODE_NONE,	PRESS_TYPE_HOLD_ONESHOT,	pt1210_action_quit						},
+	{ KEYCODE_RETURN,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT, 		pt1210_action_fs_select 				},
 	{ KEYCODE_F1,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_rescan					},
 	{ KEYCODE_F8,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_toggle_show_kb			},
 	{ KEYCODE_F9,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT, 		pt1210_action_fs_sort_name 				},

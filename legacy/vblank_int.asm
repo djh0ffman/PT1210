@@ -3,9 +3,10 @@
 		; Imports from C code
 		XREF _pt1210_keyboard_process_keys
 		XREF _pt1210_gameport_process_buttons
+		XREF _vblank_enabled
 
-VBInt	tst.b	VBDisable
-		bne.b	.quit
+VBInt	tst.b	_vblank_enabled
+		beq.b	.quit
 
 		move.w	#0,_pt1210_cia_nudge_bpm
 		bsr	DOTIME		; timer
@@ -34,6 +35,3 @@ VBInt	tst.b	VBDisable
 
 .quit
 		rts
-
-VBDisable	dc.b	0
-		even
