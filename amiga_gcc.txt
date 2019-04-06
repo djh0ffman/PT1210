@@ -1,0 +1,16 @@
+[binaries]
+c = '/opt/amiga/bin/m68k-amigaos-gcc'
+cpp = '/opt/amiga/bin/m68k-amigaos-g++'
+ar = '/opt/amiga/bin/m68k-amigaos-ar'
+strip = '/opt/amiga/bin/m68k-amigaos-strip'
+
+[properties]
+c_args = ['-mcrt=nix13', '-Wno-pointer-sign']
+c_link_args = ['-mcrt=nix13']
+
+[host_machine]
+system = 'amigaos'
+cpu_family = 'm68k'
+cpu = '68000'
+endian = 'big'
+
