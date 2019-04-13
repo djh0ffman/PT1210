@@ -39,8 +39,8 @@ static volatile uint8_t* timer_low_reg = NULL;
 static volatile uint8_t* timer_high_reg = NULL;
 
 /* The values to put into the high/low CIA timer registers */
-uint8_t timer_low_value = 0;
-uint8_t timer_high_value = 0;
+static uint16_t timer_value = 0;
+static uint16_t timer_prev_value = 0;	/* Previous value; allows CIA interrupt to detect change */
 
 /* For BPM calculations */
 uint8_t pt1210_cia_base_bpm;			/* The base BPM as set by the module */
@@ -49,7 +49,6 @@ uint8_t pt1210_cia_fine_offset;			/* Fine offset applied using fine pitch contro
 int16_t pt1210_cia_nudge_bpm;			/* Nudge offset applied using nudge controls */
 uint16_t pt1210_cia_adjusted_bpm;		/* The BPM with coarse adjustments applied */
 uint16_t pt1210_cia_actual_bpm;			/* The final BPM value used to set timer high/low registers, with fine adjustments applied */
-static uint16_t prev_actual_bpm;		/* The previous value of the above (allows CIA interrupt to detect change) */
 
 uint16_t pt1210_cia_frames_per_beat;	/* The frames-per-beat value as set from parsing a magic sample names */
 
@@ -69,14 +68,14 @@ void mt_end();
 void pt1210_cia_interrupt_proc()
 {
 	/* Only write CIA registers if we need to, otherwise we reset the timer manually and introduce drift */
-	if (pt1210_cia_actual_bpm != prev_actual_bpm)
+	if (timer_value != timer_prev_value)
 	{
 #ifdef DEBUG
-		kprintf("Writing CIA registers (%ld -> %ld)\n", prev_actual_bpm, pt1210_cia_actual_bpm);
+		kprintf("Writing CIA registers (%ld -> %ld)\n", timer_prev_value, timer_value);
 #endif
-		prev_actual_bpm = pt1210_cia_actual_bpm;
-		*timer_low_reg = timer_low_value;
-		*timer_high_reg = timer_high_value;
+		timer_prev_value = timer_value;
+		*timer_low_reg = timer_value & 0x0F;
+		*timer_high_reg = timer_value >> 8;
 	}
 
 	if (!mt_Enabled)
@@ -121,7 +120,7 @@ bool pt1210_cia_allocate_timer()
 		timer_allocated = true;
 		timer_bit = CIAICRB_TA;
 		timer_start_mask = CIACRAF_START;
-		timer_stop_mask = ~(CIACRAF_START | CIACRAF_LOAD | CIACRAF_INMODE);
+		timer_stop_mask = ~(CIACRAF_START | CIACRAF_RUNMODE | CIACRAF_LOAD | CIACRAF_INMODE);
 		timer_control_reg = &ciab.ciacra;
 		timer_low_reg = &ciab.ciatalo;
 		timer_high_reg = &ciab.ciatahi;
@@ -137,7 +136,7 @@ bool pt1210_cia_allocate_timer()
 		timer_allocated = true;
 		timer_bit = CIAICRB_TB;
 		timer_start_mask = CIACRBF_START;
-		timer_stop_mask = ~(CIACRBF_START | CIACRBF_LOAD | CIACRBF_INMODE0 | CIACRBF_INMODE1);
+		timer_stop_mask = ~(CIACRBF_START | CIACRBF_RUNMODE | CIACRBF_LOAD | CIACRBF_INMODE0 | CIACRBF_INMODE1);
 		timer_control_reg = &ciab.ciacrb;
 		timer_low_reg = &ciab.ciatblo;
 		timer_high_reg = &ciab.ciatbhi;
@@ -164,13 +163,13 @@ void pt1210_cia_start_timer()
 
 	/* Default to 125 BPM */
 	pt1210_cia_set_bpm(125);
-	prev_actual_bpm = 125 << 4;
+	timer_prev_value = timer_value;
 
 	/* Critical section */
 	Disable();
 	*timer_control_reg &= timer_stop_mask;
-	*timer_low_reg = timer_low_value;
-	*timer_high_reg = timer_high_value;
+	*timer_low_reg = timer_value & 0x0F;
+	*timer_high_reg = timer_value >> 8;
 	*timer_control_reg |= timer_start_mask;
 	Enable();
 }
@@ -193,7 +192,5 @@ void pt1210_cia_set_bpm(uint8_t bpm)
 	pt1210_cia_actual_bpm = (pt1210_cia_adjusted_bpm << 4) | pt1210_cia_fine_offset;
 
 	/* TODO: NTSC? */
-	uint16_t timer_value = (CIA_SEED_PAL << 4) / pt1210_cia_actual_bpm;
-	timer_low_value = timer_value;
-	timer_high_value = timer_value >> 8;
+	timer_value = (CIA_SEED_PAL << 4) / pt1210_cia_actual_bpm;
 }
