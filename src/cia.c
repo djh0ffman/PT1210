@@ -74,8 +74,8 @@ void pt1210_cia_interrupt_proc()
 		kprintf("Writing CIA registers (%ld -> %ld)\n", timer_prev_value, timer_value);
 #endif
 		timer_prev_value = timer_value;
-		*timer_low_reg = timer_value & 0x0F;
-		*timer_high_reg = timer_value >> 8;
+		*timer_low_reg = timer_value & 0xFF;
+		*timer_high_reg = (timer_value >> 8) & 0xFF;
 	}
 
 	if (!mt_Enabled)
@@ -168,8 +168,8 @@ void pt1210_cia_start_timer()
 	/* Critical section */
 	Disable();
 	*timer_control_reg &= timer_stop_mask;
-	*timer_low_reg = timer_value & 0x0F;
-	*timer_high_reg = timer_value >> 8;
+	*timer_low_reg = timer_value & 0xFF;
+	*timer_high_reg = (timer_value >> 8) & 0xFF;
 	*timer_control_reg |= timer_start_mask;
 	Enable();
 }
