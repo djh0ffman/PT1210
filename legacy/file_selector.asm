@@ -10,6 +10,7 @@
 	XREF _pt1210_file_count
 	XREF _pt1210_fs_load_pending
 	XREF _pt1210_fs_rescan_pending
+	XREF _pt1210_fs_show_kb
 	XREF _pattern_slip_pending
 
 ; Exports to C code
@@ -222,6 +223,8 @@ _FS_Move
 			move.w	d4,d1
 .skiphi_b	move.w	d1,(a1)
 
+			moveq	#0,d5
+			move.b _pt1210_fs_show_kb,d5
 			bsr	_FS_DrawDir
 
 .skipdraw	bsr	FS_Copper
