@@ -1,0 +1,14 @@
+/**
+ *  ____ _____     _ ____  _  ___
+ * |  _ |_   _|   / |___ \/ |/ _ \
+ * | |_) || |_____| | __) | | | | |
+ * |  __/ | |_____| |/ __/| | |_| |
+ * |_|    |_|     |_|_____|_|\___/
+ *
+ * Protracker DJ Player
+ *
+ * version.c
+ * Embedded version information.
+ */
+
+const char* pt1210_version = "\0$VER: PT-1210 @GIT_VERSION@.@GIT_REVISION@ (@GIT_FORMATTED_DATE@) @GIT_DESCRIPTION@";

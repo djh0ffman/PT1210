@@ -30,4 +30,13 @@
 /* Macro for dividing one positive value by another, rounding up if there is a remainder */
 #define CEIL_DIV(X, Y) (((X) + (Y) - 1) / (Y))
 
+typedef enum
+{
+	VIDEO_TYPE_PAL,
+	VIDEO_TYPE_NTSC,
+	VIDEO_TYPE_UNKNOWN
+} video_type_t;
+
+video_type_t video_type();
+
 #endif /* UTILITY_H */
