@@ -24,11 +24,22 @@
 /* Macro for determining the length of an array at compile time */
 #define ARRAY_LENGTH(ARRAY) (sizeof(ARRAY) / sizeof(*ARRAY))
 
-/* Macro for clamping a value between a minimum and a maximum */
-#define CLAMP(VALUE, MIN, MAX) ((VALUE < MIN) ? MIN : (VALUE > MAX) ? MAX : VALUE)
+/* Function for clamping a value between a minimum and a maximum */
+static inline int32_t clamp(int32_t value, int32_t min, int32_t max)
+{
+	return (value < min) ? min : (value > max) ? max : value;
+}
 
-/* Macro for dividing one positive value by another, rounding up if there is a remainder */
-#define CEIL_DIV(X, Y) (((X) + (Y) - 1) / (Y))
+/* Min/max */
+static inline int32_t min(int32_t x, int32_t y)
+{
+	return x < y ? x : y;
+}
+
+static inline int32_t max(int32_t x, int32_t y)
+{
+	return x > y ? x : y;
+}
 
 typedef enum
 {

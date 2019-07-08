@@ -188,7 +188,7 @@ void pt1210_cia_stop_timer()
 void pt1210_cia_set_bpm(uint8_t bpm)
 {
 	pt1210_cia_base_bpm = bpm;
-	pt1210_cia_adjusted_bpm = CLAMP(bpm + pt1210_cia_offset_bpm + pt1210_cia_nudge_bpm, CIA_MIN_BPM, CIA_MAX_BPM);
+	pt1210_cia_adjusted_bpm = clamp(bpm + pt1210_cia_offset_bpm + pt1210_cia_nudge_bpm, CIA_MIN_BPM, CIA_MAX_BPM);
 	pt1210_cia_actual_bpm = (pt1210_cia_adjusted_bpm << 4) | pt1210_cia_fine_offset;
 
 	/* TODO: NTSC? */
