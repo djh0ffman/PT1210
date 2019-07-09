@@ -6,8 +6,8 @@
 import iffparser
 import io
 
-pathIff = "..\\gfx\\iff\\"
-pathRaw = "..\\gfx\\raw\\"
+pathIff = "../gfx/iff/"
+pathRaw = "../gfx/raw/"
 
     # main conversion script for gfx elements
 def main():
