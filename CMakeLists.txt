@@ -56,6 +56,45 @@ set(CMAKE_C_FLAGS_RELEASE "-Os -s")
 
 # Legacy ASM target
 add_library(legacy OBJECT legacy/pt1210.asm)
+
+# Files that the legacy target depends on
+set(LEGACY_DEPENDS
+	# ASM files 'included' by pt1210.asm
+	legacy/data_chip.asm
+	legacy/data_fast.asm
+	legacy/file_selector.asm
+	legacy/memory.asm
+	legacy/pattern_render.asm
+	legacy/player.asm
+	legacy/scope.asm
+	legacy/splash_screen.asm
+	legacy/time.asm
+	legacy/ui.asm
+	legacy/vblank_int.asm
+
+	# Graphics assets INCBIN'ed by ASM code
+	legacy/gfx/hud.raw
+	legacy/gfx/hud_on2.raw
+	legacy/gfx/hud_off.raw
+	legacy/gfx/trackoff.bin
+	legacy/gfx/trackon.bin
+	legacy/gfx/font-digi2.raw
+	legacy/gfx/selecta.raw
+	legacy/gfx/font-big_fix.raw
+	legacy/gfx/font-small_fix.raw
+	legacy/gfx/font-digi3.raw
+	legacy/gfx/kb.raw
+	legacy/gfx/bpm.raw
+	legacy/gfx/splash.raw
+)
+
+# Prefix the above with their full path
+list(TRANSFORM LEGACY_DEPENDS PREPEND ${CMAKE_SOURCE_DIR}/)
+
+# Ensure legacy target is rebuilt if any of the above files change
+# N.B. quoted variable ensures it's kept as a semicolon-separated list
+set_source_files_properties(legacy/pt1210.asm PROPERTIES OBJECT_DEPENDS "${LEGACY_DEPENDS}")
+
 target_compile_options(legacy PRIVATE -m68000 -Fhunk -x -quiet)
 target_include_directories(legacy
 	PRIVATE ${AMIGA_GCC}/m68k-amigaos/ndk-include
