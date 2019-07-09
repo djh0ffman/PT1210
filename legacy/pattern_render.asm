@@ -23,26 +23,6 @@ PT_VPos			= 100
 PT_LineHeight	= 7
 PT_Offset		= 10
 
-
-			; marco for plotting a character
-			; 1 = font source (address register)
-			; 2 = plane dest (address register)
-			; 3 = plane move (constant)
-			; 4 = character (data register / byte?)
-PT_CharPlot	MACRO 
-			lsl.w	#3,\4		
-			lea		(\1,\4.w),\1
-			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
-			ENDM
-
 			; creates the two template patterns
 			; needs to be called in the init phase
 PT_Prep		lea		PT_BaseLine,a0

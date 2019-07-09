@@ -544,14 +544,12 @@ UI_DrawChip	movem.l	d0-a6,-(sp)
 
 		lea	howmuch(pc),a0
 		lea	_hud+42,a1
-		lea	_font_big,a5
 		moveq	#20-1,d4
 		bsr	UI_Type
 
 		lea	howmuch(pc),a0
 		lea	_hud+2,a1
 		lea	22(a1),a4
-		lea	_font_big,a5
 		moveq	#20-1,d4
 		bsr	UI_TypeOR
 		movem.l	(sp)+,d0-a6
@@ -561,14 +559,12 @@ UI_DrawChip	movem.l	d0-a6,-(sp)
 UI_DrawTitle	movem.l	d0-a6,-(sp)
 		move.l	_mt_SongDataPtr,a0
 		lea	_hud+42,a1
-		lea	_font_big,a5
 		moveq	#20-1,d4
 		bsr	UI_Type
 
 		move.l	_mt_SongDataPtr,a0
 		lea	_hud+2,a1
 		lea	22(a1),a4
-		lea	_font_big,a5
 		moveq	#20-1,d4
 		bsr	UI_TypeOR
 		movem.l	(sp)+,d0-a6
@@ -605,10 +601,7 @@ UI_TypeSmall
 		; A5 = FONT
 		; D7 = Num Lines
 		; D4 = Number of Chars
-UI_Type		;lea	font,a5
-
-;.nextline	moveq	#39,d4		; line loop
-
+UI_Type		lea	_font_big,a5
 .nextchar	moveq	#0,d0
 
 		move.b	(a0)+,d0
@@ -648,14 +641,9 @@ UI_Type		;lea	font,a5
 
 		lea	1(a1),a1
 		dbra	d4,.nextchar
-
-;		lea	(UI_TotWidth*7)(a1),a1		; next plane line
-;		dbra	d7,.nextline
 		rts
 
-UI_TypeOR	;lea	font,a5
-
-;.nextline	moveq	#39,d4		; line loop
+UI_TypeOR	lea	_font_big,a5
 
 .nextchar	moveq	#0,d0
 
