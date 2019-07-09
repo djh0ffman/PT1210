@@ -4,6 +4,17 @@
 ; ******************************************
 
 
+UI_Width	= 40
+UI_Planes	= 5
+UI_TotWidth	= UI_Width*UI_Planes
+
+UI_DigiLine	= UI_TotWidth*38
+
+UI_TogStart	= UI_TotWidth*16
+
+UI_RepitchLoc	= UI_TogStart+38
+
+
 UI_CuePos	moveq	#0,d0
 		moveq	#0,d1
 		move.b	_mt_PatternCue,d0
@@ -428,7 +439,7 @@ UI_ValType	lea	(a6,d5.w),a0
 			and.b	#$f,d2
 			move.b	(a4,d2.w),d2
 			move.l	a5,a2
-			;PT_CharPlot	a2,a3,UI_TotWidth,d2
+			PT_CharPlot_TwoPlanes 	a2,a3,UI_TotWidth,d2
 			subq.l	#1,a0
 			ror.w	#4,d1
 			dbra	d6,.valueloop
@@ -708,31 +719,9 @@ UI_TypeOR	;lea	font,a5
 
 		lea	1(a1),a1
 		dbra	d4,.nextchar
-
-;		lea	(UI_TotWidth*7)(a1),a1		; next plane line
-;		dbra	d7,.nextline
 		rts
 
-
-
-; 34 = bpm last
-; digits on line 38
-
-UI_Width	= 40
-UI_Planes	= 5
-UI_TotWidth	= UI_Width*UI_Planes
-
-UI_DigiLine	= UI_TotWidth*38
-
-UI_TogStart	= UI_TotWidth*16
-
-UI_RepitchLoc	= UI_TogStart+38
-
 UI_Draw		movem.l	d0-a6,-(sp)
-
-
-
-.skip
 
 UI_ALL		lea	$dff000,a6
 

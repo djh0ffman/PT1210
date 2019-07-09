@@ -84,6 +84,30 @@ PT_CharPlot	MACRO
 			move.b	(\1)+,(\2)
 			ENDM
 
+ 			; marco for plotting a character
+			; 1 = font source (address register)
+			; 2 = plane dest (address register)
+			; 3 = plane move (constant)
+			; 4 = character (data register / byte?)
+PT_CharPlot_TwoPlanes	MACRO 
+			lsl.w	#3,\4		
+			lea		(\1,\4.w),\1
+			move.b	(\1),(\2)
+			move.b	(\1)+,UI_Width(\2)
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			move.b	(\1)+,UI_Width(\2)
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			move.b	(\1)+,UI_Width(\2)
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			move.b	(\1)+,UI_Width(\2)
+			lea		\3(\2),\2
+			move.b	(\1),(\2)
+			move.b	(\1)+,UI_Width(\2)
+			ENDM
+
 *******************************************
 *** DATA AREA		FAST		***
 *******************************************
