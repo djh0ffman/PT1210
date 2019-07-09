@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Image Conversion Script
 # Hoffman / PT-1210
 
