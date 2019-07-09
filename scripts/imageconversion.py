@@ -4,18 +4,25 @@
 import iffparser
 import io
 
+pathIff = "..\\gfx\\iff\\"
+pathRaw = "..\\gfx\\raw\\"
+
+    # main conversion script for gfx elements
 def main():
-    convertFontSmall()
+    convertFont8x8("font-small")
+    convertFont8x8("font-big")
+    print("--> ALL DONE <--")
+
+
 
     # small font conversion
     # generate raw version for 256 characters
-def convertFontSmall():
-    font = iffparser.parseImage("..\\gfx\\iff\\font-small.iff")
+def convertFont8x8(filename):
+    font = iffparser.parseImage(pathIff+filename+".iff")
     if font.header.bitplanes != 1:
-        raise Exception ("font-small.iff has incorrect number of bitplanes")
+        raise Exception (filename + " has incorrect number of bitplanes")
 
     rawFont = bytearray()
-
     charCount = 256
     x = 0
     y = 0
@@ -27,7 +34,7 @@ def convertFontSmall():
             x = 0
             y += 8
 
-    save = open("..\\gfx\\raw\\font-small.raw", "wb")
+    save = open(pathRaw+filename+".raw", "wb")
     save.write(rawFont)
 
 if __name__ == "__main__":

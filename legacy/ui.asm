@@ -602,41 +602,29 @@ UI_TypeSmall
 		; D7 = Num Lines
 		; D4 = Number of Chars
 UI_Type		lea	_font_big,a5
-.nextchar	moveq	#0,d0
-
+.nextchar	
+		moveq	#0,d0
 		move.b	(a0)+,d0
-		cmp.b	#$60,d0
-		ble.b	.upper
-		sub.b	#$20,d0
-.upper		tst.b	d0
-		bne.b	.notnull
-		moveq	#$20,d0
-.notnull	sub.b	#$20,d0
-		lea	(a5),a2
+		lsl.w	#3,d0
+		move.l	a5,a2
 		add.l	d0,a2
 
 		lea	(a1),a3
 
-.charloop	move.b	(a2),(a3)
-		lea	FONTWIDTH(a2),a2
+.charloop	
+		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		lea	FONTWIDTH(a2),a2
+		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		lea	FONTWIDTH(a2),a2
+		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		lea	FONTWIDTH(a2),a2
+		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		lea	FONTWIDTH(a2),a2
+		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		lea	FONTWIDTH(a2),a2
+		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		lea	FONTWIDTH(a2),a2
+		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
 
 		lea	1(a1),a1
@@ -645,62 +633,50 @@ UI_Type		lea	_font_big,a5
 
 UI_TypeOR	lea	_font_big,a5
 
-.nextchar	moveq	#0,d0
-
+.nextchar	
+		moveq	#0,d0
 		move.b	(a0)+,d0
-		cmp.b	#$60,d0
-		ble.b	.upper
-		sub.b	#$20,d0
-.upper		tst.b	d0
-		bne.b	.notnull
-		moveq	#$20,d0
-.notnull	sub.b	#$20,d0
-		lea	(a5),a2
+		lsl.w	#3,d0
+		move.l	a5,a2
 		add.l	d0,a2
 
 		lea	(a1),a3
 
 		move.l	a4,-(sp)
-.charloop	move.b	(a2),d0
+.charloop	
+		move.b	(a2)+,d0
 		or.b	(a4),d0
 		move.b	d0,(a3)
-		lea	FONTWIDTH(a2),a2
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),d0
+		move.b	(a2)+,d0
 		or.b	(a4),d0
 		move.b	d0,(a3)
-		lea	FONTWIDTH(a2),a2
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),d0
+		move.b	(a2)+,d0
 		or.b	(a4),d0
 		move.b	d0,(a3)
-		lea	FONTWIDTH(a2),a2
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),d0
+		move.b	(a2)+,d0
 		or.b	(a4),d0
 		move.b	d0,(a3)
-		lea	FONTWIDTH(a2),a2
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),d0
+		move.b	(a2)+,d0
 		or.b	(a4),d0
 		move.b	d0,(a3)
-		lea	FONTWIDTH(a2),a2
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),d0
+		move.b	(a2)+,d0
 		or.b	(a4),d0
 		move.b	d0,(a3)
-		lea	FONTWIDTH(a2),a2
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),d0
+		move.b	(a2)+,d0
 		or.b	(a4),d0
 		move.b	d0,(a3)
-		lea	FONTWIDTH(a2),a2
 		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.l	(sp)+,a4
