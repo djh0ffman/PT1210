@@ -290,60 +290,59 @@ _cSwitch3	dc.w	$ffdf,$fffe
 		dc.w	$ffff,$fffe
 		dc.w	$ffff,$fffe
 
-_sprite1	dc.w	$7890,$7b00
-
-		dc.w	%0111111111111100,%0000000000000010
-		dc.w	%0111111111111100,%0000000000000010
-		dc.w	%0000000000000000,%0111111111111110
+_sprite1		dc.w	$7890,$7b00
+				dc.w	%0111111111111100,%0000000000000010
+				dc.w	%0111111111111100,%0000000000000010
+				dc.w	%0000000000000000,%0111111111111110
 
 _spritelefttop	dc.w	$6c00,$6f00
-		dc.w	%1110000000000000,%0000000000000000
-		dc.w	%1100000000000000,%0000000000000000
-		dc.w	%1000000000000000,%0000000000000000
+				dc.w	%1110000000000000,%0000000000000000
+				dc.w	%1100000000000000,%0000000000000000
+				dc.w	%1000000000000000,%0000000000000000
 
 _spriterighttop	dc.w	$6c00,$6f00
-		dc.w	%0000000000000111,%0000000000000000
-		dc.w	%0000000000000011,%0000000000000000
-		dc.w	%0000000000000001,%0000000000000000
+				dc.w	%0000000000000111,%0000000000000000
+				dc.w	%0000000000000011,%0000000000000000
+				dc.w	%0000000000000001,%0000000000000000
 
 
 _spriteleftbot	dc.w	$7700,$7a00
-		dc.w	%1000000000000000,%0000000000000000
-		dc.w	%1100000000000000,%0000000000000000
-		dc.w	%1110000000000000,%0000000000000000
+				dc.w	%1000000000000000,%0000000000000000
+				dc.w	%1100000000000000,%0000000000000000
+				dc.w	%1110000000000000,%0000000000000000
 
 _spriterightbot	dc.w	$7700,$7a00
-		dc.w	%0000000000000001,%0000000000000000
-		dc.w	%0000000000000011,%0000000000000000
-		dc.w	%0000000000000111,%0000000000000000
+				dc.w	%0000000000000001,%0000000000000000
+				dc.w	%0000000000000011,%0000000000000000
+				dc.w	%0000000000000111,%0000000000000000
 
 
 _spriteblank	dc.w	0,0
 
-_spritelist	dc.l	_spritelefttop
-		dc.l	_spriterighttop
-		dc.l	_spriteleftbot
-		dc.l	_spriterightbot
-		dc.l	_spriteblank
-		dc.l	_spriteblank
-		dc.l	_spriteblank
-		dc.l	_spriteblank
+_spritelist		dc.l	_spritelefttop
+				dc.l	_spriterighttop
+				dc.l	_spriteleftbot
+				dc.l	_spriterightbot
+				dc.l	_spriteblank
+				dc.l	_spriteblank
+				dc.l	_spriteblank
+				dc.l	_spriteblank
 
 
-		; hud gfx
-_hud		incbin	"gfx/hud.raw"
-_hud_on		incbin	"gfx/hud_on2.raw"
-_hud_off	incbin	"gfx/hud_off.raw"
-_trackoff	incbin	"gfx/trackoff.bin"
-_trackon	incbin	"gfx/trackon.bin"
-_font_digi	incbin	"gfx/font-digi2.raw"
-_select		incbin	"gfx/selecta.raw"
+				; hud gfx
+_hud			incbin	"gfx/hud.raw"
+_hud_on			incbin	"gfx/hud_on2.raw"
+_hud_off		incbin	"gfx/hud_off.raw"
+_trackoff		incbin	"gfx/trackoff.bin"
+_trackon		incbin	"gfx/trackon.bin"
+_font_digi		incbin	"gfx/font-digi2.raw"
+_select			incbin	"gfx/selecta.raw"
 _selectfilla	dc.b	$80
-		dcb.b	40-2,0
-		dc.b	$01
+				dcb.b	40-2,0
+				dc.b	$01
 _selectfillb	dc.b	$7f
-		dcb.b	40-2,$ff
-		dc.b	$fe
+				dcb.b	40-2,$ff
+				dc.b	$fe
 
 _track_fill	dcb.b	40,$ff
 _track_pos	dcb.b	40,$00
@@ -360,21 +359,21 @@ _track		dcb.b	40*9*3
 ; Another magic section name '.bss_chip' to get a chip RAM BSS hunk.
 	section .bss_chip,bss_c
 
-_dir		dcb.b	FS_ListMax*7*40+(40*3),0
+_dir			ds.b	FS_ListMax*7*40+(40*3),0
 _dirend
 
-_basepattern	dcb.b	40*PT_LineHeight
+_basepattern	ds.b	40*PT_LineHeight
 
-_pattern1_start	dcb.b	40*PT_LineHeight*PT_Offset
-_pattern1	dcb.b	40*PT_LineHeight*64
-		dcb.b	40*PT_LineHeight*3
-_pattern2_start	dcb.b	40*PT_LineHeight*PT_Offset
-_pattern2	dcb.b	40*PT_LineHeight*64
-		dcb.b	40*PT_LineHeight*13
+_pattern1_start	ds.b	40*PT_LineHeight*PT_Offset
+_pattern1		ds.b	40*PT_LineHeight*64
+				ds.b	40*PT_LineHeight*3
+_pattern2_start	ds.b	40*PT_LineHeight*PT_Offset
+_pattern2		ds.b	40*PT_LineHeight*64
+				ds.b	40*PT_LineHeight*13
 
 
-_pScope1	ds.b	40*PT_LineHeight*10
-_pScope2	ds.b	40*PT_LineHeight*10
+_pScope1		ds.b	40*PT_LineHeight*10
+_pScope2		ds.b	40*PT_LineHeight*10
 
 _Sample		dcb.b	$100,0
 

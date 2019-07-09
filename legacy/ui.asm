@@ -251,7 +251,8 @@ UI_BPMFine	lea	_pt1210_cia_fine_offset,a3
 
 .skip
 
-UI_BPMDiff	lea	UI_BPMCent,a0
+UI_BPMDiff	
+		lea	UI_BPMCent,a0
 		move.b	#"+",(a0)
 		lea	_pt1210_cia_actual_bpm,a3
 		lea	UI_ActualBPM,a4
@@ -278,7 +279,7 @@ UI_BPMDiff	lea	UI_BPMCent,a0
 		bge.b	.pos
 		not.w	d0
 		move.b	#"-",(a0)
-.pos		and.l	#$ff,d0
+.pos	and.l	#$ff,d0
 
 		move.w	#(UI_TotWidth*32)+37,d5	; screen pos
 		moveq	#3-1,d6			; num chars
@@ -419,40 +420,19 @@ UI_DigiType	lea	(a6,d5.w),a0
 		; d1 = value
 		; a0 = screen to write too
 UI_ValType	lea	(a6,d5.w),a0
-		lea	PT_HexList,a4
-		lea	_font_small,a5
+			lea	PT_HexList,a4
+			lea	_font_small,a5
 .valueloop	move.l	a0,a3
-		moveq	#0,d2
-		move.b	d1,d2
-		and.b	#$f,d2
-		move.b	(a4,d2.w),d2
-		sub.w	#$20,d2
-		lea	(a5,d2.w),a2		; font point
-.charloop	move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	UI_TotWidth(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	UI_TotWidth(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	UI_TotWidth(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	UI_TotWidth(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	UI_TotWidth(a3),a3
-;		dbra	d7,.charloop
-		lea	-1(a0),a0
-		ror.w	#4,d1
-		dbra	d6,.valueloop
-		rts
+			moveq	#0,d2
+			move.b	d1,d2
+			and.b	#$f,d2
+			move.b	(a4,d2.w),d2
+			move.l	a5,a2
+			;PT_CharPlot	a2,a3,UI_TotWidth,d2
+			subq.l	#1,a0
+			ror.w	#4,d1
+			dbra	d6,.valueloop
+			rts
 
 UI_SpritePos
 		movem.l	d0-a6,-(sp)
@@ -593,53 +573,19 @@ UI_BPMCent	dc.b	"+%"
 		; A5 = FONT
 		; D7 = Num Lines
 		; D4 = Number of Chars
-UI_TypeSmall	lea	(a6,d5.w),a1
-		lea	_font_small,a5
-
-;.nextline	moveq	#39,d4		; line loop
+UI_TypeSmall	
+			lea		(a6,d5.w),a1
+			lea		_font_small,a5
 
 .nextchar	moveq	#0,d0
+			move.b	(a0)+,d0
+			move.l	a1,a3
+			PT_CharPlot a2,a3,UI_TotWidth,d0
+			move.l	a5,a3
+			addq.l	#1,a1
+			dbra	d4,.nextchar
 
-		move.b	(a0)+,d0
-		cmp.b	#$60,d0
-		ble.b	.upper
-		sub.b	#$20,d0
-.upper		tst.b	d0
-		bne.b	.notnull
-		moveq	#$20,d0
-.notnull	sub.b	#$20,d0
-		lea	(a5),a2
-		add.l	d0,a2
-
-		lea	(a1),a3
-
-.charloop	move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	(UI_TotWidth)(a3),a3
-		move.b	(a2),(a3)
-		move.b	(a2),40(a3)
-		lea	FONTWIDTH(a2),a2
-		lea	(UI_TotWidth)(a3),a3
-
-		lea	1(a1),a1
-		dbra	d4,.nextchar
-
-;		lea	(UI_TotWidth*7)(a1),a1		; next plane line
-;		dbra	d7,.nextline
-		rts
+			rts
 
 
 

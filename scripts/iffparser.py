@@ -18,8 +18,35 @@ class Chunk:
 class IFFImage:
     def __init__(self):
         self.header = BitmapHeader()
-        self.body = None
+        self.body = bytearray()
         self.colorMap = []
+
+    def copyBlock(self, x, y, width, height):
+        # do copy boundary checks
+        if x*8 > self.header.width:
+            raise Exception("copy block: x position out of bounds")
+        if y > self.header.height:
+            raise Exception("copy block: y position out of bounds")
+        if x+width*8 > self.header.width:
+            raise Exception("copy block: width out of bounds")
+        if y+height > self.header.width:
+            raise Exception("copy block: height out of bounds")
+
+        data = bytearray()
+        saveX = x
+        saveWidth = width
+
+        while height > 0:
+            while width > 0:
+                pos = int(x + y*(self.header.width/8))
+                data.append(self.body[pos])
+                x += 1
+                width -= 1
+            width = saveWidth
+            x = saveX
+            height -= 1
+            y += 1
+        return data
 
 class Color:
     def __init__(self):
@@ -105,9 +132,9 @@ def parseColorMap(chunk, image):
 
 def parseBody(chunk, image):
     if image.header.compress == 0:
-        image.body = chunk.data
+        image.body = bytes(chunk.data)
     elif image.header.compress == 1:
-        image.body = runLengthUnpack(chunk.data)
+        image.body = bytes(runLengthUnpack(chunk.data))
     else:
         raise Exception("Unknown compression method")
 
