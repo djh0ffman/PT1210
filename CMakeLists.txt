@@ -183,7 +183,6 @@ add_executable(pt1210
 	src/input.c
 	src/inputdevice.c
 	src/keyboard.c
-	src/libraries.c
 	src/main.c
 
 	# Headers
@@ -197,7 +196,6 @@ add_executable(pt1210
 	include/input.h
 	include/inputdevice.h
 	include/keyboard.h
-	include/libraries.h
 	include/utility.h
 )
 

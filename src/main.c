@@ -24,16 +24,11 @@
 #include "gameport.h"
 #include "graphics.h"
 #include "inputdevice.h"
-#include "libraries.h"
 
 void MAIN();
 
 int main(int argc, char** argv)
 {
-	/* Open system libraries */
-	if (!pt1210_libs_open())
-		return EXIT_FAILURE;
-
 	/* Attempt to open console device */
 	if (!pt1210_console_open_device())
 		return EXIT_FAILURE;
@@ -84,7 +79,6 @@ int main(int argc, char** argv)
 	pt1210_input_remove_handler();
 	pt1210_input_close_device();
 	pt1210_console_close_device();
-	pt1210_libs_close();
 
 	return EXIT_SUCCESS;
 }
