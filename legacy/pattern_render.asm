@@ -18,7 +18,7 @@
 ***********************************
 
 PT_FontWidth	= 64
-PT_FontHeight	= 5			; this is never used but our fint is 5 pixels high
+PT_FontHeight	= 5			; this is never used but our font is 5 pixels high
 PT_VPos			= 100
 PT_LineHeight	= 7
 PT_Offset		= 10
@@ -28,20 +28,19 @@ PT_Offset		= 10
 			; 1 = font source (address register)
 			; 2 = plane dest (address register)
 			; 3 = plane move (constant)
-PT_CharPlot	MACRO
-			move.b	(\1),(\2)
-			lea		PT_FontWidth(\1),\1
+			; 4 = character (data register / byte?)
+PT_CharPlot	MACRO 
+			lsl.w	#3,\4		
+			lea		(\1,\4.w),\1
+			move.b	(\1)+,(\2)
 			lea		\3(\2),\2
-			move.b	(\1),(\2)
-			lea		PT_FontWidth(\1),\1
+			move.b	(\1)+,(\2)
 			lea		\3(\2),\2
-			move.b	(\1),(\2)
-			lea		PT_FontWidth(\1),\1
+			move.b	(\1)+,(\2)
 			lea		\3(\2),\2
-			move.b	(\1),(\2)
-			lea		PT_FontWidth(\1),\1
+			move.b	(\1)+,(\2)
 			lea		\3(\2),\2
-			move.b	(\1),(\2)
+			move.b	(\1)+,(\2)
 			ENDM
 
 			; creates the two template patterns
@@ -74,15 +73,6 @@ PT_Prep		lea		PT_BaseLine,a0
 			move.l	#_pattern2,bltapt(a6)
 			move.l	#_pattern2+(7*40),bltdpt(a6)
 			move.w	#7*63<<6+20,bltsize(a6)				; duplicate template line over whole pattern (buffer 2)
-			rts
-
-PT_CharLoop	move.l	a0,a2
-			move.l	a1,a3
-.charloop	PT_CharPlot a2,a3,16
-
-			addq.l	#1,a0
-			addq.l	#1,a1
-			dbra	d7,PT_CharLoop
 			rts
 
 			; draws the pattern
@@ -151,11 +141,10 @@ PT_DrawPat2	tst.l	_mt_SongDataPtr					; test song pointer, blank then quit.
 			moveq	#3-1,d5							; 3 chars per note
 .nextlet	moveq	#0,d1
 			move.b	(a1)+,d1
-			sub.w	#$20,d1
-			lea		(a5,d1.w),a3					; a3 now at font..
+			move.l	a5,a3					; a3 now at font..
 			move.l	a4,a2
 
-.charloop	PT_CharPlot a3,a2,40
+.charloop	PT_CharPlot a3,a2,40,d1
 			addq.l	#1,a4
 			dbra	d5,.nextlet
 
@@ -180,11 +169,10 @@ PT_DrawPat2	tst.l	_mt_SongDataPtr					; test song pointer, blank then quit.
 			beq.b	.skipzero
 
 			move.b	(a1,d1.w),d2					; char value
-			sub.w	#$20,d2
-			lea		(a5,d2.w),a3
+			move.l	a5,a3
 
 			move.l	a4,a2
-			PT_CharPlot	a3,a2,40
+			PT_CharPlot	a3,a2,40,d2
 
 .skipzero	ror.l	#4,d0
 			tst.w	d0
@@ -217,28 +205,28 @@ PT_PatPos2	move.l	PT_PlanePtr(pc),d0
 			rts
 
 
+			; a0 = text
+			; a1 = plane area
 ST_Type		lea		_font_small,a5
 
 .nextline	moveq	#40-1,d4				; character line counter
 
 .nextchar	moveq	#0,d0
 			move.b	(a0)+,d0
-			sub.b	#$20,d0
-			lea		(a5,d0.w),a2
+			move.l	a5,a2					; copy font pointer
+			move.l	a1,a3					; copy plane pointer
 
-			lea		(a1),a3
+.charloop	PT_CharPlot a2,a3,40,d0			; plot char
 
-.charloop	PT_CharPlot a2,a3,40
-
-			addq.l	#1,a1
-			dbra	d4,.nextchar
+			addq.l	#1,a1					; move plane pointer
+			dbra	d4,.nextchar			; loop char
 
 			lea		(40*6)(a1),a1			; move to next character line on the plane
 			dbra	d7,.nextline
 			rts
 
 PT_PlanePtr	dc.l	_pattern1
-			dc.l	_pattern2
+			dc.l	_pattern2 
 
 PT_HexList	dc.b	"0123456789ABCDEF"
 			even

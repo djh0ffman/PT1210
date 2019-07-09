@@ -60,10 +60,29 @@ TIMERCLR	= %0100000000001000
 ***************************************************
 
 WAITBLIT	MACRO
-		tst.b	$02(a6)
-.\@		btst	#6,$02(a6)
-		bne.b	.\@
-		ENDM
+			tst.b	$02(a6)
+.\@			btst	#6,$02(a6)
+			bne.b	.\@
+			ENDM
+ 
+ 			; marco for plotting a character
+			; 1 = font source (address register)
+			; 2 = plane dest (address register)
+			; 3 = plane move (constant)
+			; 4 = character (data register / byte?)
+PT_CharPlot	MACRO 
+			lsl.w	#3,\4		
+			lea		(\1,\4.w),\1
+			move.b	(\1)+,(\2)
+			lea		\3(\2),\2
+			move.b	(\1)+,(\2)
+			lea		\3(\2),\2
+			move.b	(\1)+,(\2)
+			lea		\3(\2),\2
+			move.b	(\1)+,(\2)
+			lea		\3(\2),\2
+			move.b	(\1)+,(\2)
+			ENDM
 
 *******************************************
 *** DATA AREA		FAST		***
@@ -134,8 +153,6 @@ _MAIN
 		bsr	PT_Prep
 
 		bsr	UI_DrawChip
-
-		;bsr	kbinit
 
 		bsr	ScopeInit
 		move.l	#VBInt,VBIptr		; set VB Int pointer
