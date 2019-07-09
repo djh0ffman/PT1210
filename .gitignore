@@ -5,6 +5,10 @@
 # Binaries/modules for testing
 bin/
 
+# Build directories
+build-debug
+build-release
+
 ###############################################################################
 # C.gitignore, from https://github.com/github/gitignore
 ###############################################################################
