@@ -74,14 +74,10 @@ PT_CharPlot	MACRO
 			lsl.w	#3,\4		
 			lea		(\1,\4.w),\1
 			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
-			lea		\3(\2),\2
-			move.b	(\1)+,(\2)
+			move.b	(\1)+,\3(\2)
+			move.b	(\1)+,\3*2(\2)
+			move.b	(\1)+,\3*3(\2)
+			move.b	(\1)+,\3*4(\2)
 			ENDM
 
  			; marco for plotting a character
@@ -94,18 +90,14 @@ PT_CharPlot_TwoPlanes	MACRO
 			lea		(\1,\4.w),\1
 			move.b	(\1),(\2)
 			move.b	(\1)+,UI_Width(\2)
-			lea		\3(\2),\2
-			move.b	(\1),(\2)
-			move.b	(\1)+,UI_Width(\2)
-			lea		\3(\2),\2
-			move.b	(\1),(\2)
-			move.b	(\1)+,UI_Width(\2)
-			lea		\3(\2),\2
-			move.b	(\1),(\2)
-			move.b	(\1)+,UI_Width(\2)
-			lea		\3(\2),\2
-			move.b	(\1),(\2)
-			move.b	(\1)+,UI_Width(\2)
+			move.b	(\1),\3(\2)
+			move.b	(\1)+,UI_Width+\3(\2)
+			move.b	(\1),\3*2(\2)
+			move.b	(\1)+,UI_Width+\3*2(\2)
+			move.b	(\1),\3*3(\2)
+			move.b	(\1)+,UI_Width+\3*3(\2)
+			move.b	(\1),\3*4(\2)
+			move.b	(\1)+,UI_Width+\3*4(\2)
 			ENDM
 
 *******************************************
