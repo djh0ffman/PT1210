@@ -57,6 +57,29 @@ set(CMAKE_C_FLAGS_RELEASE "-Os -s")
 # Legacy ASM target
 add_library(legacy OBJECT legacy/pt1210.asm)
 
+# Graphics conversion 
+set(GFX_ASSETS
+	gfx/font-big.iff
+	gfx/font-small.iff
+)
+
+# Add generated sources for each IFF graphics asset
+foreach(INPUT ${GFX_ASSETS})
+	# Derive output name from input name
+	get_filename_component(INPUT_WE ${INPUT} NAME_WE)
+	set(OUTPUT gfx/${INPUT_WE}.raw)
+
+	# Custom command that calls our Python script
+    add_custom_command(OUTPUT ${OUTPUT}
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/iff2raw.py -q ${CMAKE_SOURCE_DIR}/${INPUT} ${OUTPUT}
+        MAIN_DEPENDENCY ${INPUT}
+        COMMENT "Converting IFF image ${INPUT} to ${OUTPUT}"
+	)
+
+	# Add output path to a dependency list
+	list(APPEND GFX_DEPENDS ${OUTPUT})
+endforeach()
+
 # Files that the legacy target depends on
 set(LEGACY_DEPENDS
 	# ASM files 'included' by pt1210.asm
@@ -80,8 +103,6 @@ set(LEGACY_DEPENDS
 	legacy/gfx/trackon.bin
 	legacy/gfx/font-digi2.raw
 	legacy/gfx/selecta.raw
-	legacy/gfx/font-big_fix.raw
-	legacy/gfx/font-small_fix.raw
 	legacy/gfx/font-digi3.raw
 	legacy/gfx/kb.raw
 	legacy/gfx/bpm.raw
@@ -93,7 +114,7 @@ list(TRANSFORM LEGACY_DEPENDS PREPEND ${CMAKE_SOURCE_DIR}/)
 
 # Ensure legacy target is rebuilt if any of the above files change
 # N.B. quoted variable ensures it's kept as a semicolon-separated list
-set_source_files_properties(legacy/pt1210.asm PROPERTIES OBJECT_DEPENDS "${LEGACY_DEPENDS}")
+set_source_files_properties(legacy/pt1210.asm PROPERTIES OBJECT_DEPENDS "${GFX_DEPENDS};${LEGACY_DEPENDS}")
 
 target_compile_options(legacy PRIVATE -m68000 -Fhunk -x -quiet)
 target_include_directories(legacy
