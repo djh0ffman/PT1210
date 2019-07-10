@@ -3,41 +3,38 @@
 # Image Conversion Script
 # Hoffman / PT-1210
 
+"""Main conversion script for gfx elements."""
+
 import iffparser
-import io
 
-pathIff = "../gfx/iff/"
-pathRaw = "../gfx/raw/"
-
-    # main conversion script for gfx elements
-def main():
-    convertFont8x8("font-small")
-    convertFont8x8("font-big")
-    print("--> ALL DONE <--")
+PATH_IFF = "../gfx/iff/"
+PATH_RAW = "../gfx/raw/"
 
 
-
-    # small font conversion
-    # generate raw version for 256 characters
-def convertFont8x8(filename):
-    font = iffparser.parseImage(pathIff+filename+".iff")
+def convert_font_8x8(filename):
+    """Small font conversion.
+    Generates raw version for 256 characters.
+    """
+    font = iffparser.parse_image(PATH_IFF+filename+".iff")
     if font.header.bitplanes != 1:
-        raise Exception (filename + " has incorrect number of bitplanes")
+        raise Exception(filename + " has incorrect number of bitplanes")
 
-    rawFont = bytearray()
-    charCount = 256
+    raw_font = bytearray()
+    char_count = 256
     x = 0
     y = 0
-    while charCount > 0:
-        charCount -= 1
-        rawFont += font.copyBlock(x,y,1,8)
+    while char_count > 0:
+        char_count -= 1
+        raw_font += font.copy_block(x, y, 1, 8)
         x += 1
-        if (x >= font.header.width/8):
+        if x >= font.header.width/8:
             x = 0
             y += 8
 
-    save = open(pathRaw+filename+".raw", "wb")
-    save.write(rawFont)
+    save = open(PATH_RAW+filename+".raw", "wb")
+    save.write(raw_font)
 
-if __name__ == "__main__":
-    main()
+
+convert_font_8x8("font-small")
+convert_font_8x8("font-big")
+print("--> ALL DONE <--")
