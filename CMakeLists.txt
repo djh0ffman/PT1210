@@ -15,7 +15,7 @@ endif()
 
 # Look for required external tools
 find_package(Git)
-find_package(Python)
+find_package(Python3 REQUIRED)
 find_program(CPPCHECK NAMES cppcheck)
 
 # If Git was found, add a custom target to generate version information for every build
@@ -57,7 +57,7 @@ set(CMAKE_C_FLAGS_RELEASE "-Os -s")
 # Legacy ASM target
 add_library(legacy OBJECT legacy/pt1210.asm)
 
-# Graphics conversion 
+# Graphics conversion
 set(GFX_ASSETS
 	gfx/font-big.iff
 	gfx/font-small.iff
@@ -71,7 +71,7 @@ foreach(INPUT ${GFX_ASSETS})
 
 	# Custom command that calls our Python script
     add_custom_command(OUTPUT ${OUTPUT}
-        COMMAND ${Python_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/iff2raw.py -q ${CMAKE_SOURCE_DIR}/${INPUT} ${OUTPUT}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/iff2raw.py -q ${CMAKE_SOURCE_DIR}/${INPUT} ${OUTPUT}
         MAIN_DEPENDENCY ${INPUT}
         COMMENT "Converting IFF image ${INPUT} to ${OUTPUT}"
 	)
