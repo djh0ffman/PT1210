@@ -23,7 +23,6 @@ class Chunk:
 
 class IFFImage:
     """IFF Image class"""
-
     def __init__(self):
         self.header = BitmapHeader()
         self.body = bytearray()
@@ -42,19 +41,37 @@ class IFFImage:
 
         data = bytearray()
         save_x = x
+        save_x_line = x
         save_width = width
 
         while height > 0:
-            while width > 0:
-                pos = int(x + y*(self.header.width/8))
-                data.append(self.body[pos])
-                x += 1
-                width -= 1
-            width = save_width
-            x = save_x
+            bit_planes = self.header.bitplanes
+            while bit_planes > 0:
+                while width > 0:
+                    pos = int(x + y*self.header.bitplanes*(self.header.width/8))
+                    data.append(self.body[pos])
+                    x += 1
+                    width -= 1
+                width = save_width
+                save_x += (self.header.width/8)
+                x = save_x
+                bit_planes -= 1
             height -= 1
             y += 1
+            x = save_x_line
+            save_x = x
         return data
+
+    def copper_palette(self):
+        palette_text = ""
+        color_reg = 0x180
+        for color in self.color_map:
+            color_reg_text = "${:x}".format(color_reg)
+            color_text = "${:x}{:x}{:x}".format(int(color.red/16), int(color.green/16), int(color.blue/16))
+            palette_text += "\tdc.w\t{},{}\n".format(color_reg_text, color_text)
+            color_reg += 2
+
+        return palette_text
 
 
 class Color:
@@ -141,7 +158,7 @@ def parse_color_map(chunk, image):
         color.green = read_byte(f)
         color.blue = read_byte(f)
         image.color_map.append(color)
-        c = c-1
+        c -= 1
 
 
 def parse_body(chunk, image):

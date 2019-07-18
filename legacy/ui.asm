@@ -3,6 +3,7 @@
 ; ********* NEW UI CODE
 ; ******************************************
 
+	include "gfx/hud_fast.asm"
 
 UI_Width	= 40
 UI_Planes	= 5
@@ -688,111 +689,137 @@ UI_TypeOR	lea	_font_big,a5
 UI_Draw		movem.l	d0-a6,-(sp)
 
 UI_ALL		lea	$dff000,a6
-
-		lea	_hud+UI_TogStart,a0		; a0 = dest source
-
-		lea	_hud_on,a1	; hudon
-		lea	_hud_off,a2	; hudoff
-
-		; REPITCH
-UI_RPDraw	moveq	#0,d0
-		move.w	#38,d5		; pos onscreen
-		move.w	#20,d6			; pos in lights
-		lea	_repitch_enabled,a3
-		lea	UI_Repitch,a4
-		bsr	UI_CompBlit
+				
+				; REPITCH
+UI_RPDraw	moveq	#HUD_repitch,d0
+			lea		_repitch_enabled,a3
+			lea		UI_Repitch,a4
+			bsr		UI_CompareTileBlit
 
 		; LineLoop on off
-UI_LPDraw	moveq	#0,d0
-		move.w	#4,d5			; pos onscreen
-		move.w	#0,d6			; pos in lights
-		lea	_loop_active,a3
-		lea	UI_LoopActive,a4
-		bsr	UI_CompBlit
+UI_LPDraw	moveq	#HUD_line_loop_active,d0
+			lea		_loop_active,a3
+			lea		UI_LoopActive,a4
+			bsr		UI_CompareTileBlit
 
 		; slip
-UI_SlipDraw	moveq	#0,d0
-		move.w	#22,d5			; pos onscreen
-		move.w	#14,d6			; pos in lights
-		lea	_slip_on,a3
-		tst.b	(a3)
-		beq.b	.skip
+UI_SlipDraw	moveq	#HUD_line_loop_mode,d0
+			lea		_slip_on,a3
+			tst.b	(a3)
+			beq.b	.skip
 
-		tst.b	_loop_active
-		bne.b	.skip
+			tst.b	_loop_active
+			bne.b	.skip
 
-		move.b	_mt_SongPos,_mt_SLSongPos
-		move.w	_mt_PatternPos,_mt_SLPatternPos
+			move.b	_mt_SongPos,_mt_SLSongPos
+			move.w	_mt_PatternPos,_mt_SLPatternPos
 
-.skip		lea	UI_SlipOn,a4
-		bsr	UI_CompBlit
+.skip		lea		UI_SlipOn,a4
+			bsr		UI_CompareTileBlit
 
 
 		; slip
-UI_PatLockDraw	moveq	#0,d0
-		move.w	#28,d5			; pos onscreen
-		move.w	#16,d6			; pos in lights
-		lea	_mt_PatternLock,a3
-		lea	UI_PatternLock,a4
+UI_PatLockDraw	
+			moveq	#0,d0
+			lea		_mt_PatternLock,a3
+			lea		UI_PatternLock,a4
 
-		move.b	(a3),d0
-		cmp.b	(a4),d0
-		beq.b	.skip
-		move.b	d0,(a4)
+			move.b	(a3),d0
+			cmp.b	(a4),d0
+			beq.b	.skip
+			move.b	d0,(a4)
 
-		cmp.b	#0,d0
-		beq.b	.alloff
-		cmp.b	#1,d0
-		beq.b	.firston
+			cmp.b	#0,d0
+			beq.b	.alloff
+			cmp.b	#1,d0
+			beq.b	.firston
 
-		move.l	a1,a3		; else both on
-		bsr	UI_BlitTog
-		addq.w	#2,d5
-		addq.w	#2,d6
-		move.l	a1,a3
-		bsr	UI_BlitTog
-		bra	.skip
+			moveq	#HUD_pat_loop_in,d0		; both on
+			moveq	#1,d1	
+			bsr		UI_BlitHudTile
+			moveq	#HUD_pat_loop_out,d0
+			moveq	#1,d1	
+			bsr		UI_BlitHudTile
+			bra		.skip
 
-.alloff		move.l	a2,a3
-		bsr	UI_BlitTog
-		move.l	a2,a3
-		addq.w	#2,d5
-		addq.w	#2,d6
-		bsr	UI_BlitTog
-		bra	.skip
+.alloff	
+			moveq	#HUD_pat_loop_in,d0
+			moveq	#0,d1	
+			bsr		UI_BlitHudTile
+			moveq	#HUD_pat_loop_out,d0
+			moveq	#0,d1	
+			bsr		UI_BlitHudTile
+			bra		.skip
 
-.firston	move.l	a1,a3
-		bsr	UI_BlitTog
-		move.l	a2,a3
-		addq.w	#2,d5
-		addq.w	#2,d6
-		bsr	UI_BlitTog
+.firston	moveq	#HUD_pat_loop_in,d0
+			moveq	#1,d1	
+			bsr		UI_BlitHudTile
+			moveq	#HUD_pat_loop_out,d0
+			moveq	#0,d1	
+			bsr		UI_BlitHudTile
 .skip
 
-UI_LoopSizeDraw	moveq	#0,d0
-		move.w	#6,d5			; pos onscreen
-		move.w	#2,d6			; pos in lights
-		lea	_loop_size,a3
-		lea	UI_LoopSize,a4
+UI_LoopSizeDraw	
+			moveq	#0,d6
+			lea		_loop_size,a3
+			lea		UI_LoopSize,a4
 
-		move.b	(a3),d0
-		cmp.b	(a4),d0
-		beq.b	.skip
-		move.b	d0,(a4)
+			move.b	(a3),d6
+			cmp.b	(a4),d6
+			beq.b	.skip
+			move.b	d6,(a4)
 
-		move.l	a2,a3
-		bsr	UI_LoopClr
+			clr.w	$100
+			moveq	#32,d5		; compare value
+			
+			moveq	#HUD_line_loop_32,d0
+			moveq	#0,d1					; off
+			cmp.b	d5,d6
+			bne.b	.skip32
+			moveq	#1,d1
+.skip32		bsr		UI_BlitHudTile
 
-		move.l	a1,a3		; now light on
-		moveq	#5,d7
-.loop		lsr.b	#1,d0
-		tst.b	d0
-		beq.b	.gotit
-		addq.b	#2,d6
-		addq.b	#2,d5
-		dbra	d7,.loop
+			lsr.b	#1,d5
+			moveq	#HUD_line_loop_16,d0
+			moveq	#0,d1					; off
+			cmp.b	d5,d6
+			bne.b	.skip16
+			moveq	#1,d1
+.skip16		bsr		UI_BlitHudTile
 
-.gotit		bsr	UI_BlitTog
+			lsr.b	#1,d5
+			moveq	#HUD_line_loop_08,d0
+			moveq	#0,d1					; off
+			cmp.b	d5,d6
+			bne.b	.skip8
+			moveq	#1,d1
+.skip8		bsr		UI_BlitHudTile
+
+			lsr.b	#1,d5
+			moveq	#HUD_line_loop_04,d0
+			moveq	#0,d1					; off
+			cmp.b	d5,d6
+			bne.b	.skip4
+			moveq	#1,d1
+.skip4		bsr		UI_BlitHudTile
+
+			lsr.b	#1,d5
+			moveq	#HUD_line_loop_02,d0
+			moveq	#0,d1					; off
+			cmp.b	d5,d6
+			bne.b	.skip2
+			moveq	#1,d1
+.skip2		bsr		UI_BlitHudTile
+
+			lsr.b	#1,d5
+			moveq	#HUD_line_loop_01,d0
+			moveq	#0,d1					; off
+			cmp.b	d5,d6
+			bne.b	.skip1
+			moveq	#1,d1
+.skip1		bsr		UI_BlitHudTile
+
+
 .skip
 
 		; ***********************************
@@ -892,38 +919,40 @@ UI_MinDraw	lea	_Time_Minutes,a3
 .skip
 
 
-UI_PatPosDraw	lea	_mt_PatternPos,a3
-		lea	UI_PatternPos,a4
-		moveq	#0,d0
-		move.w	(a3),d0
-		cmp.w	(a4),d0
-		beq.b	.skip
-		move.w	d0,(a4)
+UI_PatPosDraw	
+			lea	_mt_PatternPos,a3
+			lea	UI_PatternPos,a4
+			moveq	#0,d0
+			move.w	(a3),d0
+			cmp.w	(a4),d0
+			beq.b	.skip
+			move.w	d0,(a4)
 
-		lsr.w	#4,d0
+			lsr.w	#4,d0
 
-		bsr	UI_Decimal
-		move.w	d1,d0
+			bsr	UI_Decimal
+			move.w	d1,d0
 
-		moveq	#2-1,d7
-		moveq	#24,d5		; digi pos
-		bsr	UI_DigiBlit
+			moveq	#2-1,d7
+			moveq	#24,d5		; digi pos
+			bsr	UI_DigiBlit
 .skip
 
-UI_SongPosDraw	lea	_mt_SongPos,a3
-		lea	UI_SongPos,a4
-		moveq	#0,d0
-		move.b	(a3),d0
-		cmp.b	(a4),d0
-		beq.b	.skip
-		move.b	d0,(a4)
+UI_SongPosDraw	
+			lea	_mt_SongPos,a3
+			lea	UI_SongPos,a4
+			moveq	#0,d0
+			move.b	(a3),d0
+			cmp.b	(a4),d0
+			beq.b	.skip
+			move.b	d0,(a4)
 
-		bsr	UI_Decimal
-		move.w	d1,d0
+			bsr	UI_Decimal
+			move.w	d1,d0
 
-		moveq	#3-1,d7
-		moveq	#18,d5		; digi pos
-		bsr	UI_DigiBlit
+			moveq	#3-1,d7
+			moveq	#18,d5		; digi pos
+			bsr	UI_DigiBlit
 
 
 .skip
@@ -939,25 +968,25 @@ UI_SongPosDraw	lea	_mt_SongPos,a3
 
 UI_DigiBlit	moveq	#0,d6
 .loop		move.b	d0,d6
-		and.b	#$f,d6
-		lsl.b	#1,d6		; double it!!
-		lea	(a1,d6.w),a3	; new source
-		lea	(a0,d5.w),a4
+			and.b	#$f,d6
+			lsl.b	#1,d6		; double it!!
+			lea	(a1,d6.w),a3	; new source
+			lea	(a0,d5.w),a4
 
-		WAITBLIT
-		move.l	a3,bltapt(a6)
-		move.l	a4,bltdpt(a6)
-		move.l	#-1,bltafwm(a6)
-		move.w	#$09f0,bltcon0(a6)
-		move.w	#$0000,bltcon1(a6)
-		move.w	#32-2,bltamod(a6)
-		move.w	#(40*5)-2,bltdmod(a6)
-		move.w	#(24)<<6+1,bltsize(a6)
+			WAITBLIT
+			move.l	a3,bltapt(a6)
+			move.l	a4,bltdpt(a6)
+			move.l	#-1,bltafwm(a6)
+			move.w	#$09f0,bltcon0(a6)
+			move.w	#$0000,bltcon1(a6)
+			move.w	#32-2,bltamod(a6)
+			move.w	#(40*5)-2,bltdmod(a6)
+			move.w	#(24)<<6+1,bltsize(a6)
 
-		lsr.w	#4,d0
-		subq.w	#2,d5
-		dbra	d7,.loop
-		rts
+			lsr.w	#4,d0
+			subq.w	#2,d5
+			dbra	d7,.loop
+			rts
 
 UI_ChanBlit	WAITBLIT
 		lea	(a3,d6.w),a3
@@ -972,45 +1001,58 @@ UI_ChanBlit	WAITBLIT
 		move.w	#(9*3)<<6+5,bltsize(a6)
 		rts
 
-UI_CompBlit	move.b	(a3),d0
-		cmp.b	(a4),d0
-		beq.b	.skip
-		move.b	d0,(a4)
-		tst.b	d0
-		bne.b	.off
-		move.l	a2,a3
-		bra	.go
-.off		move.l	a1,a3
-.go		bsr	UI_BlitTog
+
+			; byte compare a3 / a4
+			; then blit
+			; d0 = tile ID
+			; d1 = resulting toggle value
+UI_CompareTileBlit:
+			moveq	#0,d1
+			move.b	(a3),d1
+			cmp.b	(a4),d1
+			beq.b	.skip
+			move.b	d1,(a4)
+			tst.b	d1
+			beq.b	.go
+			moveq	#1,d1
+.go			bra.b	UI_BlitHudTile
 .skip		rts
 
+		; d0 = tile id
+		; d1 = 0 off / 1 on
+UI_BlitHudTile:
+			movem.l		d0-a5,-(sp)
+			lea			hud_lookup,a0
+			mulu		#hud_lookup_sizeof,d0
+			lea			(a0,d0.w),a0
+			move.w		(a0)+,d2		; x
+			move.w		(a0)+,d3		; y
+			add.w		d2,d2			; correct column
+			mulu		#UI_TotWidth*16,d3	; correct line
+			add.w		d2,d3
+			lea			_hud,a1			; screen
+			lea			(a1,d3.w),a1
+			move.l		(a0)+,a2		; get hud off
+			tst.w		d1
+			beq.b		.is_off
+			move.l		(a0)+,a2		; get hud on
+.is_off		
+			WAITBLIT
+			move.l		a2,bltapt(a6)
+			move.l		a1,bltdpt(a6)
+			move.l		#-1,bltafwm(a6)
+			move.w		#$09f0,bltcon0(a6)
+			move.w		#$0000,bltcon1(a6)
+			move.w		#0,bltamod(a6)
+			move.w		#UI_Width-2,bltdmod(a6)
+			move.w		#(16*5)<<6+1,bltsize(a6)
+			movem.l		(sp)+,d0-a5
+			rts
 
-UI_LoopClr	WAITBLIT
-		lea	(a3,d6.w),a3
-		lea	(a0,d5.w),a4
-		move.l	a3,bltapt(a6)
-		move.l	a4,bltdpt(a6)
-		move.l	#-1,bltafwm(a6)
-		move.w	#$09f0,bltcon0(a6)
-		move.w	#$0000,bltcon1(a6)
-		move.w	#22-12,bltamod(a6)
-		move.w	#40-12,bltdmod(a6)
-		move.w	#(16*5)<<6+6,bltsize(a6)
-		rts
 
 
-UI_BlitTog	WAITBLIT
-		lea	(a3,d6.w),a3
-		lea	(a0,d5.w),a4
-		move.l	a3,bltapt(a6)
-		move.l	a4,bltdpt(a6)
-		move.l	#-1,bltafwm(a6)
-		move.w	#$09f0,bltcon0(a6)
-		move.w	#$0000,bltcon1(a6)
-		move.w	#20,bltamod(a6)
-		move.w	#40-2,bltdmod(a6)
-		move.w	#(16*5)<<6+1,bltsize(a6)
-		rts
+
+
 
 UI_Decimal	moveq	#3,d7
 		moveq	#0,d1

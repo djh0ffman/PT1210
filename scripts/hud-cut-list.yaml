@@ -1,0 +1,65 @@
+- !HudCut
+  control_id: 0
+  control_name: HUD_line_loop_active
+  cut_x: 2
+  cut_y: 1
+
+- !HudCut
+  control_id: 1
+  control_name: HUD_line_loop_mode
+  cut_x: 11
+  cut_y: 1
+
+- !HudCut
+  control_id: 2
+  control_name: HUD_pat_loop_in
+  cut_x: 14
+  cut_y: 1
+
+- !HudCut
+  control_id: 3
+  control_name: HUD_pat_loop_out
+  cut_x: 15
+  cut_y: 1
+
+- !HudCut
+  control_id: 4
+  control_name: HUD_repitch
+  cut_x: 19
+  cut_y: 1
+
+- !HudCut
+  control_id: 5
+  control_name: HUD_line_loop_01
+  cut_x: 3
+  cut_y: 1
+
+- !HudCut
+  control_id: 6
+  control_name: HUD_line_loop_02
+  cut_x: 4
+  cut_y: 1
+
+- !HudCut
+  control_id: 7
+  control_name: HUD_line_loop_04
+  cut_x: 5
+  cut_y: 1
+
+- !HudCut
+  control_id: 8
+  control_name: HUD_line_loop_08
+  cut_x: 6
+  cut_y: 1
+
+- !HudCut
+  control_id: 9
+  control_name: HUD_line_loop_16
+  cut_x: 7
+  cut_y: 1
+
+- !HudCut
+  control_id: 10
+  control_name: HUD_line_loop_32
+  cut_x: 8
+  cut_y: 1

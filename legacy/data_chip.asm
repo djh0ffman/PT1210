@@ -116,15 +116,7 @@ _hud_planes	dc.w	bplpt,$0
 		dc.w	bplpt+16,$0
 		dc.w	bplpt+18,$0
 
-	dc.w	$0180,$0000,$0182,$0043,$0184,$0301,$0186,$00fc
-	dc.w	$0188,$0dc0,$018a,$0ff0,$018c,$0ff6,$018e,$0ffc
-	dc.w	$0190,$0905,$0192,$07f7,$0194,$00b0,$0196,$0086
-	dc.w	$0198,$0000,$019a,$0f00,$019c,$0c00,$019e,$0d40
-	dc.w	$01a0,$0f61,$01a2,$0fc8,$01a4,$0111,$01a6,$0222
-	dc.w	$01a8,$0333,$01aa,$0444,$01ac,$0555,$01ae,$0666
-	dc.w	$01b0,$0777,$01b2,$0888,$01b4,$0999,$01b6,$0aaa
-	dc.w	$01b8,$0bbb,$01ba,$0ccc,$01bc,$0ddd,$01be,$0fff
-
+		include "gfx/hud.asm"
 
 		; pattern pos planes
 		dc.w	$6adf,$fffe
@@ -189,14 +181,8 @@ _track_planes	dc.w	bplpt,$0
 		dc.w	bpl1mod,(2*40)
 		dc.w	bpl2mod,(2*40)
 
-		dc.w	$180,$0000
-		dc.w	$182,$0222
-		dc.w	$184,$0043
-		dc.w	$186,$0666
-		dc.w	$188,$0F81
-		dc.w	$18a,$0E60
-		dc.w	$18c,$0FFF
-		dc.w	$18e,$0777
+;		track palette
+	include "gfx/track-header.asm"
 
 ; time to jump?
 
@@ -220,7 +206,7 @@ _select_planes	dc.w	bplpt,$0
 		dc.w	bpl1mod,40
 		dc.w	bpl2mod,40
 
-		dc.w	$0180,$0000,$0182,$0222,$0184,$0333,$0186,$00fc
+		include "gfx/select-window.asm"
 
 		dc.w	$8edf,$fffe
 		dc.w	bplcon0,$3100
@@ -331,12 +317,12 @@ _spritelist		dc.l	_spritelefttop
 
 				; hud gfx
 _hud			incbin	"gfx/hud.raw"
-_hud_on			incbin	"gfx/hud_on2.raw"
-_hud_off		incbin	"gfx/hud_off.raw"
-_trackoff		incbin	"gfx/trackoff.bin"
-_trackon		incbin	"gfx/trackon.bin"
-_font_digi		incbin	"gfx/font-digi2.raw"
-_select			incbin	"gfx/selecta.raw"
+				include "gfx/hud_chip.asm"
+
+_trackoff		incbin	"gfx/track-header-off.raw"
+_trackon		incbin	"gfx/track-header-on.raw"
+_font_digi		incbin	"gfx/font-digi-large.raw"
+_select			incbin	"gfx/select-window.raw"
 _selectfilla	dc.b	$80
 				dcb.b	40-2,0
 				dc.b	$01

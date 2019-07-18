@@ -1,0 +1,90 @@
+
+- !GfxTask
+  output: font-small  
+  source: font-small.iff
+  operation: 8x8
+  bitplanes: 1
+
+- !GfxTask
+  output: font-big
+  source: font-big.iff
+  operation: 8x8
+  bitplanes: 1
+
+- !GfxTask
+  output: font-digi-small
+  source: font-digi-small.iff
+  operation: cut
+  bitplanes: 1
+  x: 0
+  y: 0
+  width: 10
+  height: 16
+
+- !GfxTask
+  output: font-digi-large
+  source: font-digi-large.iff
+  operation: cut
+  bitplanes: 1
+  x: 0
+  y: 0
+  width: 32
+  height: 24
+
+- !GfxTask
+  output: track-header-off
+  source: track-header.iff
+  operation: cut
+  bitplanes: 3
+  x: 0
+  y: 0
+  width: 40
+  height: 9
+
+- !GfxTask
+  output: track-header-on
+  source: track-header.iff
+  operation: cut
+  bitplanes: 3
+  x: 0
+  y: 9
+  width: 40
+  height: 9
+
+- !GfxTask
+  output: track-header
+  source: track-header.iff
+  operation: copper_palette
+  bitplanes: 3
+
+- !GfxTask
+  output: select-window
+  source: select-window.iff
+  operation: cut
+  bitplanes: 2
+  x: 0
+  y: 0
+  width: 40
+  height: 11
+
+- !GfxTask
+  output: select-window
+  source: select-window.iff
+  operation: copper_palette
+  bitplanes: 2
+
+- !GfxTask
+  output: hud
+  source: hud.iff
+  operation: cut
+  bitplanes: 5
+  x: 0
+  y: 0
+  width: 40
+  height: 63
+
+- !GfxTask
+  output: hud
+  source: hud.iff
+  operation: copper_palette
+  bitplanes: 5
