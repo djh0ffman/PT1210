@@ -11,7 +11,6 @@ Credits
 Original Concept - Hoffman & Akira
 Code - Hoffman
 Graphics - Akira
-System Kill Code - Stingray
 Testing - Akira & Tecon
 
 ------------------------------------------------------------------------------
