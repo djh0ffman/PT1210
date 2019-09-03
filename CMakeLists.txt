@@ -58,27 +58,89 @@ set(CMAKE_C_FLAGS_RELEASE "-Os -s")
 add_library(legacy OBJECT legacy/pt1210.asm)
 
 # Graphics conversion
-set(GFX_ASSETS
-	gfx/font-big.iff
-	gfx/font-small.iff
+set(GFX_DIR ${CMAKE_SOURCE_DIR}/gfx)
+set(SCRIPTS_DIR ${CMAKE_SOURCE_DIR}/scripts)
+set(IFF2RAW ${CMAKE_SOURCE_DIR}/scripts/iff2raw.py)
+set(GFX_HUD_LIST ${SCRIPTS_DIR}/hud-cut-list.yaml)
+set(GFX_TASK_LIST ${SCRIPTS_DIR}/task-list.yaml)
+
+# The following lists are required for accurate dependency tracking;
+# this ensures the conversion scripts are re-run if any of the output
+# files are missing, or if any of the inputs files are changed
+set(GFX_HUD_OUTPUTS
+	hud_chip.asm
+	hud_fast.asm
+	HUD_line_loop_01_off.raw
+	HUD_line_loop_01_on.raw
+	HUD_line_loop_02_off.raw
+	HUD_line_loop_02_on.raw
+	HUD_line_loop_04_off.raw
+	HUD_line_loop_04_on.raw
+	HUD_line_loop_08_off.raw
+	HUD_line_loop_08_on.raw
+	HUD_line_loop_16_off.raw
+	HUD_line_loop_16_on.raw
+	HUD_line_loop_32_off.raw
+	HUD_line_loop_32_on.raw
+	HUD_line_loop_active_off.raw
+	HUD_line_loop_active_on.raw
+	HUD_line_loop_mode_off.raw
+	HUD_line_loop_mode_on.raw
+	HUD_pat_loop_in_off.raw
+	HUD_pat_loop_in_on.raw
+	HUD_pat_loop_out_off.raw
+	HUD_pat_loop_out_on.raw
+	HUD_repitch_off.raw
+	HUD_repitch_on.raw
 )
 
-# Add generated sources for each IFF graphics asset
-foreach(INPUT ${GFX_ASSETS})
-	# Derive output name from input name
-	get_filename_component(INPUT_WE ${INPUT} NAME_WE)
-	set(OUTPUT gfx/${INPUT_WE}.raw)
+set(GFX_TASK_INPUTS
+	font-big.iff
+	font-digi-large.iff
+	font-digi-small.iff
+	font-small.iff
+	hud.iff
+	select-window.iff
+	track-header.iff
+)
 
-	# Custom command that calls our Python script
-    add_custom_command(OUTPUT ${OUTPUT}
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/iff2raw.py -q ${CMAKE_SOURCE_DIR}/${INPUT} ${OUTPUT}
-        MAIN_DEPENDENCY ${INPUT}
-        COMMENT "Converting IFF image ${INPUT} to ${OUTPUT}"
-	)
+set(GFX_TASK_OUTPUTS
+	font-big.raw
+	font-digi-large.raw
+	font-digi-small.raw
+	font-small.raw
+	hud.asm
+	hud.raw
+	select-window.asm
+	select-window.raw
+	track-header.asm
+	track-header-off.raw
+	track-header-on.raw
+)
 
-	# Add output path to a dependency list
-	list(APPEND GFX_DEPENDS ${OUTPUT})
-endforeach()
+# Prefix the above with their full paths
+list(TRANSFORM GFX_HUD_INPUTS PREPEND ${GFX_DIR}/)
+list(TRANSFORM GFX_TASK_INPUTS PREPEND ${GFX_DIR}/)
+list(TRANSFORM GFX_HUD_OUTPUTS PREPEND gfx/)
+list(TRANSFORM GFX_TASK_OUTPUTS PREPEND gfx/)
+
+# Custom commands that calls our Python script
+add_custom_command(OUTPUT ${GFX_HUD_OUTPUTS}
+	COMMAND ${Python_EXECUTABLE} ${IFF2RAW} hudcut ${GFX_HUD_LIST} ${GFX_DIR}/hud.iff gfx
+	MAIN_DEPENDENCY ${GFX_HUD_LIST}
+	DEPENDS ${GFX_HUD_LIST}
+	COMMENT "Cutting HUD graphics"
+)
+
+add_custom_command(OUTPUT ${GFX_TASK_OUTPUTS}
+	COMMAND ${Python_EXECUTABLE} ${IFF2RAW} task ${GFX_TASK_LIST} ${GFX_DIR} gfx
+	MAIN_DEPENDENCY ${GFX_TASK_LIST}
+	DEPENDS ${GFX_TASK_INPUTS}
+	COMMENT "Performing graphics conversion tasks"
+)
+
+# Add outputs of the graphics processing to a dependency list
+list(APPEND GFX_DEPENDS ${GFX_HUD_OUTPUTS} ${GFX_TASK_OUTPUTS})
 
 # Files that the legacy target depends on
 set(LEGACY_DEPENDS
@@ -94,19 +156,6 @@ set(LEGACY_DEPENDS
 	legacy/time.asm
 	legacy/ui.asm
 	legacy/vblank_int.asm
-
-	# Graphics assets INCBIN'ed by ASM code
-	legacy/gfx/hud.raw
-	legacy/gfx/hud_on2.raw
-	legacy/gfx/hud_off.raw
-	legacy/gfx/trackoff.bin
-	legacy/gfx/trackon.bin
-	legacy/gfx/font-digi2.raw
-	legacy/gfx/selecta.raw
-	legacy/gfx/font-digi3.raw
-	legacy/gfx/kb.raw
-	legacy/gfx/bpm.raw
-	legacy/gfx/splash.raw
 )
 
 # Prefix the above with their full path

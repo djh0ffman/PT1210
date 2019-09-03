@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Image Conversion Script
 # Hoffman / PT-1210
@@ -10,6 +10,12 @@ import os
 import sys
 import iffparser
 import yaml
+
+OP_EXTENSIONS = {
+    '8x8': 'raw',
+    'cut': 'raw',
+    'copper_palette': 'asm'
+}
 
 class GfxTask(yaml.YAMLObject):
     yaml_tag = u'!GfxTask'
@@ -31,23 +37,29 @@ class HudCut(yaml.YAMLObject):
         self.cut_x = cut_x
         self.cut_y = cut_y
 
-def process_task_list(yaml_task_list, input_path, output_path):
+def process_task_list(yaml_task_list, input_path, output_path, quiet=False):
+    if not quiet:
+        print("Processing task list: {}".format(yaml_task_list))
     doc = open(yaml_task_list, 'r')
     tasks = yaml.load(doc, Loader=yaml.Loader)
-    for task in tasks:        
-        convert_task(task, input_path, output_path)
+    for task in tasks:
+        convert_task(task, input_path, output_path, quiet)
 
-def process_cut_list(yaml_cut_list, hud_iff, input_path, output_path):
-    print("processing cut list: {}".format(yaml_cut_list))
+def process_cut_list(yaml_cut_list, hud_iff, output_path, quiet=False):
+    if not quiet:
+        print("Processing cut list: {}".format(yaml_cut_list))
     doc = open(yaml_cut_list, 'r')
     huds = yaml.load(doc, Loader=yaml.Loader)
-    hud_image = iffparser.parse_image(os.path.join(input_path, hud_iff))
+    hud_image = iffparser.parse_image(hud_iff)
     values = "\nhud_lookup_sizeof = 12\n"
     lookup = "\nhud_lookup:\n"
     incbins = ""
 
+    os.makedirs(output_path, exist_ok=True)
+
     for hud in huds:
-        print("cutting {}".format(hud.control_name))
+        if not quiet:
+            print("cutting {}".format(hud.control_name))
 
         values += "{} equ {}\n".format(hud.control_name.ljust(50), hud.control_id)
 
@@ -75,7 +87,7 @@ def process_cut_list(yaml_cut_list, hud_iff, input_path, output_path):
             output.write(image_off)
         with open(os.path.join(output_path, file_on), 'wb') as output:
             output.write(image_on)
-    
+
     data = (values+lookup).encode('ascii')
     with open(os.path.join(output_path, "hud_fast.asm"), 'wb') as output:
         output.write(data)
@@ -85,12 +97,13 @@ def process_cut_list(yaml_cut_list, hud_iff, input_path, output_path):
         output.write(data)
 
 
-def convert_task(task, input_path, output_path):
-    print("processing: {} / {}".format(task.output, task.operation))
-
+def convert_task(task, input_path, output_path, quiet=False):
     source_file = os.path.join(input_path, task.source)
-    destination_file = os.path.join(output_path, task.output)
-    
+    destination_file = os.path.join(output_path, task.output + os.extsep + OP_EXTENSIONS[task.operation])
+
+    if not quiet:
+        print("[{}] {} --> {}".format(task.operation, source_file, destination_file))
+
     image = iffparser.parse_image(source_file)
 
     if image.header.bitplanes != task.bitplanes:
@@ -101,20 +114,17 @@ def convert_task(task, input_path, output_path):
     if task.operation == "8x8":
         # Convert 8x8 font
         data = convert_font_8x8(image)
-        destination_file += ".raw"
     elif task.operation == "cut":
         # Perform cut operation
         data = image.copy_block(task.x, task.y, task.width, task.height)
-        destination_file += ".raw"
     elif task.operation == "copper_palette":
         palette = image.copper_palette()
         data = palette.encode('ascii')
-        destination_file += ".asm"
     else:
         raise Exception(
             '{} operation not supported'.format(task.operation))
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    os.makedirs(output_path, exist_ok=True)
     with open(destination_file, 'wb') as output:
         output.write(data)
 
@@ -139,19 +149,36 @@ def convert_font_8x8(font):
 
 
 # Parse command line arguments
-#parser = argparse.ArgumentParser()
-#parser.add_argument('input', type=str, help='path to input IFF file')
-#parser.add_argument('output', type=str, help='path to output RAW file')
-#parser.add_argument('-q', '--quiet', action='store_true',
-#                    help='suppress output')
+parser = argparse.ArgumentParser()
+parser.add_argument('-q', '--quiet', action='store_true', help='suppress output')
+subparsers = parser.add_subparsers(dest='command', help='command')
+subparsers.required = True
+subparsers.dest = 'command'
 
-#args = parser.parse_args()
+hud_cut_parser = subparsers.add_parser('hudcut', help='process a HUD cut list')
+hud_cut_parser.add_argument('cut_list', type=str, help='path to YAML cut list file')
+hud_cut_parser.add_argument('hud_image', type=str, help='path to HUD .iff file')
+hud_cut_parser.add_argument('output_dir', type=str, help='output directory')
 
-# Attempt the conversion
-#try:
-#    convert_font_8x8(args.input, args.output)
-#    if not args.quiet:
-#        print('Successfully converted {} --> {}'.format(args.input, args.output))
-#except Exception as exc:
-#    print('Error converting {}: {}'.format(args.input, exc), file=sys.stderr)
-#    exit(1)
+task_parser = subparsers.add_parser('task', help='process a graphics conversion task list')
+task_parser.add_argument('task_list', type=str, help='path to YAML task list file')
+task_parser.add_argument('input_dir', type=str, help='input directory')
+task_parser.add_argument('output_dir', type=str, help='output directory')
+
+args = parser.parse_args()
+
+try:
+    # HUD cut command
+    if args.command == 'hudcut':
+        process_cut_list(args.cut_list, args.hud_image, args.output_dir, args.quiet)
+
+    # Task list command
+    elif args.command == 'task':
+        process_task_list(args.task_list, args.input_dir, args.output_dir, args.quiet)
+
+    if not args.quiet:
+        print('Operation successful.')
+
+except Exception as exc:
+    print('Error while processing: {}'.format(exc), file=sys.stderr)
+    exit(1)

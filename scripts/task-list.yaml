@@ -1,6 +1,5 @@
-
 - !GfxTask
-  output: font-small  
+  output: font-small
   source: font-small.iff
   operation: 8x8
   bitplanes: 1
