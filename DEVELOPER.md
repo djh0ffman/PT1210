@@ -7,10 +7,14 @@
 #### CMake
 1. Download and run the [*CMake* installer for Windows](https://cmake.org/download/) - choose the latest stable release.
 
+#### Python 3
+1. Download and run the latest [*Python* 3.x installer for Windows](https://www.python.org/downloads/). Ensure you check the **Add Python 3.x to PATH** option.
+2. Open a command prompt, and type `pip3 install --user pyyaml` to install the *Python* YAML library.
+
 #### Amiga GCC
 1. Download and run the [`amiga-gcc` installer for Windows by bebbo](https://franke.ms/download/setup-amiga-gcc.exe).
-3. In Windows System settings, add a new environment variable (either for your user or for the system; it doesn't matter) named `AMIGA_GCC` and point it to the root of your `amiga-gcc` installation (e.g. `C:\amiga-gcc`). This helps our build system find the necessary include paths for the assembler.
-4. Edit the `PATH` variable to add `%AMIGA_GCC%\bin` to the list, which makes all of the `m68k-amigaos-*` tools as well as *GNU Make* available from any Windows command prompt.
+2. In Windows System settings, add a new environment variable (either for your user or for the system; it doesn't matter) named `AMIGA_GCC` and point it to the root of your `amiga-gcc` installation (e.g. `C:\amiga-gcc`). This helps our build system find the necessary include paths for the assembler.
+3. Edit the `PATH` variable to add `%AMIGA_GCC%\bin` to the list, which makes all of the `m68k-amigaos-*` tools as well as *GNU Make* available from any Windows command prompt.
 
 ### Linux
 TODO
