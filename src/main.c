@@ -103,6 +103,7 @@ int main(int argc, char** argv)
 
 	pt1210_asm_shutdown();
 	pt1210_cia_stop_timer();
+	pt1210_file_free_tune_memory();
 
 	/* Clean up */
 	pt1210_gfx_remove_vblank_server();

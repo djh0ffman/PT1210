@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include <proto/dos.h>
+#include <proto/exec.h>
 
 #include "fileselector.h"
 #include "filesystem.h"
@@ -41,8 +42,6 @@ static const char* error_template = "--------------------------------------- "
 									"--------------------------------------- ";
 
 static const char* error_no_modules = "NO MODULES FOUND";
-/*static const char* error_memory = "NOT ENOUGH MEMORY";*/
-/*static const char* error_loading = "LOADING ERROR : $00000000";*/
 /*static const char* error_unspecified = "UNSPECIFIED ERROR!";*/
 
 /* TODO: Move these into here? */
@@ -58,12 +57,10 @@ extern bool mt_Enabled;
 extern uint8_t dir[6000];
 
 /* ASM functions */
-void mt_end();
 void FS_DrawType(REG(d0, bool show_kb));
 void FS_Copper();
 void FS_CopperClr();
 void FS_LoadTune();
-void ScopeStop();
 
 void ST_Type(REG(a0, const char* text), REG(a1, void* dest_surface), REG(d7, uint8_t num_lines));
 
@@ -187,7 +184,7 @@ void pt1210_fs_select()
 	switch (selection->type)
 	{
 		case ENTRY_FILE:
-			FS_LoadTune();
+			pt1210_file_load_module(current);
 			break;
 
 		case ENTRY_DIRECTORY:
@@ -228,6 +225,7 @@ void pt1210_fs_rescan()
 	/* Clear text/graphics buffers */
 	fs_clear();
 	FS_CopperClr();
+	pt1210_fs_draw_error("READING FOLDER");
 
 	/* Regenerate file list */
 	if (show_volumes)

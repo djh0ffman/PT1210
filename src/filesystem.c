@@ -17,8 +17,14 @@
 #include <clib/debug_protos.h>
 #include <proto/exec.h>
 
+#include "action.h"
+#include "fileselector.h"
 #include "filesystem.h"
+#include "graphics.h"
 #include "utility.h"
+
+static memory_buffer_t mod_pattern;
+static memory_buffer_t mod_sample;
 
 file_list_t pt1210_file_list[MAX_FILE_COUNT];
 uint16_t pt1210_file_count;
@@ -28,8 +34,16 @@ static BPTR old_dir_lock = 0;
 static BPTR current_dir_lock = 0;
 
 /* Imported from ASM code */
+extern bool pt1210_fs_rescan_pending;
+extern bool mt_Enabled;
 extern char FS_LoadErrBuff[80];
-void FS_DrawLoadError(REG(d0, int32_t error_code));
+void FS_Reset();
+void ScopeStop();
+void mt_init(REG(a0, void* pattern_data),REG(a2, void* sample_data));
+void mt_end();
+
+static const char* error_memory = "NOT ENOUGH MEMORY";
+static const char* error_loading = "LOADING ERROR : $%08lx";
 
 /* A generic comparator function pointer type */
 typedef int (*comparator_t)(const void*, const void*);
@@ -100,6 +114,20 @@ static int cmp_name(const void* a, const void* b)
 	return cmp_swap ?
 		strncasecmp(rhs_name, lhs_name, MAX_FILE_NAME_LENGTH) :
 		strncasecmp(lhs_name, rhs_name, MAX_FILE_NAME_LENGTH);
+}
+
+static void read_error()
+{
+	/* LONG error = IoErr(); */
+
+	/* TODO: Use Fault() when it's available (Kickstart v36) */
+	/* Fault(error, "", FS_LoadErrBuff, sizeof(FS_LoadErrBuff)); */
+	pt1210_fs_draw_error(error_loading);
+}
+
+static void memory_error()
+{
+	pt1210_fs_draw_error(error_memory);
 }
 
 void pt1210_file_initialize()
@@ -331,7 +359,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 		return;
 
 	/* Multiply to get offset into pattern data */
-	size_t pattern_offset = PT_PATTERN_OFFSET + first_pattern * PT_PATTERN_DATA_LEN;
+	size_t pattern_offset = PT_HEADER_LEN + first_pattern * PT_PATTERN_DATA_LEN;
 
 	/* Read first row of first pattern */
 	if (!pt1210_file_read(fib->fib_FileName, pattern_row, pattern_offset, sizeof(pattern_row)))
@@ -396,23 +424,17 @@ bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, si
 
 	file = Open(file_name, MODE_OLDFILE);
 	if (!file)
-	{
-		pt1210_file_read_error();
 		return false;
-	}
 
 	/* FIXME: Possible bug in Kickstarts v36/v37 not returning -1 on error */
 	result = Seek(file, seek_point, OFFSET_BEGINNING);
 	if (result == -1)
 	{
-		pt1210_file_read_error();
 		Close(file);
 		return false;
 	}
 
 	result = Read(file, buffer, read_size);
-	if (result == -1)
-		pt1210_file_read_error();
 
 	Close(file);
 
@@ -423,12 +445,102 @@ bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, si
 	return true;
 }
 
-void pt1210_file_read_error()
+void pt1210_file_load_module(size_t current)
 {
-	LONG error = IoErr();
+	/* disable current tune from playing */
+	mt_Enabled = false;
+	mt_end();
+	pt1210_gfx_enable_vblank_server(false);
+	ScopeStop();
 
-	/* TODO: Use Fault() when it's available (Kickstart v36) */
-	/* Fault(error, "", FS_LoadErrBuff, sizeof(FS_LoadErrBuff)); */
+	/* get current tune selection */
+	file_list_t* selection = &pt1210_file_list[current];
 
-	FS_DrawLoadError(error);
+	pt1210_file_free_tune_memory();
+
+	/* read all 128 song positions */
+	uint8_t song_positions[128];
+	if (!pt1210_file_read(selection->file_name, song_positions, PT_POSITION_OFFSET, sizeof(song_positions)))
+	{
+		read_error();
+		pt1210_gfx_enable_vblank_server(true);
+		return;
+	}
+
+	/* calc highest pattern */
+	uint8_t max_pattern = 0;
+	for (uint8_t i = 0; i < 128; i++)
+	{
+		if (max_pattern < song_positions[i])
+			max_pattern = song_positions[i];
+	}
+	/* index, not count */
+	max_pattern += 1;
+
+	/* calc total song data size */
+	mod_pattern.size = ((size_t) max_pattern * PT_PATTERN_DATA_LEN) + PT_HEADER_LEN;
+	mod_pattern.buffer = AllocMem(mod_pattern.size, MEMF_PUBLIC);
+	if (!mod_pattern.buffer)
+	{
+		memory_error();
+		pt1210_gfx_enable_vblank_server(true);
+		return;
+	}
+
+	/* calc remaining sample size (well, just the rest of the file really) */
+	int32_t sample_size = selection->file_size - mod_pattern.size;
+	if (sample_size <= 0)
+	{
+		pt1210_fs_draw_error("FILE CORRUPT");
+		pt1210_gfx_enable_vblank_server(true);
+		return;
+	}
+
+	mod_sample.size = (size_t) sample_size;
+	mod_sample.buffer = AllocMem(mod_sample.size, MEMF_CHIP);
+	if (!mod_sample.buffer)
+	{
+		memory_error();
+		pt1210_gfx_enable_vblank_server(true);
+		return;
+	}
+
+	/* load all pattern data to public ram */
+	if (!pt1210_file_read(selection->file_name, mod_pattern.buffer, 0, mod_pattern.size))
+	{
+		read_error();
+		pt1210_gfx_enable_vblank_server(true);
+		return;
+	}
+
+	/* load all sample data to chip ram */
+	if (!pt1210_file_read(selection->file_name, mod_sample.buffer, mod_pattern.size, mod_sample.size))
+	{
+		read_error();
+		pt1210_gfx_enable_vblank_server(true);
+		return;
+	}
+
+	/* init module and start it up */
+	mt_init(mod_pattern.buffer, mod_sample.buffer);
+	FS_Reset();
+	mt_Enabled = true;
+	pt1210_gfx_enable_vblank_server(true);
+	pt1210_action_switch_screen();
+	return;
+}
+
+void pt1210_file_free_tune_memory()
+{
+	if (mod_pattern.buffer)
+	{
+		FreeMem(mod_pattern.buffer, mod_pattern.size);
+		mod_pattern.buffer = NULL;
+	}
+
+	if (mod_sample.buffer)
+	{
+		FreeMem(mod_sample.buffer, mod_sample.size);
+		mod_sample.buffer = NULL;
+	}
 }

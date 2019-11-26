@@ -14,6 +14,7 @@
 	XDEF _FS_CopperClr
 	XDEF _FS_DrawType
 	XDEF _FS_LoadTune
+	XDEF _FS_Reset
 	XDEF _dir
 
 		; d0 = 0 = BPM / 1 = KB
@@ -127,9 +128,9 @@ _FS_LoadTune	movem.l	d0-a6,-(sp)
 			beq.b	.quit
 
 			move.l	memptr,a0
-			jsr		mt_init
+			jsr		_mt_init
 
-			bsr		FS_Reset
+			bsr		_FS_Reset
 
 
 			jsr		_pt1210_action_switch_screen
@@ -150,7 +151,8 @@ _FS_LoadTune	movem.l	d0-a6,-(sp)
 
 
 
-FS_Reset	move.b	#125,_pt1210_cia_base_bpm
+_FS_Reset	movem.l	d0-a6,-(sp)
+			move.b	#125,_pt1210_cia_base_bpm
 			;clr.w	_pt1210_cia_frames_per_beat
 			clr.w	_pt1210_cia_offset_bpm
 			clr.b	_pt1210_cia_fine_offset
@@ -186,6 +188,7 @@ FS_Reset	move.b	#125,_pt1210_cia_base_bpm
 
 			jsr	UI_CuePos
 
+			movem.l	(sp)+,d0-a6
 			rts
 
 FS_ListMax	=	21

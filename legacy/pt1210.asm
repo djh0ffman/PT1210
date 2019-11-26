@@ -280,7 +280,6 @@ _pt1210_asm_initialize
 _pt1210_asm_shutdown
 		movem.l	d0-a6,-(sp)
 		jsr	_mt_end
-		bsr	unallocchip
 
 		;bsr	kbrem
 

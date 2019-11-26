@@ -42,8 +42,8 @@
 #define PT_SONG_LENGTH_OFFSET	950
 #define PT_POSITION_OFFSET		952
 #define PT_MAGIC_OFFSET			1080
-#define PT_PATTERN_OFFSET		1084
 #define PT_PATTERN_DATA_LEN		1024
+#define PT_HEADER_LEN			1084
 
 /* !FRM (frames-per-beat tag) */
 #define FPB_MAGIC				0x2146524DUL
@@ -75,6 +75,12 @@ typedef struct {
 	char file_name[MAX_FILE_NAME_LENGTH];
 } file_list_t;
 
+/* Structure to hold memory allocations */
+typedef struct {
+	size_t size;
+	void* buffer;
+} memory_buffer_t;
+
 /* Keys for sorting the file list */
 typedef enum
 {
@@ -92,6 +98,7 @@ const char* pt1210_file_dev_name_from_vol_name(const char* vol_name);
 void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
-void pt1210_file_read_error();
+void pt1210_file_load_module();
+void pt1210_file_free_tune_memory();
 
 #endif /* FILE_SYSTEM_H */
