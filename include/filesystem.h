@@ -57,6 +57,9 @@
 #define FS_MOD_SUFFIX			0x2E4D4F44UL
 #define FS_MOD_SUFFIX_UPPER		0xFFDFDFDFUL
 
+/* cache file prefix  */
+#define FS_CACHE_PREFIX			0x50544348UL
+
 /* Types of file list entries */
 typedef enum {
 	ENTRY_PARENT,
@@ -92,12 +95,14 @@ void pt1210_file_initialize();
 void pt1210_file_shutdown();
 bool pt1210_file_change_dir(const char* path);
 bool pt1210_file_parent_dir();
-void pt1210_file_gen_file_list();
+void pt1210_file_gen_file_list(bool refresh);
 void pt1210_file_gen_volume_list();
 const char* pt1210_file_dev_name_from_vol_name(const char* vol_name);
 void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
+bool pt1210_file_read_cache();
+bool pt1210_file_write_cache();
 void pt1210_file_load_module(size_t current);
 void pt1210_file_free_tune_memory();
 

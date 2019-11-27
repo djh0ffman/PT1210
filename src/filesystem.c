@@ -22,6 +22,7 @@
 #include "filesystem.h"
 #include "graphics.h"
 #include "utility.h"
+#include "version.h"
 
 static memory_buffer_t mod_pattern;
 static memory_buffer_t mod_sample;
@@ -44,6 +45,8 @@ void mt_end();
 
 static const char* error_memory = "NOT ENOUGH MEMORY";
 static const char* error_loading = "LOADING ERROR : $%08lx";
+
+static const char* cache_file = "_pt1210.cache";
 
 /* A generic comparator function pointer type */
 typedef int (*comparator_t)(const void*, const void*);
@@ -182,8 +185,13 @@ bool pt1210_file_parent_dir()
 	return false;
 }
 
-void pt1210_file_gen_file_list()
+void pt1210_file_gen_file_list(bool refresh)
 {
+	/* read cached file list, quit if successful */
+	if (!refresh)
+		if (pt1210_file_read_cache())
+			return;
+
 	file_list_t* list_entry = &pt1210_file_list[0];
 
 	/* Get a longword-aligned block of memory to store the file information block */
@@ -221,6 +229,9 @@ void pt1210_file_gen_file_list()
 	}
 
 	FreeMem(fib, sizeof(*fib));
+
+	pt1210_file_write_cache();
+	//Delay(50*2);				// TODO: reduce this or find a better method
 }
 
 void pt1210_file_gen_volume_list()
@@ -440,6 +451,224 @@ bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, si
 
 	if (result != read_size)
 		return false;
+
+	/* Success */
+	return true;
+}
+
+bool pt1210_file_read_cache()
+{
+#ifdef DEBUG
+	kprintf("Read file cache\n");
+#endif
+
+	BPTR file;
+	LONG result;
+
+	file = Open(cache_file, MODE_OLDFILE);
+	if (!file)
+	{
+#ifdef DEBUG
+		kprintf("Failed open cache file for reading\n");
+#endif
+		return false;
+	}
+	/* FIXME: Possible bug in Kickstarts v36/v37 not returning -1 on error */
+	result = Seek(file, 0, OFFSET_BEGINNING);
+	if (result == -1)
+	{
+#ifdef DEBUG
+		kprintf("Failed to seek begining of cache file\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	uint32_t prefix = 0;
+	result = Read(file, &prefix, sizeof(uint32_t));
+	if (result != sizeof(uint32_t))
+	{
+#ifdef DEBUG
+		kprintf("Failed to read prefix\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	if (prefix != FS_CACHE_PREFIX)
+	{
+#ifdef DEBUG
+		kprintf("Failed to verify prefix\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	size_t version_size = 0;
+	char version_buffer[100];
+
+	result = Read(file, &version_size, sizeof(version_size));
+	if (result != sizeof(version_size))
+	{
+#ifdef DEBUG
+		kprintf("Failed to read version string size\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	if (version_size > sizeof(version_buffer) || version_size != strlen(&pt1210_version[1]) + 2)
+	{
+#ifdef DEBUG
+		kprintf("Invalid version size\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	result = Read(file, &version_buffer, version_size);
+	if (result != version_size)
+	{
+#ifdef DEBUG
+		kprintf("Failed to read version string\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	if (strncmp(&version_buffer[1], &pt1210_version[1], sizeof(version_buffer) - 2) != 0)
+	{
+#ifdef DEBUG
+		kprintf("Version string different\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	/* read list entry count */
+	result = Read(file, &pt1210_file_count, sizeof(pt1210_file_count));
+	if (result != sizeof(pt1210_file_count))
+	{
+#ifdef DEBUG
+		kprintf("Failed to read file count\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	if (pt1210_file_count > MAX_FILE_COUNT)
+	{
+#ifdef DEBUG
+		kprintf("File count over flow\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	/* read list entries */
+	size_t list_size = sizeof(file_list_t) * pt1210_file_count;
+	result = Read(file, &pt1210_file_list, list_size);
+	if (result != list_size)
+	{
+#ifdef DEBUG
+		kprintf("Failed to file list entries\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	Close(file);
+
+#ifdef DEBUG
+	kprintf("Read file cache - successful\n");
+#endif
+
+	/* Success */
+	return true;
+}
+
+bool pt1210_file_write_cache()
+{
+#ifdef DEBUG
+	kprintf("Write file cache\n");
+#endif
+
+	BPTR file;
+	LONG result;
+
+	file = Open(cache_file, MODE_NEWFILE);
+	if (!file)
+	{
+#ifdef DEBUG
+		kprintf("Failed to open file for writing\n");
+#endif
+		return false;
+	}
+
+	uint32_t prefix = FS_CACHE_PREFIX;
+
+	/* write prefix */
+	result = Write(file, &prefix, sizeof(prefix));
+	if (result != sizeof(prefix))
+	{
+#ifdef DEBUG
+		kprintf("Failed to write prefix\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	/* write size of version string */
+	size_t version_size = strlen(&pt1210_version[1]) + 2;
+	result = Write(file, &version_size, sizeof(version_size));
+	if (result != sizeof(version_size))
+	{
+#ifdef DEBUG
+		kprintf("Failed to write version string length\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	/* write version string */
+	result = Write(file, (char*) pt1210_version, version_size);
+	if (result != version_size)
+	{
+#ifdef DEBUG
+		kprintf("Failed to write version string\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	/* write file list entry count */
+	result = Write(file, &pt1210_file_count, sizeof(pt1210_file_count));
+	if (result != sizeof(pt1210_file_count))
+	{
+#ifdef DEBUG
+		kprintf("Failed to write file count\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	/* write file list data */
+	size_t list_size = sizeof(file_list_t) * pt1210_file_count;
+	result = Write(file, &pt1210_file_list, list_size);
+	if (result != list_size)
+	{
+#ifdef DEBUG
+		kprintf("Failed to write file data\n");
+#endif
+		Close(file);
+		return false;
+	}
+
+	Close(file);
+
+#ifdef DEBUG
+	kprintf("Write file cache - successful\n");
+#endif
 
 	/* Success */
 	return true;

@@ -54,6 +54,9 @@ extern uint8_t Time_Minutes;
 /* ASM functions */
 void mt_end();
 
+/* Wrapper for pt1210_fs_rescan() that causes it to rebuild the cache */
+static void rescan_wrapper() { pt1210_fs_rescan(true); };
+
 void pt1210_action_switch_screen()
 {
 	pt1210_state.screen =
@@ -426,6 +429,6 @@ void pt1210_action_fs_toggle_show_kb()
 void pt1210_action_fs_rescan()
 {
 	/* Trigger rescan in the main loop */
-	pt1210_state.deferred_func = pt1210_fs_rescan;
+	pt1210_state.deferred_func = rescan_wrapper;
 	Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
 }

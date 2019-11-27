@@ -196,7 +196,7 @@ void pt1210_fs_select()
 
 			/* Rescan directory */
 			show_volumes = false;
-			pt1210_fs_rescan();
+			pt1210_fs_rescan(false);
 			break;
 		}
 
@@ -209,7 +209,7 @@ void pt1210_fs_select()
 	}
 }
 
-void pt1210_fs_rescan()
+void pt1210_fs_rescan(bool refresh)
 {
 	/* Stop player, VBlank, and scopes */
 	/* mt_Enabled = false; */
@@ -230,7 +230,7 @@ void pt1210_fs_rescan()
 	if (show_volumes)
 		pt1210_file_gen_volume_list();
 	else
-		pt1210_file_gen_file_list();
+		pt1210_file_gen_file_list(refresh);
 	pt1210_file_sort_list(sort_key, sort_descending);
 
 	/* Redraw list display */
@@ -263,7 +263,7 @@ void pt1210_fs_parent()
 	if (!pt1210_file_parent_dir())
 		show_volumes = true;
 
-	pt1210_fs_rescan();
+	pt1210_fs_rescan(false);
 }
 
 size_t pt1210_fs_current_index()

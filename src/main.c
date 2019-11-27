@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 
 	/* Generate initial file selector listing */
-	pt1210_fs_rescan();
+	pt1210_fs_rescan(false);
 
 	/* Start timer interrupt */
 	pt1210_cia_start_timer();
