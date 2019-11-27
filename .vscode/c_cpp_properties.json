@@ -3,16 +3,21 @@
         {
             "name": "Amiga",
             "includePath": [
-				"${env:AMIGA_GCC}/m68k-amigaos/include",
+                "${env:AMIGA_GCC}/include",
+                "${env:AMIGA_GCC}/m68k-amigaos/ndk13-include",
+                "${env:AMIGA_GCC}/m68k-amigaos/libnix/include",
+                "${env:AMIGA_GCC}/lib/gcc/m68k-amigaos/6.5.0b/include",
                 "${env:AMIGA_GCC}/m68k-amigaos/ndk-include",
+                "${env:AMIGA_GCC}/m68k-amigaos/sys-include",
+                "${env:AMIGA_GCC}/m68k-amigaos/include",
                 "include"
             ],
             "defines": [
-                "__VBCC__"
+                "__GNUC__"
             ],
-            "compilerPath": "${env:VBCC}/bin/vc.exe",
+            "compilerPath": "${default}",
             "cStandard": "c99",
-            "intelliSenseMode": "msvc-x64"
+            "intelliSenseMode": "gcc-x64"
         }
     ],
     "version": 4
