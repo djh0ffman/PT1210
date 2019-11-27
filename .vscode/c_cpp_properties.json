@@ -3,8 +3,9 @@
         {
             "name": "Amiga",
             "includePath": [
-				"${env:VBCC}/targets/m68k-kick13/include",
-                "${env:NDK}/Include/include_h"
+				"${env:AMIGA_GCC}/m68k-amigaos/include",
+                "${env:AMIGA_GCC}/m68k-amigaos/ndk-include",
+                "include"
             ],
             "defines": [
                 "__VBCC__"
