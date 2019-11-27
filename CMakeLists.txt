@@ -126,14 +126,14 @@ list(TRANSFORM GFX_TASK_OUTPUTS PREPEND gfx/)
 
 # Custom commands that calls our Python script
 add_custom_command(OUTPUT ${GFX_HUD_OUTPUTS}
-	COMMAND ${Python_EXECUTABLE} ${IFF2RAW} hudcut ${GFX_HUD_LIST} ${GFX_DIR}/hud.iff gfx
+	COMMAND ${Python3_EXECUTABLE} ${IFF2RAW} hudcut ${GFX_HUD_LIST} ${GFX_DIR}/hud.iff gfx
 	MAIN_DEPENDENCY ${GFX_HUD_LIST}
 	DEPENDS ${GFX_HUD_LIST}
 	COMMENT "Cutting HUD graphics"
 )
 
 add_custom_command(OUTPUT ${GFX_TASK_OUTPUTS}
-	COMMAND ${Python_EXECUTABLE} ${IFF2RAW} task ${GFX_TASK_LIST} ${GFX_DIR} gfx
+	COMMAND ${Python3_EXECUTABLE} ${IFF2RAW} task ${GFX_TASK_LIST} ${GFX_DIR} gfx
 	MAIN_DEPENDENCY ${GFX_TASK_LIST}
 	DEPENDS ${GFX_TASK_INPUTS}
 	COMMENT "Performing graphics conversion tasks"
