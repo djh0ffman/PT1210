@@ -26,7 +26,11 @@
 #include "graphics.h"
 #include "inputdevice.h"
 
-void MAIN();
+void pt1210_asm_initialize();
+void pt1210_asm_shutdown();
+
+bool quit = false;
+file_selector_state_t pt1210_fs_state = STATE_IDLE;
 
 int main(int argc, char** argv)
 {
@@ -69,9 +73,35 @@ int main(int argc, char** argv)
 	/* Start timer interrupt */
 	pt1210_cia_start_timer();
 
-	/* Jump into ASM */
-	MAIN();
+	/* Do some remaining ASM setup */
+	pt1210_asm_initialize();
 
+	/* Main loop */
+	while (!quit)
+	{
+		switch (pt1210_fs_state)
+		{
+			case STATE_PENDING_SELECT:
+				pt1210_fs_select();
+				pt1210_fs_state = STATE_IDLE;
+				break;
+
+			case STATE_PENDING_PARENT:
+				pt1210_fs_parent();
+				pt1210_fs_state = STATE_IDLE;
+				break;
+
+			case STATE_PENDING_RESCAN:
+				pt1210_fs_rescan();
+				pt1210_fs_state = STATE_IDLE;
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	pt1210_asm_shutdown();
 	pt1210_cia_stop_timer();
 
 	/* Clean up */

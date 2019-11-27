@@ -23,9 +23,9 @@
 #include "utility.h"
 
 /* TODO: Move these somewhere where overall program state is managed */
-bool quit = false;
+extern file_selector_state_t pt1210_fs_state;
+extern bool quit;
 pt1210_screen_t current_screen = SCREEN_FILE_SELECTOR;
-file_selector_state_t pt1210_fs_state = STATE_IDLE;
 
 uint16_t channel_toggle = 0xF;
 

@@ -5,11 +5,6 @@
 ; Imports from C code
 	XREF _pt1210_action_switch_screen
 	XREF _pt1210_file_count
-	XREF _pt1210_fs_draw_dir
-	XREF _pt1210_fs_select
-	XREF _pt1210_fs_parent
-	XREF _pt1210_fs_rescan
-	XREF _pt1210_fs_state
 	XREF _pattern_slip_pending
 	XDEF _current
 	XREF _list_pos

@@ -19,7 +19,8 @@ SW_Splash = 0		; Include splash screen
 	section pt1210,code
 
 ; Exports for C code (places them in global scope)
-	XDEF _MAIN
+	XDEF _pt1210_asm_initialize
+	XDEF _pt1210_asm_shutdown
 	XDEF _FS_LoadErrBuff
 	XDEF _FS_DrawLoadError
 	XDEF _pt1210_gfx_vblank_server_proc
@@ -27,9 +28,7 @@ SW_Splash = 0		; Include splash screen
 ; Imports from C code
 	XREF _pt1210_file_read
 	XREF _pt1210_file_list
-	XREF _pt1210_keyboard_enable_processing
 	XREF _current_screen
-	XREF _quit
 
 	XREF _pt1210_cia_set_bpm
 	XREF _pt1210_cia_base_bpm
@@ -63,14 +62,14 @@ WAITBLIT	MACRO
 .\@			btst	#6,$02(a6)
 			bne.b	.\@
 			ENDM
- 
+
  			; marco for plotting a character
 			; 1 = font source (address register)
 			; 2 = plane dest (address register)
 			; 3 = plane move (constant)
 			; 4 = character (data register / byte?)
-PT_CharPlot	MACRO 
-			lsl.w	#3,\4		
+PT_CharPlot	MACRO
+			lsl.w	#3,\4
 			lea		(\1,\4.w),\1
 			move.b	(\1)+,(\2)
 			move.b	(\1)+,\3(\2)
@@ -84,8 +83,8 @@ PT_CharPlot	MACRO
 			; 2 = plane dest (address register)
 			; 3 = plane move (constant)
 			; 4 = character (data register / byte?)
-PT_CharPlot_TwoPlanes	MACRO 
-			lsl.w	#3,\4		
+PT_CharPlot_TwoPlanes	MACRO
+			lsl.w	#3,\4
 			lea		(\1,\4.w),\1
 			move.b	(\1),(\2)
 			move.b	(\1)+,UI_Width(\2)
@@ -151,7 +150,9 @@ splashkill	movem.l	d0-a6,-(sp)
 		rts
 
 		endc
-_MAIN
+
+_pt1210_asm_initialize
+		movem.l	d0-a6,-(sp)
 		ifne	SW_Splash
 		jsr	splashgo
 		bsr	splashkill
@@ -160,11 +161,7 @@ _MAIN
 		moveq	#0,d0
 		bsr	_FS_DrawType
 
-		movem.l	d0-a6,-(sp)
-
 		moveq	#0,d5
-		jsr	_pt1210_fs_draw_dir
-		jsr	_FS_Copper
 		bsr	PT_Prep
 
 		bsr	UI_DrawChip
@@ -277,54 +274,18 @@ _MAIN
 		swap	d0
 		move.w	d0,2(a0)
 
+ 		movem.l	(sp)+,d0-a6
+		rts
 
-.lp
-		tst.l	_pt1210_fs_state
-		beq.b	.skipfs
-
-		; Disable keyboard processing
-		move.l #0,-(sp)
-		jsr _pt1210_keyboard_enable_processing
-		add #4,sp
-
-		cmp.l	#1,_pt1210_fs_state
-		beq.b	.select
-
-		cmp.l	#2,_pt1210_fs_state
-		beq.b	.parent
-
-		jsr	_pt1210_fs_rescan
-		bra.b	.done
-
-.parent
-		jsr	_pt1210_fs_parent
-		bra.b	.done
-
-.select
-		jsr	_pt1210_fs_select
-
-.done
-		clr.l	_pt1210_fs_state
-
-		; Re-enable keyboard processing
-		move.l #1,-(sp)
-		jsr _pt1210_keyboard_enable_processing
-		add #4,sp
-
-.skipfs
-		tst.b	_quit
-		beq.b	.lp
-
-;		btst    #6,$bfe001
-;	        bne.s   .lp
-
+_pt1210_asm_shutdown
+		movem.l	d0-a6,-(sp)
 		jsr	_mt_end
 		bsr	unallocchip
 
 		;bsr	kbrem
 
-	        movem.l	(sp)+,d0-a6
-	    	rts
+		movem.l	(sp)+,d0-a6
+		rts
 
 		include memory.asm
 		include vblank_int.asm
