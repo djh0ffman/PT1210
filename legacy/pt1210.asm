@@ -21,13 +21,9 @@ SW_Splash = 0		; Include splash screen
 ; Exports for C code (places them in global scope)
 	XDEF _pt1210_asm_initialize
 	XDEF _pt1210_asm_shutdown
-	XDEF _FS_LoadErrBuff
-	XDEF _FS_DrawLoadError
 	XDEF _pt1210_gfx_vblank_server_proc
 
 ; Imports from C code
-	XREF _pt1210_file_read
-	XREF _pt1210_file_list
 	XREF _current_screen
 
 	XREF _pt1210_cia_set_bpm
