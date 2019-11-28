@@ -73,51 +73,26 @@ _mt_init
                   MOVE.L     A0,_mt_SongDataPtr
                   move.b     950(A0),_mt_SongLen                                ; max patterns
 
-;                  MOVE.L     A0,A1
-;
-;                  LEA        952(A1),A1
-;                  MOVEQ      #127,D0
-;                  MOVEQ      #0,D1
-;mtloop            MOVE.L     D1,D2
-;                  SUBQ.W     #1,D0
-;mtloop2           MOVE.B     (A1)+,D1
-;                  CMP.B      D2,D1
-;                  BGT.S      mtloop
-;                  DBRA       D0,mtloop2
-;                  ADDQ.B     #1,D2
-
-
                   lea        _Sample,a3					; dummy sample, fixes scopes and dma issues
                   LEA        mt_SampleStarts(PC),A1
-;                  ASL.L      #8,D2
-;                  ASL.L      #2,D2
-;                  ADD.L      #1084,D2
-;                  ADD.L      A0,D2
-;                  MOVE.L     D2,A2
-
                   MOVEQ      #30,D0
 
-mtloop3           CLR.w      (A2)
-
-                  tst.w      $30(a0)                                            ; fix for FT2 modules with no replen
-                  bne.b      .skipft2fix
-                  move.w     #$1,$30(a0)
-.skipft2fix
-
-                  moveq      #0,d1
+mtloop3           moveq      #0,d1
                   move.w     42(a0),d1
-                  asl.l      #1,d1
-                  tst.l      d1
-                  bne.b      .fill
-                  move.l     a3,(a1)+
-                  move.w     #$80,42(a0)
-                  move.w     #$80,$30(a0)
+                  cmp.w      #1,d1
+                  ble.w      .blank          ; blank sample?
+
+                  asl.l      #1,d1          ; word to byte length
+                  clr.w      (a2)           ; clear first word, prevent high pitch nasty
+                  MOVE.L     A2,(A1)+       ; populate pointer for actual sample
+                  add.l      d1,a2          ; move to next sample
                   bra.b      .next
 
-.fill             MOVE.L     A2,(A1)+
-.next             add.l      d1,a2
-                  lea        30(a0),a0
+.blank            move.l     a3,(a1)+           ; populate with blank sample
+                  move.w     #$80,42(a0)
+                  move.w     #$80,$30(a0)
 
+.next             lea        30(a0),a0
                   DBRA       D0,mtloop3
 
                   OR.B       #2,$BFE001
