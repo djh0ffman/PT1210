@@ -17,8 +17,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "action.h" /* TODO: For pt1210_screen_t - replace when relocated */
 #include "input.h"
+#include "state.h"
 
 /* Amiga keyboard scancodes, as defined in the Amiga RKM: Libraries */
 typedef enum
@@ -159,7 +159,7 @@ typedef enum
 #define KEYCODE_STATE_BYTES CEIL_DIV(KEYCODE_MAX, 8)
 
 void pt1210_keyboard_enable_processing(bool enabled);
-void pt1210_keyboard_switch_binding_list(pt1210_screen_t screen);
+void pt1210_keyboard_switch_binding_list(screen_state_t screen);
 void pt1210_keyboard_update_raw_key(uint8_t raw_key);
 void pt1210_keyboard_update_character_key(char character);
 void pt1210_keyboard_process_keys();

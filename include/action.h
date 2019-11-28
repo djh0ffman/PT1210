@@ -61,18 +61,4 @@ void pt1210_action_fs_sort_bpm();
 void pt1210_action_fs_toggle_show_kb();
 void pt1210_action_fs_rescan();
 
-/* TODO: Move these somewhere where overall app state is managed */
-typedef enum
-{
-	SCREEN_FILE_SELECTOR,
-	SCREEN_DJ
-} pt1210_screen_t;
-
-typedef enum
-{
-	PATTERN_LOOP_STATE_DISABLED,
-	PATTERN_LOOP_STATE_START_SET,
-	PATTERN_LOOP_STATE_END_SET
-} pt1210_pattern_loop_state_t;
-
 #endif /* ACTION_H */

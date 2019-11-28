@@ -1,12 +1,3 @@
-; Imports from C code
-                  XREF       _channel_toggle
-                  XREF       _loop_size
-                  XREF       _loop_start
-                  XREF       _loop_end
-                  XREF       _loop_active
-                  XREF       _slip_on
-                  XREF       _repitch_enabled
-
 ; Exports to C code
                   XDEF       _mt_end
                   XDEF       _mt_retune
@@ -405,7 +396,7 @@ mt_SetDMA				; dma fix thanks to stringray!!
 ;	DBRA	D0,mt_WaitDMA
 
                   MOVE.W     mt_DMACONtemp(PC),D0
-                  and.w      _channel_toggle,d0
+                  and.w      _pt1210_state+gs_player+ps_channel_toggle,d0
                   OR.W       #$8000,D0
                   MOVE.W     D0,$DFF096
 
@@ -434,7 +425,7 @@ mt_SetDMA				; dma fix thanks to stringray!!
 
 mt_dskip
                   ADD.W      #16,_mt_PatternPos                                 ; hmm  skip eh?
-                  tst.b      _slip_on
+                  tst.b      _pt1210_state+gs_player+ps_slip_on
                   beq.b      .skip
                   add.w      #16,_mt_SLPatternPos
                   CMP.W      #1024,_mt_SLPatternPos
@@ -469,16 +460,16 @@ mt_dska           TST.B      mt_PBreakFlag
                   LSL.W      #4,D0
                   MOVE.W     D0,_mt_PatternPos
 mt_nnpysk
-                  tst.b      _loop_active
+                  tst.b      _pt1210_state+gs_player+ps_loop_active
                   beq.b      .dontloop
                   moveq      #0,d0
-                  move.b     _loop_end,d0
+                  move.b     _pt1210_state+gs_player+ps_loop_end,d0
                   lsl.w      #4,d0
                   cmp.w      _mt_PatternPos,d0
                   bgt.b      .dontloop
 
                   moveq      #0,d0
-                  move.b     _loop_start,d0
+                  move.b     _pt1210_state+gs_player+ps_loop_start,d0
                   lsl.w      #4,d0
                   move.w     d0,_mt_PatternPos
 
@@ -496,10 +487,10 @@ mt_NextPosition
 
                   ADDQ.B     #1,_mt_SongPos
 
-                  tst.b      _pattern_slip_pending
+                  tst.b      _pt1210_state+gs_player+ps_pattern_slip_pending
                   beq.b      .noslip
                   move.b     _mt_PatternCue,_mt_SongPos
-                  clr.b      _pattern_slip_pending
+                  clr.b      _pt1210_state+gs_player+ps_pattern_slip_pending
                   bra.b      .skip
 .noslip
 
@@ -1239,7 +1230,7 @@ mt_DoRetrig
 
 
                   MOVE.W     n_dmabit(A6),D0
-                  and.w      _channel_toggle,d0
+                  and.w       _pt1210_state+gs_player+ps_channel_toggle,d0
                   BSET       #15,D0
                   MOVE.W     D0,$DFF096
 
@@ -1351,7 +1342,7 @@ mt_funkend
 	; d5 = period
 
 mt_tuneup
-                  tst.b      _repitch_enabled
+                  tst.b      _pt1210_state+gs_player+ps_repitch_enabled
                   beq.b      .quit2
                   tst.w      d5
                   beq.b      .quit2

@@ -168,6 +168,7 @@ set_source_files_properties(legacy/pt1210.asm PROPERTIES OBJECT_DEPENDS "${GFX_D
 target_compile_options(legacy PRIVATE -m68000 -Fhunk -x -quiet)
 target_include_directories(legacy
 	PRIVATE ${AMIGA_GCC}/m68k-amigaos/ndk-include
+	PRIVATE include
 )
 
 # Executable target

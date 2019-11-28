@@ -21,6 +21,7 @@
 #include "gameport.h"
 #include "input.h"
 #include "utility.h"
+#include "state.h"
 
 extern struct Custom custom;
 extern struct CIA ciaa;
@@ -172,8 +173,7 @@ void pt1210_gameport_enable_processing(bool enabled)
 	processing_enabled = enabled;
 }
 
-/* TODO: This can probably go away if we expose current screen state somewhere */
-void pt1210_gameport_switch_binding_list(pt1210_screen_t screen)
+void pt1210_gameport_switch_binding_list(screen_state_t screen)
 {
 	switch (screen)
 	{

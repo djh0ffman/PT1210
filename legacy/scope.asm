@@ -140,7 +140,7 @@ ScopeShow	move.l	ScopePtr(pc),d0		; load plane to copper
 		move.w	d0,2(a0)
 		rts
 
-ScopeD	move.w	_channel_toggle,d4
+ScopeD	move.w	 _pt1210_state+gs_player+ps_channel_toggle,d4
 	LEA	mt_chan1temp(pc),A0
 	LEA	ScopeInfo(pc),A2
 	LEA	ScopeSamInfo(pc),A1

@@ -13,7 +13,7 @@
 
 #include <stdbool.h>
 
-#include "action.h" /* TODO: For pt1210_screen_t - replace when relocated */
+#include "state.h"
 
 #ifndef GAMEPORT_H
 #define GAMEPORT_H
@@ -83,7 +83,7 @@ typedef enum
 } gameport_event_t;
 
 void pt1210_gameport_enable_processing(bool enabled);
-void pt1210_gameport_switch_binding_list(pt1210_screen_t screen);
+void pt1210_gameport_switch_binding_list(screen_state_t screen);
 bool pt1210_gameport_allocate();
 void pt1210_gameport_free();
 gameport_type_t pt1210_gameport_detect(gameport_port_t port);

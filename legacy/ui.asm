@@ -191,7 +191,7 @@ UI_WarnCol	dc.w	$1fc,$1fc
 
 UI_CueFlash	lea	_cue_flash,a0
 		lea	UI_CueCol,a1
-		tst.b	_pattern_slip_pending
+		tst.b	_pt1210_state+gs_player+ps_pattern_slip_pending
 		bne.b	.doflash
 		clr.b	UI_CueCount
 		move.w	(a1),2(a0)
@@ -692,23 +692,23 @@ UI_ALL		lea	$dff000,a6
 				
 				; REPITCH
 UI_RPDraw	moveq	#HUD_repitch,d0
-			lea		_repitch_enabled,a3
+			lea		_pt1210_state+gs_player+ps_repitch_enabled,a3
 			lea		UI_Repitch,a4
 			bsr		UI_CompareTileBlit
 
 		; LineLoop on off
 UI_LPDraw	moveq	#HUD_line_loop_active,d0
-			lea		_loop_active,a3
+			lea		_pt1210_state+gs_player+ps_loop_active,a3
 			lea		UI_LoopActive,a4
 			bsr		UI_CompareTileBlit
 
 		; slip
 UI_SlipDraw	moveq	#HUD_line_loop_mode,d0
-			lea		_slip_on,a3
+			lea		_pt1210_state+gs_player+ps_slip_on,a3
 			tst.b	(a3)
 			beq.b	.skip
 
-			tst.b	_loop_active
+			tst.b	_pt1210_state+gs_player+ps_loop_active
 			bne.b	.skip
 
 			move.b	_mt_SongPos,_mt_SLSongPos
@@ -761,7 +761,7 @@ UI_PatLockDraw
 
 UI_LoopSizeDraw	
 			moveq	#0,d6
-			lea		_loop_size,a3
+			lea		_pt1210_state+gs_player+ps_loop_size,a3
 			lea		UI_LoopSize,a4
 
 			move.b	(a3),d6
@@ -829,9 +829,9 @@ UI_ChanDraw	lea	_track,a0
 		lea	_trackon,a1
 		lea	_trackoff,a2
 
-		lea	_channel_toggle,a3
+		lea		_pt1210_state,a3
+		move.w	gs_player+ps_channel_toggle(a3),d0
 		lea	UI_ChanTogs,a4
-		move.w	(a3),d0
 		cmp.w	(a4),d0
 		beq.b	.skip
 		move.w	d0,(a4)

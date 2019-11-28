@@ -21,6 +21,7 @@
 
 #include "cia.h"
 #include "utility.h"
+#include "state.h"
 
 extern struct CIA ciab;
 
@@ -51,9 +52,6 @@ uint16_t pt1210_cia_adjusted_bpm;		/* The BPM with coarse adjustments applied */
 uint16_t pt1210_cia_actual_bpm;			/* The final BPM value used to set timer high/low registers, with fine adjustments applied */
 
 uint16_t pt1210_cia_frames_per_beat;	/* The frames-per-beat value as set from parsing a magic sample names */
-
-/* TODO: This needs referencing from a header once it's got a better home */
-extern bool repitch_enabled;
 
 /* ASM player variables */
 extern bool mt_TuneEnd;
@@ -90,7 +88,7 @@ void pt1210_cia_interrupt_proc()
 
 	mt_music();
 
-	if (repitch_enabled)
+	if (pt1210_state.player.repitch_enabled)
 		mt_retune();
 }
 

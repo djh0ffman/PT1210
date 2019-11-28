@@ -14,6 +14,8 @@
 *
 ***************************************************************************
 
+	include state.i
+
 SW_Splash = 0		; Include splash screen
 
 	section pt1210,code
@@ -24,8 +26,6 @@ SW_Splash = 0		; Include splash screen
 	XDEF _pt1210_gfx_vblank_server_proc
 
 ; Imports from C code
-	XREF _current_screen
-
 	XREF _pt1210_cia_set_bpm
 	XREF _pt1210_cia_base_bpm
 	XREF _pt1210_cia_offset_bpm
@@ -112,7 +112,7 @@ _pt1210_gfx_vblank_server_proc
 	move.l	#$dff000,a6					; Re-load copper lists as OS can trash them
 	move.l	#_hud_cop,cop1lc(a6)
 
-	tst.l	_current_screen
+	tst.l	_pt1210_state+gs_screen
 	bne.b	.dj
 	move.l	#_select_cop,cop2lc(a6)
 	bra .nodj

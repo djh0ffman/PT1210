@@ -17,6 +17,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <proto/exec.h>
+#include <clib/debug_protos.h>
+
 #include "audiodevice.h"
 #include "cia.h"
 #include "consoledevice.h"
@@ -25,13 +28,36 @@
 #include "gameport.h"
 #include "graphics.h"
 #include "inputdevice.h"
+#include "state.h"
 
 void pt1210_asm_initialize();
 void pt1210_asm_shutdown();
 
-/* These globals can be updated via the VBlank interrupt; prevent them being optimised away with 'volatile' */
-volatile bool quit = false;
-volatile file_selector_state_t pt1210_fs_state = STATE_IDLE;
+/* Program state */
+volatile global_state_t pt1210_state =
+{
+	/* Main loop information */
+	.quit = 0,
+	.signal_bit = 0,
+	.task = NULL,
+	.deferred_func = NULL,
+
+	/* UI state */
+	.screen = SCREEN_FILE_SELECTOR,
+
+	/* Player state */
+	.player =
+	{
+		.channel_toggle = 0xF,
+		.loop_active = false,
+		.loop_start = 0,
+		.loop_end = 0,
+		.loop_size = 4,
+		.slip_on = true,
+		.repitch_enabled = true,
+		.pattern_slip_pending = false
+	}
+};
 
 int main(int argc, char** argv)
 {
@@ -77,30 +103,35 @@ int main(int argc, char** argv)
 	/* Do some remaining ASM setup */
 	pt1210_asm_initialize();
 
+	/* Allocate signal bit */
+	BYTE signal_number = AllocSignal(-1);
+	if (signal_number == -1)
+		return EXIT_FAILURE;
+
+	pt1210_state.signal_bit = signal_number;
+	pt1210_state.task = FindTask(NULL);
+
 	/* Main loop */
-	while (!quit)
+	while (!pt1210_state.quit)
 	{
-		switch (pt1210_fs_state)
+#ifdef DEBUG
+		kprintf("Main task sleeping\n");
+#endif
+		Wait(1 << pt1210_state.signal_bit);
+#ifdef DEBUG
+		kprintf("Main task awake\n");
+#endif
+
+		/* Perform deferred task signalled from interrupt */
+		if (pt1210_state.deferred_func)
 		{
-			case STATE_PENDING_SELECT:
-				pt1210_fs_select();
-				pt1210_fs_state = STATE_IDLE;
-				break;
-
-			case STATE_PENDING_PARENT:
-				pt1210_fs_parent();
-				pt1210_fs_state = STATE_IDLE;
-				break;
-
-			case STATE_PENDING_RESCAN:
-				pt1210_fs_rescan();
-				pt1210_fs_state = STATE_IDLE;
-				break;
-
-			default:
-				break;
+			pt1210_state.deferred_func();
+			pt1210_state.deferred_func = NULL;
 		}
 	}
+
+	/* Free signal bit */
+	FreeSignal(pt1210_state.signal_bit);
 
 	pt1210_asm_shutdown();
 	pt1210_cia_stop_timer();

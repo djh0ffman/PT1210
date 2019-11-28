@@ -22,13 +22,6 @@
 #define FS_WIDTH_CHARS	40
 #define FS_HEIGHT_CHARS	21
 
-typedef enum {
-	STATE_IDLE,
-    STATE_PENDING_SELECT,
-    STATE_PENDING_PARENT,
-    STATE_PENDING_RESCAN
-} file_selector_state_t;
-
 void pt1210_fs_draw_dir();
 void pt1210_fs_move(int32_t offset);
 void pt1210_fs_select();

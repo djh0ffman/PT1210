@@ -14,6 +14,8 @@
 #include <ctype.h>
 #include <stdint.h>
 
+#include <proto/exec.h>
+
 #include "action.h"
 #include "cia.h"
 #include "fileselector.h"
@@ -21,22 +23,7 @@
 #include "gameport.h"
 #include "keyboard.h"
 #include "utility.h"
-
-/* TODO: Move these somewhere where overall program state is managed */
-extern file_selector_state_t pt1210_fs_state;
-extern bool quit;
-pt1210_screen_t current_screen = SCREEN_FILE_SELECTOR;
-
-uint16_t channel_toggle = 0xF;
-
-bool loop_active = false;
-uint8_t loop_start = 0;
-uint8_t loop_end = 0;
-uint8_t loop_size = 4;
-bool slip_on = true;
-
-bool repitch_enabled = true;
-bool pattern_slip_pending = false;
+#include "state.h"
 
 /* ASM player variables */
 /* TODO: Rename so the names are more in line with our new C code */
@@ -69,9 +56,10 @@ void mt_end();
 
 void pt1210_action_switch_screen()
 {
-	current_screen = current_screen == SCREEN_FILE_SELECTOR ? SCREEN_DJ : SCREEN_FILE_SELECTOR;
-	pt1210_keyboard_switch_binding_list(current_screen);
-	pt1210_gameport_switch_binding_list(current_screen);
+	pt1210_state.screen =
+		pt1210_state.screen == SCREEN_FILE_SELECTOR ? SCREEN_DJ : SCREEN_FILE_SELECTOR;
+	pt1210_keyboard_switch_binding_list(pt1210_state.screen);
+	pt1210_gameport_switch_binding_list(pt1210_state.screen);
 }
 
 void pt1210_action_pitch_up()
@@ -152,7 +140,8 @@ void pt1210_action_restart()
 
 void pt1210_action_slip_restart()
 {
-	pattern_slip_pending = !pattern_slip_pending;
+	volatile player_state_t* player = &pt1210_state.player;
+	player->pattern_slip_pending = !player->pattern_slip_pending;
 }
 
 void pt1210_action_pattern_cue_set()
@@ -200,35 +189,43 @@ void pt1210_action_pattern_loop()
 
 void pt1210_action_loop_increase()
 {
-	if (loop_size == 32)
+	volatile player_state_t* player = &pt1210_state.player;
+
+	if (player->loop_size == 32)
 		return;
 
-	loop_size <<= 1;
-	loop_end = loop_start + loop_size;
+	player->loop_size <<= 1;
+	player->loop_end = player->loop_start + player->loop_size;
 }
 
 void pt1210_action_loop_decrease()
 {
-	if (loop_size == 1)
+	volatile player_state_t* player = &pt1210_state.player;
+
+	if (player->loop_size == 1)
 		return;
 
-	loop_size >>= 1;
-	loop_end = loop_start + loop_size;
+	player->loop_size >>= 1;
+	player->loop_end = player->loop_start + player->loop_size;
 }
 
 void pt1210_action_loop_cycle()
 {
-	if (loop_size == 32)
-		loop_size = 1;
-	else
-		loop_size <<= 1;
+	volatile player_state_t* player = &pt1210_state.player;
 
-	loop_end = loop_start + loop_size;
+	if (player->loop_size == 32)
+		player->loop_size = 1;
+	else
+		player->loop_size <<= 1;
+
+	player->loop_end = player->loop_start + player->loop_size;
 }
 
 void pt1210_action_toggle_line_loop()
 {
-	if (loop_active && slip_on)
+	volatile player_state_t* player = &pt1210_state.player;
+
+	if (player->loop_active && player->slip_on)
 	{
 		/* Stop looping */
 		if (mt_SLSongPos > mt_SongLen)
@@ -251,17 +248,19 @@ void pt1210_action_toggle_line_loop()
 		mt_SLSongPos = mt_SongPos;
 		mt_SLPatternPos = mt_PatternPos;
 
-		loop_start = (mt_PatternPos >> 4) & 0xFC;
-		loop_end = loop_start + loop_size;
+		player->loop_start = (mt_PatternPos >> 4) & 0xFC;
+		player->loop_end = player->loop_start + player->loop_size;
 	}
 
 	/* Flip flag */
-	loop_active = !loop_active;
+	player->loop_active = !player->loop_active;
 }
 
 void pt1210_action_toggle_slip()
 {
-	if (slip_on)
+	volatile player_state_t* player = &pt1210_state.player;
+
+	if (player->slip_on)
 	{
 		/* Reset slip */
 		mt_SLSongPos = 0;
@@ -275,32 +274,33 @@ void pt1210_action_toggle_slip()
 	}
 
 	/* Flip flag */
-	slip_on = !slip_on;
+	player->slip_on = !player->slip_on;
 }
 
 void pt1210_action_toggle_channel_1()
 {
-	channel_toggle ^= 1;
+	pt1210_state.player.channel_toggle ^= 1;
 }
 
 void pt1210_action_toggle_channel_2()
 {
-	channel_toggle ^= 1 << 1;
+	pt1210_state.player.channel_toggle ^= 1 << 1;
 }
 
 void pt1210_action_toggle_channel_3()
 {
-	channel_toggle ^= 1 << 2;
+	pt1210_state.player.channel_toggle ^= 1 << 2;
 }
 
 void pt1210_action_toggle_channel_4()
 {
-	channel_toggle ^= 1 << 3;
+	pt1210_state.player.channel_toggle ^= 1 << 3;
 }
 
 void pt1210_action_toggle_repitch()
 {
-	repitch_enabled = !repitch_enabled;
+	volatile player_state_t* player = &pt1210_state.player;
+	player->repitch_enabled = !player->repitch_enabled;
 }
 
 void pt1210_action_kill_sound_dma()
@@ -310,8 +310,10 @@ void pt1210_action_kill_sound_dma()
 
 void pt1210_action_move_forward_line_loop()
 {
+	volatile player_state_t* player = &pt1210_state.player;
+
 	uint8_t song_length = mt_SongDataPtr[PT_SONG_LENGTH_OFFSET];
-	uint32_t new_pos = mt_PatternPos + (loop_size << 4);
+	uint32_t new_pos = mt_PatternPos + (player->loop_size << 4);
 
 	/* Overflow; wrap to next pattern */
 	if (new_pos >= PT_PATTERN_DATA_LEN && mt_SongPos + 1 < song_length)
@@ -329,7 +331,8 @@ void pt1210_action_move_forward_pattern()
 
 void pt1210_action_move_backward_line_loop()
 {
-	uint32_t new_pos = mt_PatternPos - (loop_size << 4);
+	volatile player_state_t* player = &pt1210_state.player;
+	uint32_t new_pos = mt_PatternPos - (player->loop_size << 4);
 
 	/* Overflow; wrap to previous pattern */
 	if (new_pos >= PT_PATTERN_DATA_LEN && mt_SongPos > 0)
@@ -348,7 +351,10 @@ void pt1210_action_quit()
 {
 	/* Only allow quit when not playing */
 	if (!mt_Enabled)
-		quit = true;
+	{
+		pt1210_state.quit = true;
+		Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
+	}
 }
 
 void pt1210_action_fs_char_handler(char character)
@@ -391,13 +397,15 @@ void pt1210_action_fs_move_down()
 void pt1210_action_fs_parent()
 {
 	/* Trigger parent in main loop */
-	pt1210_fs_state = STATE_PENDING_PARENT;
+	pt1210_state.deferred_func = pt1210_fs_parent;
+	Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
 }
 
 void pt1210_action_fs_select()
 {
 	/* Trigger selection in the main loop */
-	pt1210_fs_state = STATE_PENDING_SELECT;
+	pt1210_state.deferred_func = pt1210_fs_select;
+	Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
 }
 
 void pt1210_action_fs_sort_name()
@@ -418,5 +426,6 @@ void pt1210_action_fs_toggle_show_kb()
 void pt1210_action_fs_rescan()
 {
 	/* Trigger rescan in the main loop */
-	pt1210_fs_state = STATE_PENDING_RESCAN;
+	pt1210_state.deferred_func = pt1210_fs_rescan;
+	Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
 }
