@@ -769,7 +769,6 @@ UI_LoopSizeDraw
 			beq.b	.skip
 			move.b	d6,(a4)
 
-			clr.w	$100
 			moveq	#32,d5		; compare value
 			
 			moveq	#HUD_line_loop_32,d0

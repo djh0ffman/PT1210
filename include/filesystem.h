@@ -98,7 +98,7 @@ const char* pt1210_file_dev_name_from_vol_name(const char* vol_name);
 void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
 void pt1210_file_check_module(struct FileInfoBlock* fib);
 bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
-void pt1210_file_load_module();
+void pt1210_file_load_module(size_t current);
 void pt1210_file_free_tune_memory();
 
 #endif /* FILE_SYSTEM_H */
