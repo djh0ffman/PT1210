@@ -67,9 +67,12 @@ mt_DMALines     equ 5
 
 	; A0 = pattern data
 	; A2 = sample data
+    ; D7 = sample buffer length
 
 _mt_init
                   movem.l    d0-a6,-(sp)
+                  move.l     a2,a4
+                  add.l      d7,a4
                   MOVE.L     A0,_mt_SongDataPtr
                   move.b     950(A0),_mt_SongLen                                ; max patterns
 
@@ -83,6 +86,8 @@ mtloop3           moveq      #0,d1
                   ble.w      .blank          ; blank sample?
 
                   asl.l      #1,d1          ; word to byte length
+                  cmp.l      a4,a2          ; check sample buffer boundry
+                  bge.b      .blank         ; out of bounds so use blank sample
                   clr.w      (a2)           ; clear first word, prevent high pitch nasty
                   MOVE.L     A2,(A1)+       ; populate pointer for actual sample
                   add.l      d1,a2          ; move to next sample

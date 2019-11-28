@@ -39,7 +39,7 @@ extern bool mt_Enabled;
 extern char FS_LoadErrBuff[80];
 void FS_Reset();
 void ScopeStop();
-void mt_init(REG(a0, void* pattern_data),REG(a2, void* sample_data));
+void mt_init(REG(a0, void* pattern_data),REG(a2, void* sample_data),REG(d7, uint32_t sample_length));
 void mt_end();
 
 static const char* error_memory = "NOT ENOUGH MEMORY";
@@ -522,7 +522,7 @@ void pt1210_file_load_module(size_t current)
 	}
 
 	/* init module and start it up */
-	mt_init(mod_pattern.buffer, mod_sample.buffer);
+	mt_init(mod_pattern.buffer, mod_sample.buffer, mod_sample.size);
 	FS_Reset();
 	mt_Enabled = true;
 	pt1210_gfx_enable_vblank_server(true);
