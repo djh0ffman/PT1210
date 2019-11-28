@@ -30,7 +30,7 @@ static bool show_kb = false;
 static file_sort_key_t sort_key = SORT_NAME;
 static bool sort_descending = false;
 
-/*static*/ size_t current = 0;
+static size_t current = 0;
 /*static*/ size_t list_pos = 0;
 
 static char fs_text[FS_HEIGHT_CHARS][FS_WIDTH_CHARS];
@@ -60,7 +60,6 @@ extern uint8_t dir[6000];
 void FS_DrawType(REG(d0, bool show_kb));
 void FS_Copper();
 void FS_CopperClr();
-void FS_LoadTune();
 
 void ST_Type(REG(a0, const char* text), REG(a1, void* dest_surface), REG(d7, uint8_t num_lines));
 

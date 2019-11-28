@@ -11,7 +11,6 @@
 	XDEF _FS_Copper
 	XDEF _FS_CopperClr
 	XDEF _FS_DrawType
-	XDEF _FS_LoadTune
 	XDEF _FS_Reset
 	XDEF _dir
 
