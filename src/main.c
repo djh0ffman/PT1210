@@ -29,8 +29,9 @@
 void pt1210_asm_initialize();
 void pt1210_asm_shutdown();
 
-bool quit = false;
-file_selector_state_t pt1210_fs_state = STATE_IDLE;
+/* These globals can be updated via the VBlank interrupt; prevent them being optimised away with 'volatile' */
+volatile bool quit = false;
+volatile file_selector_state_t pt1210_fs_state = STATE_IDLE;
 
 int main(int argc, char** argv)
 {
