@@ -44,6 +44,15 @@ pipeline {
   }
   post {
     always {
+      recordIssues(
+          enabledForFailure: true,
+          aggregatingResults: true,
+          tools: [
+            gcc(),
+            cppCheck()
+          ]
+      )
+
       script {
         try {
           discordSend description: "Commit: [`${env.GIT_COMMIT_SHORT}`](${env.GITHUB_COMMIT_URL})\nBuild **${currentBuild.currentResult}**!", link: env.RUN_DISPLAY_URL, result: currentBuild.currentResult, title: "${env.JOB_NAME} build ${env.BUILD_DISPLAY_NAME}", webhookURL: env.DISCORD_WEBHOOK_URL
