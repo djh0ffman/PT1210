@@ -71,22 +71,27 @@ _mt_init
                   LEA        mt_SampleStarts(PC),A1
                   MOVEQ      #30,D0
 
-mtloop3           moveq      #0,d1
-                  move.w     42(a0),d1
-                  cmp.w      #1,d1
-                  ble.w      .blank          ; blank sample?
+mtloop3           
+                  tst.w      48(a0)      ; cheak repeat length is not zero
+                  bne.b      .skiprepfix    ; crappy FT2 mod?
+                  move.w     #1,48(a0)      ; sure is!!  patch that shit!
 
-                  asl.l      #1,d1          ; word to byte length
+.skiprepfix       moveq      #0,d1
+                  move.w     42(a0),d1      ; get sample length
+                  cmp.w      #1,d1          ; 2 bytes or less?
+                  ble.w      .blank          ; yes, replace with our blank sample
+
                   cmp.l      a4,a2          ; check sample buffer boundry
                   bge.b      .blank         ; out of bounds so use blank sample
                   clr.w      (a2)           ; clear first word, prevent high pitch nasty
                   MOVE.L     A2,(A1)+       ; populate pointer for actual sample
+                  asl.l      #1,d1          ; word to byte length
                   add.l      d1,a2          ; move to next sample
                   bra.b      .next
 
 .blank            move.l     a3,(a1)+           ; populate with blank sample
-                  move.w     #$80,42(a0)
-                  move.w     #$80,$30(a0)
+                  move.w     #$80,42(a0)        ; load length
+                  move.w     #$80,48(a0)        ; load repeat length
 
 .next             lea        30(a0),a0
                   DBRA       D0,mtloop3
