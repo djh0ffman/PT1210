@@ -9,45 +9,8 @@
 ; Exports to C code
 	XDEF _FS_Copper
 	XDEF _FS_CopperClr
-	XDEF _FS_DrawType
 	XDEF _FS_Reset
 	XDEF _dir
-
-		; d0 = 0 = BPM / 1 = KB
-
-_FS_DrawType
-			lea		_bpm,a0
-			tst.b	d0
-			beq.b	.gobpm
-			lea		_kb,a0
-.gobpm		lea		_select,a1
-			lea		(40*5)-4(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-			move.l	(a0)+,(a1)
-			lea		40(a1),a1
-
-			rts
 
 _FS_Copper	cmp.w	#$0,_pt1210_file_count
 			bgt.b	.go

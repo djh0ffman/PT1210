@@ -154,9 +154,6 @@ _pt1210_asm_initialize
 		bsr	splashkill
 		endc
 
-		moveq	#0,d0
-		bsr	_FS_DrawType
-
 		moveq	#0,d5
 		bsr	PT_Prep
 

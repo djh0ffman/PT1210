@@ -26,7 +26,6 @@
 #include "utility.h"
 
 static bool show_volumes = false;
-static bool show_kb = false;
 static file_sort_key_t sort_key = SORT_NAME;
 static bool sort_descending = false;
 
@@ -59,7 +58,6 @@ extern bool mt_Enabled;
 extern uint8_t dir[6000];
 
 /* ASM functions */
-void FS_DrawType(REG(d0, bool show_kb));
 void FS_Copper();
 void FS_CopperClr();
 
@@ -131,11 +129,8 @@ void pt1210_fs_draw_dir()
 							len -= 4;
 					}
 
-					/* Value to show in the number column; size in KB or BPM */
-					size_t num_col = (show_kb ? list_entry->file_size : list_entry->bpm);
-
 					/* Format file selector row text without file name prefix/suffix */
-					snprintf(fs_text[i], FS_WIDTH_CHARS, "%-*.*s %-zu", FS_WIDTH_CHARS - 5, len, file_name_ptr, num_col);
+					snprintf(fs_text[i], FS_WIDTH_CHARS, "%-*.*s %-zu", FS_WIDTH_CHARS - 5, len, file_name_ptr, list_entry->bpm);
 				}
 				break;
 
@@ -156,13 +151,6 @@ void pt1210_fs_draw_dir()
 	}
 
 	ST_Type(fs_text[0], &dir[80], FS_HEIGHT_CHARS - 1);
-}
-
-void pt1210_fs_toggle_show_kb()
-{
-	show_kb = !show_kb;
-	FS_DrawType(show_kb);
-	pt1210_fs_draw_dir();
 }
 
 void pt1210_fs_set_sort(file_sort_key_t new_key)

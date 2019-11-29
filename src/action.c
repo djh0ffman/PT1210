@@ -421,11 +421,6 @@ void pt1210_action_fs_sort_bpm()
 	pt1210_fs_set_sort(SORT_BPM);
 }
 
-void pt1210_action_fs_toggle_show_kb()
-{
-	pt1210_fs_toggle_show_kb();
-}
-
 void pt1210_action_fs_rescan()
 {
 	/* Trigger rescan in the main loop */

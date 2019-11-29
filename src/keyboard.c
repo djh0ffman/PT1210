@@ -80,7 +80,6 @@ static input_binding_t bindings_fs[] =
 	{ KEYCODE_RIGHT,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_select					},
 	{ KEYCODE_RETURN,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT, 		pt1210_action_fs_select 				},
 	{ KEYCODE_F5,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_rescan					},
-	{ KEYCODE_F8,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_toggle_show_kb			},
 	{ KEYCODE_F9,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT, 		pt1210_action_fs_sort_name 				},
 	{ KEYCODE_F10,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_fs_sort_bpm				}
 };

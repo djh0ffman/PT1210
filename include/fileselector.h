@@ -30,7 +30,6 @@ void pt1210_fs_draw_title();
 void pt1210_fs_move(int32_t offset);
 void pt1210_fs_select();
 void pt1210_fs_parent();
-void pt1210_fs_toggle_show_kb();
 void pt1210_fs_set_sort(file_sort_key_t sort_key);
 void pt1210_fs_rescan(bool refresh);
 size_t pt1210_fs_current_index();

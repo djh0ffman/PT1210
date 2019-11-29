@@ -58,7 +58,6 @@ void pt1210_action_fs_parent();
 void pt1210_action_fs_select();
 void pt1210_action_fs_sort_name();
 void pt1210_action_fs_sort_bpm();
-void pt1210_action_fs_toggle_show_kb();
 void pt1210_action_fs_rescan();
 
 #endif /* ACTION_H */
