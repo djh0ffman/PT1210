@@ -160,8 +160,6 @@ _pt1210_asm_initialize
 		moveq	#0,d5
 		bsr	PT_Prep
 
-		bsr	UI_DrawChip
-
 		bsr	ScopeInit
 		move.l	#VBInt,VBIptr		; set VB Int pointer
 
@@ -282,7 +280,6 @@ _pt1210_asm_shutdown
 		movem.l	(sp)+,d0-a6
 		rts
 
-		include memory.asm
 		include vblank_int.asm
 		include time.asm
 		include ui.asm

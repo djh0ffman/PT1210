@@ -39,11 +39,14 @@ extern bool mt_Enabled;
 extern char FS_LoadErrBuff[80];
 void FS_Reset();
 void ScopeStop();
+void UI_TypeTitle(REG(a0, void*),REG(d4, uint32_t));
 void mt_init(REG(a0, void* pattern_data),REG(a2, void* sample_data),REG(d7, uint32_t sample_length));
 void mt_end();
 
 static const char* error_memory = "NOT ENOUGH MEMORY";
 static const char* error_loading = "LOADING ERROR : $%08lx";
+
+static const char* avail_template = "CHIP: %lukb FAST: %lukb";
 
 /* A generic comparator function pointer type */
 typedef int (*comparator_t)(const void*, const void*);
@@ -116,6 +119,7 @@ static int cmp_name(const void* a, const void* b)
 		strncasecmp(lhs_name, rhs_name, MAX_FILE_NAME_LENGTH);
 }
 
+
 static void read_error()
 {
 	/* LONG error = IoErr(); */
@@ -128,6 +132,29 @@ static void read_error()
 static void memory_error()
 {
 	pt1210_fs_draw_error(error_memory);
+}
+
+void pt1210_fs_draw_avail_ram()
+{
+	uint32_t avail_chip = 0;
+	uint32_t avail_fast = 0;
+	avail_chip = AvailMem(MEMF_CHIP) / 1024;
+	avail_fast = AvailMem(MEMF_FAST) / 1024;
+
+	char avail_buffer[FS_TITLE_CHAR_COUNT];
+
+	snprintf(avail_buffer, sizeof(avail_buffer), avail_template, avail_chip, avail_fast);
+
+	UI_TypeTitle(avail_buffer, strlen(avail_buffer));
+}
+
+void pt1210_fs_draw_title()
+{
+	char title_buffer[FS_TITLE_CHAR_COUNT];
+
+	snprintf(title_buffer, FS_TITLE_CHAR_COUNT, "%-*s", FS_TITLE_CHAR_COUNT - 2, (char*) mod_pattern.buffer);
+
+	UI_TypeTitle(title_buffer, FS_TITLE_CHAR_COUNT-2);
 }
 
 void pt1210_file_initialize()
@@ -523,6 +550,7 @@ void pt1210_file_load_module(size_t current)
 
 	/* init module and start it up */
 	mt_init(mod_pattern.buffer, mod_sample.buffer, mod_sample.size);
+	pt1210_fs_draw_title();
 	FS_Reset();
 	mt_Enabled = true;
 	pt1210_gfx_enable_vblank_server(true);
