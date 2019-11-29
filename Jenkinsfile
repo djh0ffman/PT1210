@@ -48,6 +48,7 @@ pipeline {
           enabledForFailure: true,
           aggregatingResults: true,
           tools: [
+            cmake(),
             gcc(),
             cppCheck()
           ]
