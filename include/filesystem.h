@@ -105,5 +105,6 @@ bool pt1210_file_read_cache();
 bool pt1210_file_write_cache();
 void pt1210_file_load_module(size_t current);
 void pt1210_file_free_tune_memory();
+const char* pt1210_file_get_module_title();
 
 #endif /* FILE_SYSTEM_H */

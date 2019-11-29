@@ -148,7 +148,6 @@ set(LEGACY_DEPENDS
 	legacy/data_chip.asm
 	legacy/data_fast.asm
 	legacy/file_selector.asm
-	legacy/memory.asm
 	legacy/pattern_render.asm
 	legacy/player.asm
 	legacy/scope.asm

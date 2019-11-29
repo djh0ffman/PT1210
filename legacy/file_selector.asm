@@ -110,7 +110,6 @@ _FS_Reset	movem.l	d0-a6,-(sp)
 
 			move.b	#-1,PT_PrevPat
 			bsr	PT_DrawPat2
-			bsr	UI_DrawTitle
 			jsr	UI_TrackDraw
 
 			move.b	#-1,UI_PatternCue

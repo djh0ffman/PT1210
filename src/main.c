@@ -100,6 +100,9 @@ int main(int argc, char** argv)
 	/* Start timer interrupt */
 	pt1210_cia_start_timer();
 
+	/* print available memory */
+	pt1210_fs_draw_avail_ram();
+
 	/* Do some remaining ASM setup */
 	pt1210_asm_initialize();
 

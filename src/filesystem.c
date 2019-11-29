@@ -119,6 +119,7 @@ static int cmp_name(const void* a, const void* b)
 		strncasecmp(lhs_name, rhs_name, MAX_FILE_NAME_LENGTH);
 }
 
+
 static void read_error()
 {
 	/* LONG error = IoErr(); */
@@ -752,6 +753,7 @@ void pt1210_file_load_module(size_t current)
 
 	/* init module and start it up */
 	mt_init(mod_pattern.buffer, mod_sample.buffer, mod_sample.size);
+	pt1210_fs_draw_title();
 	FS_Reset();
 	mt_Enabled = true;
 	pt1210_gfx_enable_vblank_server(true);
@@ -772,4 +774,9 @@ void pt1210_file_free_tune_memory()
 		FreeMem(mod_sample.buffer, mod_sample.size);
 		mod_sample.buffer = NULL;
 	}
+}
+
+const char* pt1210_file_get_module_title()
+{
+	return mod_pattern.buffer ? (const char*) mod_pattern.buffer : NULL;
 }

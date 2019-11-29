@@ -3,6 +3,9 @@
 ; ********* NEW UI CODE
 ; ******************************************
 
+; Exports to C code
+	XDEF _UI_TypeTitle
+
 	include "gfx/hud_fast.asm"
 
 UI_Width	= 40
@@ -510,67 +513,25 @@ UI_PosBoundry	lsl.w	#1,d1
 		move.b	d1,1(a0)
 		move.b	d2,3(a0)
 		rts
-			;00000000011111111112
-			;12345678901234567890
-howmuch		dc.b	"CHIP RAM:           "
 
-UI_DrawChip	movem.l	d0-a6,-(sp)
-		bsr	freechip
-		divu	#1024,d0
-		and.l	#$ffff,d0
-		moveq	#8-1,d6
-		bsr	UI_Decimal
+		; a0 = text pointer
+		; d4 = char count
+_UI_TypeTitle
+		movem.l	d0-a6,-(sp)
 
-		moveq	#8-1,d7
-		moveq	#0,d6
-.kbloop		move.l	d1,d2
-		and.l	#$f0000000,d2
-		tst.l	d2
-		bne.b	.gotit
-		lsl.l	#4,d1
-		dbra	d7,.kbloop
-.gotit		lea	howmuch+10(pc),a0
+		move.l	a0,-(sp)		; backup text point
+		move.l	d4,-(sp)		; backup chars
+		lea		_hud+42,a1
+		bsr		UI_Type
 
-.chloop		moveq	#0,d2
-		rol.l	#4,d1
-		move.b	d1,d2
-		and.b	#$f,d2
-		add.b	#$30,d2
-		move.b	d2,(a0)+
-		dbra	d7,.chloop
+		move.l	(sp)+,d4
+		move.l	(sp)+,a0
+		lea		_hud+2,a1
+		lea		28(a1),a4
+		bsr		UI_TypeOR
 
-		addq.l	#1,a0
-		move.b	#"K",(a0)+
-		move.b	#"b",(a0)+
-
-		lea	howmuch(pc),a0
-		lea	_hud+42,a1
-		moveq	#20-1,d4
-		bsr	UI_Type
-
-		lea	howmuch(pc),a0
-		lea	_hud+2,a1
-		lea	22(a1),a4
-		moveq	#20-1,d4
-		bsr	UI_TypeOR
 		movem.l	(sp)+,d0-a6
 		rts
-
-
-UI_DrawTitle	movem.l	d0-a6,-(sp)
-		move.l	_mt_SongDataPtr,a0
-		lea	_hud+42,a1
-		moveq	#20-1,d4
-		bsr	UI_Type
-
-		move.l	_mt_SongDataPtr,a0
-		lea	_hud+2,a1
-		lea	22(a1),a4
-		moveq	#20-1,d4
-		bsr	UI_TypeOR
-		movem.l	(sp)+,d0-a6
-		rts
-
 
 UI_BPMCent	dc.b	"+%"
 		even
@@ -682,7 +643,7 @@ UI_TypeOR	lea	_font_big,a5
 		lea	(UI_TotWidth)(a3),a3
 		move.l	(sp)+,a4
 
-		lea	1(a1),a1
+		lea		1(a1),a1
 		dbra	d4,.nextchar
 		rts
 
