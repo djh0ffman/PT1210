@@ -31,7 +31,7 @@ pipeline {
           steps {
             ws(dir: "${WORKSPACE}-gcc-release") {
               unstash 'source'
-              sh 'cmake . -Bbuild-release -DCMAKE_TOOLCHAIN_FILE=cmake/amiga-gcc-toolchain.cmake'
+              sh 'cmake . -Bbuild-release -DCMAKE_TOOLCHAIN_FILE=cmake/amiga-gcc-toolchain.cmake -DCMAKE_BUILD_TYPE=Release'
               sh 'cmake --build build-release'
               archiveArtifacts(artifacts: 'bin/pt1210.exe', fingerprint: true)
               deleteDir()
