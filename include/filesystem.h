@@ -57,8 +57,6 @@
 #define FS_MOD_SUFFIX			0x2E4D4F44UL
 #define FS_MOD_SUFFIX_UPPER		0xFFDFDFDFUL
 
-#define FS_TITLE_CHAR_COUNT		30
-
 /* Types of file list entries */
 typedef enum {
 	ENTRY_PARENT,
@@ -90,7 +88,6 @@ typedef enum
 	SORT_BPM,
 } file_sort_key_t;
 
-void pt1210_fs_draw_avail_ram();
 void pt1210_file_initialize();
 void pt1210_file_shutdown();
 bool pt1210_file_change_dir(const char* path);
@@ -103,5 +100,6 @@ void pt1210_file_check_module(struct FileInfoBlock* fib);
 bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
 void pt1210_file_load_module(size_t current);
 void pt1210_file_free_tune_memory();
+const char* pt1210_file_get_module_title();
 
 #endif /* FILE_SYSTEM_H */

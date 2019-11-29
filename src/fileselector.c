@@ -44,6 +44,8 @@ static const char* error_template = "--------------------------------------- "
 static const char* error_no_modules = "NO MODULES FOUND";
 /*static const char* error_unspecified = "UNSPECIFIED ERROR!";*/
 
+static const char* avail_template = "CHIP: %lukb FAST: %lukb";
+
 /* TODO: Move these into here? */
 extern file_list_t pt1210_file_list[MAX_FILE_COUNT];
 extern uint16_t pt1210_file_count;
@@ -62,6 +64,7 @@ void FS_Copper();
 void FS_CopperClr();
 
 void ST_Type(REG(a0, const char* text), REG(a1, void* dest_surface), REG(d7, uint8_t num_lines));
+void UI_TypeTitle(REG(a0, void*),REG(d4, uint32_t));
 
 static void fs_clear()
 {
@@ -269,6 +272,33 @@ void pt1210_fs_parent()
 size_t pt1210_fs_current_index()
 {
 	return current;
+}
+
+void pt1210_fs_draw_avail_ram()
+{
+	uint32_t avail_chip = 0;
+	uint32_t avail_fast = 0;
+	avail_chip = AvailMem(MEMF_CHIP) / 1024;
+	avail_fast = AvailMem(MEMF_FAST) / 1024;
+
+	char avail_buffer[FS_TITLE_CHARS];
+
+	snprintf(avail_buffer, sizeof(avail_buffer), avail_template, avail_chip, avail_fast);
+
+	UI_TypeTitle(avail_buffer, strlen(avail_buffer));
+}
+
+void pt1210_fs_draw_title()
+{
+	char title_buffer[FS_TITLE_CHARS];
+
+	const char* mod_title = pt1210_file_get_module_title();
+	if (!mod_title)
+		return;
+
+	snprintf(title_buffer, FS_TITLE_CHARS, "%-*s", FS_TITLE_CHARS - 2, mod_title);
+
+	UI_TypeTitle(title_buffer, FS_TITLE_CHARS - 2);
 }
 
 void pt1210_fs_draw_error(const char* error_message)
