@@ -51,6 +51,7 @@ int16_t pt1210_cia_nudge_bpm;			/* Nudge offset applied using nudge controls */
 uint16_t pt1210_cia_adjusted_bpm;		/* The BPM with coarse adjustments applied */
 uint16_t pt1210_cia_actual_bpm;			/* The final BPM value used to set timer high/low registers, with fine adjustments applied */
 uint16_t pt1210_cia_display_bpm;		/* resulting display BPM after frames per beat adjustment */
+uint16_t pt1210_cia_track_display_bpm;	/* resulting display BPM after frames per beat adjustment */
 
 uint16_t pt1210_cia_frames_per_beat;	/* The frames-per-beat value as set from parsing a magic sample names */
 
@@ -190,10 +191,17 @@ void pt1210_cia_set_bpm(uint8_t bpm)
 	pt1210_cia_adjusted_bpm = clamp(bpm + pt1210_cia_offset_bpm + pt1210_cia_nudge_bpm, CIA_MIN_BPM, CIA_MAX_BPM);
 	pt1210_cia_actual_bpm = (pt1210_cia_adjusted_bpm << 4) | pt1210_cia_fine_offset;
 
+	/* calculate display bpm values based on frames per beat value */
 	if (pt1210_cia_frames_per_beat > 0)
+	{
 		pt1210_cia_display_bpm = pt1210_cia_actual_bpm * 24 / pt1210_cia_frames_per_beat;
+		pt1210_cia_track_display_bpm = (pt1210_cia_base_bpm << 4) * 24 / pt1210_cia_frames_per_beat;
+	}
 	else
+	{
 		pt1210_cia_display_bpm = pt1210_cia_actual_bpm;
+		pt1210_cia_track_display_bpm = (pt1210_cia_base_bpm << 4);
+	}
 
 	/* TODO: NTSC? */
 	timer_value = (CIA_SEED_PAL << 4) / pt1210_cia_actual_bpm;

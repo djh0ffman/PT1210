@@ -302,11 +302,12 @@ UI_BPMDiff
 .skip
 
 
-UI_TrackBPM	lea	_pt1210_cia_base_bpm,a3
+UI_TrackBPM	lea	_pt1210_cia_track_display_bpm,a3
 		lea	UI_BPM,a4
 		moveq	#0,d0
-		move.b	(a3),d0
-		cmp.b	(a4),d0
+		move.w	(a3),d0
+		lsr.w	#4,d0
+		cmp.w	(a4),d0
 		beq.b	.skip
 		move.b	d0,(a4)
 		move.w	#(UI_TotWidth*32)+33,d5	; screen pos
@@ -1010,6 +1011,7 @@ UI_Decimal	moveq	#3,d7
 
 ; vars
 
+UI_BPM		dc.w	-1
 UI_ActualBPM	dc.w	-1
 UI_PatternPos	dc.w	-1
 UI_CurBPM	dc.w	-1
@@ -1023,7 +1025,6 @@ UI_LoopSize	dc.b	-1
 UI_Seconds	dc.b	-1
 UI_Minutes	dc.b	-1
 UI_SongPos	dc.b	-1
-UI_BPM		dc.b	-1
 UI_Speed	dc.b	-1
 UI_SLSongPos	dc.b	-1
 UI_PatternCue	dc.b	-1

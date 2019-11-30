@@ -28,6 +28,7 @@ extern int16_t pt1210_cia_offset_bpm;
 extern uint8_t pt1210_cia_fine_offset;
 extern int16_t pt1210_cia_nudge_bpm;
 extern uint16_t pt1210_cia_display_bpm;
+extern uint16_t pt1210_cia_track_display_bpm;
 extern uint16_t pt1210_cia_frames_per_beat;
 
 bool pt1210_cia_allocate_timer();
