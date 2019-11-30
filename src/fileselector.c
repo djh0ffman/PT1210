@@ -130,7 +130,7 @@ void pt1210_fs_draw_dir()
 					}
 
 					/* Format file selector row text without file name prefix/suffix */
-					snprintf(fs_text[i], FS_WIDTH_CHARS, "%-*.*s %-zu", FS_WIDTH_CHARS - 5, len, file_name_ptr, list_entry->bpm);
+					snprintf(fs_text[i], FS_WIDTH_CHARS, "%-*.*s %-u", FS_WIDTH_CHARS - 5, len, file_name_ptr, list_entry->bpm);
 				}
 				break;
 
