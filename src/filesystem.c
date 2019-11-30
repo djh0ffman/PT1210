@@ -18,12 +18,13 @@
 #include <proto/exec.h>
 
 #include "action.h"
+#include "cia.h"
 #include "fileselector.h"
 #include "filesystem.h"
 #include "graphics.h"
+#include "timerdevice.h"
 #include "utility.h"
 #include "version.h"
-#include "cia.h"
 
 static memory_buffer_t mod_pattern;
 static memory_buffer_t mod_sample;
@@ -758,6 +759,8 @@ void pt1210_file_load_module(size_t current)
 	pt1210_fs_draw_title();
 	FS_Reset();
 	mt_Enabled = true;
+	pt1210_timer_reset();
+	pt1210_timer_play();
 	pt1210_gfx_enable_vblank_server(true);
 	pt1210_action_switch_screen();
 	return;

@@ -3,14 +3,15 @@
 		; Imports from C code
 		XREF _pt1210_keyboard_process_keys
 		XREF _pt1210_gameport_process_buttons
+		XREF _pt1210_timer_update
 		XREF _vblank_enabled
 
 VBInt	tst.b	_vblank_enabled
 		beq.b	.quit
 
 		move.w	#0,_pt1210_cia_nudge_bpm
-		bsr	DOTIME		; timer
 
+		jsr _pt1210_timer_update
 		jsr	_pt1210_keyboard_process_keys
 		jsr _pt1210_gameport_process_buttons
 

@@ -3,6 +3,10 @@
 ; ********* NEW UI CODE
 ; ******************************************
 
+; Imports from C code
+	XREF _pt1210_time_seconds
+	XREF _pt1210_time_minutes
+
 ; Exports to C code
 	XDEF _UI_TypeTitle
 
@@ -828,7 +832,7 @@ UI_BPMDrawDigi	lea	_pt1210_cia_display_bpm,a3
 .skip
 
 
-UI_SecDraw	lea	_Time_Seconds,a3
+UI_SecDraw	lea	_pt1210_time_seconds,a3
 		lea	UI_Seconds,a4
 		moveq	#0,d0
 		move.b	(a3),d0
@@ -844,7 +848,7 @@ UI_SecDraw	lea	_Time_Seconds,a3
 		bsr	UI_DigiBlit
 .skip
 
-UI_MinDraw	lea	_Time_Minutes,a3
+UI_MinDraw	lea	_pt1210_time_minutes,a3
 		lea	UI_Minutes,a4
 		moveq	#0,d0
 		move.b	(a3),d0

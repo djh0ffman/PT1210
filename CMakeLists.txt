@@ -152,7 +152,6 @@ set(LEGACY_DEPENDS
 	legacy/player.asm
 	legacy/scope.asm
 	legacy/splash_screen.asm
-	legacy/time.asm
 	legacy/ui.asm
 	legacy/vblank_int.asm
 )
@@ -185,6 +184,7 @@ add_executable(pt1210
 	src/inputdevice.c
 	src/keyboard.c
 	src/main.c
+	src/timerdevice.c
 
 	# Headers
 	include/action.h
@@ -199,6 +199,7 @@ add_executable(pt1210
 	include/input.h
 	include/inputdevice.h
 	include/keyboard.h
+	include/timerdevice.h
 	include/utility.h
 )
 

@@ -278,7 +278,6 @@ _pt1210_asm_shutdown
 		rts
 
 		include vblank_int.asm
-		include time.asm
 		include ui.asm
 		include pattern_render.asm
 		include file_selector.asm

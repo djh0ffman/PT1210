@@ -22,8 +22,9 @@
 #include "filesystem.h"
 #include "gameport.h"
 #include "keyboard.h"
-#include "utility.h"
 #include "state.h"
+#include "timerdevice.h"
+#include "utility.h"
 
 /* ASM player variables */
 /* TODO: Rename so the names are more in line with our new C code */
@@ -45,11 +46,6 @@ extern uint16_t mt_SLPatternPos;
 extern uint8_t mt_PatternCue;
 extern uint8_t mt_PattDelTime;
 extern uint8_t mt_PattDelTime2;
-
-/* ASM timer variables */
-extern uint8_t Time_Frames;
-extern uint8_t Time_Seconds;
-extern uint8_t Time_Minutes;
 
 /* ASM functions */
 void mt_end();
@@ -123,7 +119,14 @@ void pt1210_action_play_pause()
 {
 	/* Kill audio if pausing */
 	if (mt_Enabled)
+	{
 		pt1210_action_kill_sound_dma();
+		pt1210_timer_pause();
+	}
+	else
+	{
+		pt1210_timer_play();
+	}
 
 	mt_Enabled = !mt_Enabled;
 }
@@ -136,9 +139,7 @@ void pt1210_action_restart()
 	mt_PatternPos = 0;
 	mt_PattDelTime = 0;
 	mt_PattDelTime2 = 0;
-	Time_Frames = 0;
-	Time_Minutes = 0;
-	Time_Seconds = 0;
+	pt1210_timer_reset();
 }
 
 void pt1210_action_slip_restart()

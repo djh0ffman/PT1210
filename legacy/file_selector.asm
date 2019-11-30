@@ -63,9 +63,6 @@ _FS_Reset	movem.l	d0-a6,-(sp)
 			move.b	#0,_mt_PatLockStart
 			move.b	#0,_mt_PatLockEnd
 			move.b	#0,_mt_PatternCue
-			clr.b	_Time_Frames
-			clr.b	_Time_Seconds
-			clr.b	_Time_Minutes
 
 			clr.b	_mt_SLSongPos
 			clr.w	_mt_SLPatternPos

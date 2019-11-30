@@ -29,6 +29,7 @@
 #include "graphics.h"
 #include "inputdevice.h"
 #include "state.h"
+#include "timerdevice.h"
 
 void pt1210_asm_initialize();
 void pt1210_asm_shutdown();
@@ -94,6 +95,9 @@ int main(int argc, char** argv)
 	if (!pt1210_gfx_install_vblank_server())
 		return EXIT_FAILURE;
 
+	if (!pt1210_timer_open_device())
+		return EXIT_FAILURE;
+
 	/* Generate initial file selector listing */
 	pt1210_fs_rescan(false);
 
@@ -141,6 +145,7 @@ int main(int argc, char** argv)
 	pt1210_file_free_tune_memory();
 
 	/* Clean up */
+	pt1210_timer_close_device();
 	pt1210_gfx_remove_vblank_server();
 	pt1210_gfx_close_screen();
 	pt1210_cia_free_timer();
