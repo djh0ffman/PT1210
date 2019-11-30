@@ -262,7 +262,7 @@ UI_BPMFine
 UI_BPMDiff	
 		lea	UI_BPMCent,a0
 		move.b	#"+",(a0)
-		lea	_pt1210_cia_actual_bpm,a3
+		lea	_pt1210_cia_display_bpm,a3
 		lea	UI_ActualBPM,a4
 		moveq	#0,d0
 		move.w	(a3),d0
@@ -271,8 +271,7 @@ UI_BPMDiff
 		move.w	d0,(a4)
 
  		moveq	#0,d1
-		move.b	_pt1210_cia_base_bpm,d1
-		lsl.w	#4,d1
+		move.w	_pt1210_cia_track_display_bpm,d1
 
 		tst.w	d0
 		beq.b	.skip
@@ -543,7 +542,7 @@ UI_TypeSmall
 .nextchar	moveq	#0,d0
 			move.b	(a0)+,d0
 			move.l	a1,a3
-			PT_CharPlot a2,a3,UI_TotWidth,d0
+			PT_CharPlot_TwoPlanes a5,a3,UI_TotWidth,d0
 			move.l	a5,a3
 			addq.l	#1,a1
 			dbra	d4,.nextchar

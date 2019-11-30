@@ -46,7 +46,6 @@ _FS_CopperClr	movem.l	d0-a6,-(sp)
 
 _FS_Reset	movem.l	d0-a6,-(sp)
 			move.b	#125,_pt1210_cia_base_bpm
-			;clr.w	_pt1210_cia_frames_per_beat
 			clr.w	_pt1210_cia_offset_bpm
 			clr.b	_pt1210_cia_fine_offset
 			move.w	#%0000000000001111,_pt1210_state+gs_player+ps_channel_toggle
