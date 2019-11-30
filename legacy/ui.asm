@@ -238,24 +238,17 @@ UI_TrackPosPix	dcb.w	129,0
 UI_TextBits	movem.l	d0-a6,-(sp)
 		lea	_hud,a6		; screen pointer
 
-UI_BPMFine	lea	_pt1210_cia_fine_offset,a3
+UI_BPMFine	
+		lea	_pt1210_cia_display_bpm,a3
 		lea	UI_BPMFINE,a4
 		moveq	#0,d0
-		move.b	(a3),d0
+		move.w	(a3),d0
+		and.w	#$f,d0
+		lsl.w	#4,d0
 		cmp.b	(a4),d0
 		beq.b	.skip
 		move.b	d0,(a4)
 
-
-		move.w	_pt1210_cia_actual_bpm,d0
-		lsl.w	#4,d0
-
-		move.w	_pt1210_cia_frames_per_beat,d1
-		beq.b	.noframe
-		mulu	#24,d0
-		divu	d1,d0
-
-.noframe	and.w	#$ff,d0
 		mulu.w	#100,d0
 		divu.w	#256,d0
 		and.l	#$ff,d0
@@ -818,26 +811,15 @@ UI_ChanDraw	lea	_track,a0
 		lea	_font_digi,a1
 
 
-UI_BPMDrawDigi	lea	_pt1210_cia_adjusted_bpm,a3
+UI_BPMDrawDigi	lea	_pt1210_cia_display_bpm,a3
 		lea	UI_CurBPM,a4
 		move.w	(a3),d0
+		lsr.w	#4,d0
 		cmp.w	(a4),d0
 		beq.b	.skip
 		move.w	d0,(a4)
 
-		move.w	_pt1210_cia_frames_per_beat,d1
-		beq.b	.skipframe
-
-		move.w	_pt1210_cia_actual_bpm,d0
-		muls	#24,d0
-		divs	d1,d0
-		swap	d0
-		clr.w	d0
-		swap	d0
-		lsr.w	#4,d0
-
-
-.skipframe	bsr	UI_Decimal
+		bsr	UI_Decimal
 		move.w	d1,d0
 
 		moveq	#3-1,d7

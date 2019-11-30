@@ -33,6 +33,7 @@ SW_Splash = 0		; Include splash screen
 	XREF _pt1210_cia_nudge_bpm
 	XREF _pt1210_cia_adjusted_bpm
 	XREF _pt1210_cia_actual_bpm
+	XREF _pt1210_cia_display_bpm
 	XREF _pt1210_cia_frames_per_beat
 
 FONTWIDTH = 64

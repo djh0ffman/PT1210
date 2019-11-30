@@ -23,6 +23,7 @@
 #include "graphics.h"
 #include "utility.h"
 #include "version.h"
+#include "cia.h"
 
 static memory_buffer_t mod_pattern;
 static memory_buffer_t mod_sample;
@@ -752,6 +753,7 @@ void pt1210_file_load_module(size_t current)
 	}
 
 	/* init module and start it up */
+	pt1210_cia_frames_per_beat = selection->frames;
 	mt_init(mod_pattern.buffer, mod_sample.buffer, mod_sample.size);
 	pt1210_fs_draw_title();
 	FS_Reset();
