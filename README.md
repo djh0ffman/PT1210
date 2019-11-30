@@ -49,10 +49,9 @@ it will load it, take you to the player screen and start playing.
 | RETURN      | Load Tune |
 | F10         | Sort list by BPM (toggles asc / desc) |
 | F9          | Sort list by Filename (toggles asc / desc) |
-| F8          | Show Kb |
 | ESCAPE      | Quit (hold for a second) |
 | A-Z / 0-9   | Pick first file with matching first letter |
-| F1          | Re-scan folder (used when running from floppy drive) |
+| F5          | Refresh folder |
 
 NOTE: Quit will not work if a tune is playing!
 
