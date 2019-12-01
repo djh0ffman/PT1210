@@ -37,18 +37,6 @@ SW_Splash = 0		; Include splash screen
 
 FONTWIDTH = 64
 
-TIMERSET	= %1100000000001000
-TIMERCLR	= %0100000000001000
-;		   ab-------cdefg--
-;	a: SET/CLR Bit
-;	b: Master Bit
-;	c: Blitter Int
-;	d: Vert Blank Int
-;	e: Copper Int
-;	f: IO Ports/Timers
-;	g: Software Int
-
-
 ***************************************************
 *** MACRO DEFINITION				***
 ***************************************************
@@ -94,41 +82,6 @@ PT_CharPlot_TwoPlanes	MACRO
 			move.b	(\1)+,UI_Width+\3*4(\2)
 			ENDM
 
-*******************************************
-*** DATA AREA		FAST		***
-*******************************************
-
-VBIptr		dc.l	0
-
-*******************************************
-*** VERTICAL BLANK (VBI)		***
-*******************************************
-
-_pt1210_gfx_vblank_server_proc
-	movem.l	d2-d7/a2-a4,-(sp)
-	move.l	VBIptr(pc),d0
-	beq.b	.noVBI
-
-	move.l	#$dff000,a6
-	WAITBLIT						; Ensure blitter isn't busy before we mess with the copper
-	move.l	#_hud_cop,cop1lc(a6)	; Re-load copper lists as Intuition will be trying to load its own
-
-	tst.l	_pt1210_state+gs_screen
-	bne.b	.dj
-	move.l	#_select_cop,cop2lc(a6)
-	bra .nodj
-.dj
-	move.l	#_cCopper,cop2lc(a6)
-.nodj
-
-	move.l	d0,a0
-	jsr	(a0)
-.noVBI
-	movem.l	(sp)+,d2-d7/a2-a4
-	move.l #$dff000,a0
-	moveq #0,d0						; OS-friendly VBlank servers must set the Z flag
-	rts								; RTS and not RTE here
-
 ************************************
 ** The mega mod player by h0ffman **
 ************************************
@@ -159,7 +112,6 @@ _pt1210_asm_initialize
 		bsr	PT_Prep
 
 		bsr	ScopeInit
-		move.l	#VBInt,VBIptr		; set VB Int pointer
 
 		lea	$dff000,a6		; hw base
 

@@ -46,6 +46,7 @@ void pt1210_action_move_forward_line_loop();
 void pt1210_action_move_forward_pattern();
 void pt1210_action_move_backward_line_loop();
 void pt1210_action_move_backward_pattern();
+void pt1210_action_screen_to_back();
 void pt1210_action_quit();
 
 /* File selector actions */

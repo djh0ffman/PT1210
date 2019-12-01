@@ -18,6 +18,11 @@
 
 bool pt1210_gfx_open_screen();
 void pt1210_gfx_close_screen();
+bool pt1210_gfx_screen_check_active();
+void pt1210_gfx_screen_to_back();
+bool pt1210_gfx_screen_in_front();
+void pt1210_gfx_remove_view();
+void pt1210_gfx_restore_view();
 bool pt1210_gfx_install_vblank_server();
 void pt1210_gfx_remove_vblank_server();
 void pt1210_gfx_enable_vblank_server(bool enabled);

@@ -19,6 +19,7 @@
 #include "fileselector.h"
 #include "filesystem.h"
 #include "gameport.h"
+#include "graphics.h"
 #include "keyboard.h"
 #include "pt1210.h"
 #include "timerdevice.h"
@@ -347,6 +348,12 @@ void pt1210_action_move_backward_pattern()
 {
 	if (mt_SongPos > 0)
 		--mt_SongPos;
+}
+
+void pt1210_action_screen_to_back()
+{
+	/* Trigger screen to back in the main loop */
+	pt1210_defer_function(pt1210_gfx_screen_to_back);
 }
 
 void pt1210_action_quit()

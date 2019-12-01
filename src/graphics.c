@@ -11,26 +11,56 @@
  * Intuition screen and graphics-related functions.
  */
 
+#include <stdlib.h>
+
 #include <exec/memory.h>
 #include <graphics/gfxbase.h>
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
 #include <intuition/intuition.h>
+#include <intuition/intuitionbase.h>
 
+#include <clib/debug_protos.h>
 #include <proto/exec.h>
 #include <proto/graphics.h>
 #include <proto/intuition.h>
 
 #include "graphics.h"
+#include "pt1210.h"
 
 /* Assembler VBlank routine */
 void pt1210_gfx_vblank_server_proc();
 
 extern struct Custom custom;
 
-static struct Screen* screen = NULL;
+static struct Screen* wb_screen = NULL;
+static struct Screen* pt1210_screen = NULL;
 static struct Interrupt* vblank_server = NULL;
-/*static*/ bool vblank_enabled = true;
+/*static*/ bool vblank_enabled = false;
+
+static struct View* old_view = NULL;
+static bool screen_active = false;
+
+static inline void restore_copper()
+{
+	/* Restore original Copper list */
+	custom.cop1lc = (ULONG) GfxBase->copinit;
+}
+
+static void remove_view()
+{
+	old_view = GfxBase->ActiView;
+	LoadView(NULL);
+	WaitTOF();
+	WaitTOF();
+}
+
+static void restore_view()
+{
+	WaitTOF();
+	WaitTOF();
+	LoadView(old_view);
+}
 
 bool pt1210_gfx_open_screen()
 {
@@ -52,25 +82,65 @@ bool pt1210_gfx_open_screen()
 		.CustomBitMap = NULL
 	};
 
-	screen = OpenScreen(&new_screen);
-	LoadView(NULL);
-	WaitTOF();
-	WaitTOF();
+	/* Store current frontmost screen */
+	wb_screen = IntuitionBase->FirstScreen;
 
+	/* Open our new screen */
+	pt1210_screen = OpenScreen(&new_screen);
+
+	/* Tear down system View */
+	remove_view();
+
+	screen_active = true;
 	return true;
 }
 
 void pt1210_gfx_close_screen()
 {
-	LoadView(GfxBase->ActiView);
-	WaitTOF();
-	WaitTOF();
+	if (screen_active)
+	{
+		restore_copper();
+		restore_view();
+		screen_active = false;
+	}
 
-	/* Restore original Copper list */
-	custom.cop1lc = (ULONG) GfxBase->copinit;
-	RethinkDisplay();
+	CloseScreen(pt1210_screen);
+}
 
-	CloseScreen(screen);
+bool pt1210_gfx_screen_check_active()
+{
+	bool active = IntuitionBase->FirstScreen == pt1210_screen;
+
+	if (!active)
+	{
+		if (IntuitionBase->FirstScreen != wb_screen)
+			wb_screen = IntuitionBase->FirstScreen;
+
+		if (screen_active)
+		{
+			restore_copper();
+
+			/* Trigger screen to back in the main loop */
+			pt1210_defer_function(pt1210_gfx_screen_to_back);
+		}
+	}
+
+	screen_active = active;
+	return screen_active;
+}
+
+void pt1210_gfx_screen_to_back()
+{
+	restore_copper();
+	restore_view();
+
+	ScreenToBack(pt1210_screen);
+	screen_active = false;
+}
+
+bool pt1210_gfx_screen_in_front()
+{
+	return IntuitionBase->FirstScreen == pt1210_screen;
 }
 
 bool pt1210_gfx_install_vblank_server()

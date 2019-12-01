@@ -73,6 +73,7 @@ static input_binding_t bindings_fs[] =
 
 	/* Bindings without modifier keys */
 	{ KEYCODE_ESCAPE,	KEYCODE_NONE,	PRESS_TYPE_HOLD_ONESHOT,	pt1210_action_quit						},
+	{ KEYCODE_SPACE,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_screen_to_back			},
 	{ KEYCODE_HELP,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_switch_screen				},
 	{ KEYCODE_UP,		KEYCODE_NONE,	PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_up 				},
 	{ KEYCODE_DOWN,		KEYCODE_NONE,	PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_down 				},
