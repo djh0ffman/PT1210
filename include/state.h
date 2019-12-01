@@ -32,9 +32,6 @@ typedef enum
 	PATTERN_LOOP_STATE_END_SET
 } pattern_loop_state_t;
 
-/* A function pointer type to defer things that must run in the main Task */
-typedef void (*deferred_function_t)();
-
 /* The following structures must be packed, and match the ASM definitions in state.i */
 #pragma pack(1)
 typedef struct
@@ -51,12 +48,6 @@ typedef struct
 
 typedef struct
 {
-	/* Main loop information */
-	bool quit;
-	uint8_t signal_bit;
-	struct Task* task;
-	deferred_function_t deferred_func;
-
 	/* UI state */
 	screen_state_t screen;
 

@@ -14,15 +14,13 @@
 #include <ctype.h>
 #include <stdint.h>
 
-#include <proto/exec.h>
-
 #include "action.h"
 #include "cia.h"
 #include "fileselector.h"
 #include "filesystem.h"
 #include "gameport.h"
 #include "keyboard.h"
-#include "state.h"
+#include "pt1210.h"
 #include "timerdevice.h"
 #include "utility.h"
 
@@ -355,10 +353,7 @@ void pt1210_action_quit()
 {
 	/* Only allow quit when not playing */
 	if (!mt_Enabled)
-	{
-		pt1210_state.quit = true;
-		Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
-	}
+		pt1210_quit();
 }
 
 void pt1210_action_fs_char_handler(char character)
@@ -401,15 +396,13 @@ void pt1210_action_fs_move_down()
 void pt1210_action_fs_parent()
 {
 	/* Trigger parent in main loop */
-	pt1210_state.deferred_func = pt1210_fs_parent;
-	Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
+	pt1210_defer_function(pt1210_fs_parent);
 }
 
 void pt1210_action_fs_select()
 {
 	/* Trigger selection in the main loop */
-	pt1210_state.deferred_func = pt1210_fs_select;
-	Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
+	pt1210_defer_function(pt1210_fs_select);
 }
 
 void pt1210_action_fs_sort_name()
@@ -425,6 +418,5 @@ void pt1210_action_fs_sort_bpm()
 void pt1210_action_fs_rescan()
 {
 	/* Trigger rescan in the main loop */
-	pt1210_state.deferred_func = rescan_wrapper;
-	Signal(pt1210_state.task, 1 << pt1210_state.signal_bit);
+	pt1210_defer_function(rescan_wrapper);
 }

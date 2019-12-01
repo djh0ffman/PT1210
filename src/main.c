@@ -17,9 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <proto/exec.h>
-#include <clib/debug_protos.h>
-
 #include "audiodevice.h"
 #include "cia.h"
 #include "consoledevice.h"
@@ -28,37 +25,8 @@
 #include "gameport.h"
 #include "graphics.h"
 #include "inputdevice.h"
-#include "state.h"
+#include "pt1210.h"
 #include "timerdevice.h"
-
-void pt1210_asm_initialize();
-void pt1210_asm_shutdown();
-
-/* Program state */
-volatile global_state_t pt1210_state =
-{
-	/* Main loop information */
-	.quit = 0,
-	.signal_bit = 0,
-	.task = NULL,
-	.deferred_func = NULL,
-
-	/* UI state */
-	.screen = SCREEN_FILE_SELECTOR,
-
-	/* Player state */
-	.player =
-	{
-		.channel_toggle = 0xF,
-		.loop_active = false,
-		.loop_start = 0,
-		.loop_end = 0,
-		.loop_size = 4,
-		.slip_on = true,
-		.repitch_enabled = true,
-		.pattern_slip_pending = false
-	}
-};
 
 int main(int argc, char** argv)
 {
@@ -98,49 +66,14 @@ int main(int argc, char** argv)
 	if (!pt1210_timer_open_device())
 		return EXIT_FAILURE;
 
-	/* Generate initial file selector listing */
-	pt1210_fs_rescan(false);
-
-	/* Start timer interrupt */
-	pt1210_cia_start_timer();
-
-	/* print available memory */
-	pt1210_fs_draw_avail_ram();
-
-	/* Do some remaining ASM setup */
-	pt1210_asm_initialize();
-
-	/* Allocate signal bit */
-	BYTE signal_number = AllocSignal(-1);
-	if (signal_number == -1)
+	if (!pt1210_initialize())
 		return EXIT_FAILURE;
 
-	pt1210_state.signal_bit = signal_number;
-	pt1210_state.task = FindTask(NULL);
+	/* Enter the main loop */
+	pt1210_main();
 
-	/* Main loop */
-	while (!pt1210_state.quit)
-	{
-#ifdef DEBUG
-		kprintf("Main task sleeping\n");
-#endif
-		Wait(1 << pt1210_state.signal_bit);
-#ifdef DEBUG
-		kprintf("Main task awake\n");
-#endif
+	pt1210_shutdown();
 
-		/* Perform deferred task signalled from interrupt */
-		if (pt1210_state.deferred_func)
-		{
-			pt1210_state.deferred_func();
-			pt1210_state.deferred_func = NULL;
-		}
-	}
-
-	/* Free signal bit */
-	FreeSignal(pt1210_state.signal_bit);
-
-	pt1210_asm_shutdown();
 	pt1210_cia_stop_timer();
 	pt1210_file_free_tune_memory();
 

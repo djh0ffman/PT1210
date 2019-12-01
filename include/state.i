@@ -25,10 +25,6 @@ ps_size						rs.b 0
 
 ; Global state data structure
 	rsreset
-gs_quit						rs.b 1
-gs_signal_bit				rs.b 1
-gs_task						rs.l 1
-gs_deferred_func			rs.l 1
 gs_screen					rs.l 1
 gs_player					rs.b ps_size
 gs_size						rs.b 0

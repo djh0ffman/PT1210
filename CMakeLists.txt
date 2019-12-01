@@ -144,6 +144,9 @@ list(APPEND GFX_DEPENDS ${GFX_HUD_OUTPUTS} ${GFX_TASK_OUTPUTS})
 
 # Files that the legacy target depends on
 set(LEGACY_DEPENDS
+	# ASM headers
+	include/state.i
+
 	# ASM files 'included' by pt1210.asm
 	legacy/data_chip.asm
 	legacy/data_fast.asm
@@ -184,6 +187,7 @@ add_executable(pt1210
 	src/inputdevice.c
 	src/keyboard.c
 	src/main.c
+	src/pt1210.c
 	src/timerdevice.c
 
 	# Headers
@@ -199,6 +203,7 @@ add_executable(pt1210
 	include/input.h
 	include/inputdevice.h
 	include/keyboard.h
+	include/pt1210.h
 	include/timerdevice.h
 	include/utility.h
 )
