@@ -234,7 +234,7 @@ void pt1210_file_gen_file_list(bool refresh)
 	FreeMem(fib, sizeof(*fib));
 
 	pt1210_file_write_cache();
-	//Delay(50*2);				// TODO: reduce this or find a better method
+
 }
 
 void pt1210_file_gen_volume_list()
@@ -308,6 +308,10 @@ const char* pt1210_file_dev_name_from_vol_name(const char* vol_name)
 		/* Found it */
 		if (!strcmp(vol_name_trimmed, dvi_vol_name))
 		{
+			/* If the volume's Task is NULL, the volume is currently ejected */
+			if (!dvi_vol->dvi_Task)
+				break;
+
 			/* Now look for the device that shares the same Task */
 			do
 			{
