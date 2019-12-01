@@ -329,3 +329,12 @@ bool pt1210_fs_find_next(char key, size_t* index)
 
 	return false;
 }
+
+void pt1210_fs_on_disk_change()
+{
+	/* If a disk was inserted or removed, and we're showing the volume list, redraw */
+	if (!show_volumes)
+		return;
+
+	pt1210_fs_rescan(false);
+}

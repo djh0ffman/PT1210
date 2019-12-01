@@ -34,5 +34,6 @@ void pt1210_fs_set_sort(file_sort_key_t sort_key);
 void pt1210_fs_rescan(bool refresh);
 size_t pt1210_fs_current_index();
 bool pt1210_fs_find_next(char key, size_t* index);
+void pt1210_fs_on_disk_change();
 
 #endif /* FILE_SELECTOR_H */

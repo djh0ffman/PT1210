@@ -22,8 +22,10 @@
 #include <proto/console.h>
 #include <proto/exec.h>
 
+#include "fileselector.h"
 #include "inputdevice.h"
 #include "keyboard.h"
+#include "pt1210.h"
 #include "utility.h"
 
 static struct IOStdReq* input_io = NULL;	/* storage for input IORequest pointer */
@@ -38,35 +40,46 @@ static struct InputEvent* pt1210_input_handler(REG(a0, struct InputEvent* event_
 
 	do
 	{
-		if (cur_event->ie_Class == IECLASS_RAWKEY)
+		switch(cur_event->ie_Class)
 		{
-			bool pressed = !(cur_event->ie_Code & 0x80);
-
-#ifdef DEBUG
-			kprintf("Key scancode 0x%02lx %s\n", (cur_event->ie_Code & ~0x80),  pressed ? "pressed" : "released");
-#endif
-			if (pressed)
+			case IECLASS_RAWKEY:
 			{
-				/* Check for letter key using console.device and default system keymap */
-				char buffer;
-				int32_t result = RawKeyConvert(cur_event, &buffer, sizeof(buffer), NULL);
+				bool pressed = !(cur_event->ie_Code & 0x80);
 
-				if (result > 0)
-				{
 #ifdef DEBUG
-					kprintf("RawKeyConvert() returned %ld, 0x%02lx -> %lc\n", result, cur_event->ie_Code, buffer);
+				kprintf("Key scancode 0x%02lx %s\n", (cur_event->ie_Code & ~0x80),  pressed ? "pressed" : "released");
 #endif
-					pt1210_keyboard_update_character_key(buffer);
+				if (pressed)
+				{
+					/* Check for letter key using console.device and default system keymap */
+					char buffer;
+					int32_t result = RawKeyConvert(cur_event, &buffer, sizeof(buffer), NULL);
+
+					if (result > 0)
+					{
+#ifdef DEBUG
+						kprintf("RawKeyConvert() returned %ld, 0x%02lx -> %lc\n", result, cur_event->ie_Code, buffer);
+#endif
+						pt1210_keyboard_update_character_key(buffer);
+					}
 				}
+
+				pt1210_keyboard_update_raw_key(cur_event->ie_Code);
+
+				/* Unlink this event so it doesn't get passed down the handler chain */
+				if (prev_event)
+					prev_event->ie_NextEvent = cur_event->ie_NextEvent;
+				else
+					event_list = cur_event->ie_NextEvent;
+
+				break;
 			}
 
-			pt1210_keyboard_update_raw_key(cur_event->ie_Code);
-
-			/* Unlink this event so it doesn't get passed down the handler chain */
-			if (prev_event)
-				prev_event->ie_NextEvent = cur_event->ie_NextEvent;
-			else
-				event_list = cur_event->ie_NextEvent;
+			case IECLASS_DISKINSERTED:
+			case IECLASS_DISKREMOVED:
+				/* Signal the main task to refresh the file selector */
+				pt1210_defer_function(pt1210_fs_on_disk_change);
+				break;
 		}
 
 		prev_event = cur_event;
