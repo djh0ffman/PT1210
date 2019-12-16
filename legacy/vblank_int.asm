@@ -19,8 +19,12 @@ _pt1210_gfx_vblank_server_proc
 		tst.b d0
 		beq.w .quit
 
-		; Re-load copper lists otherwise we get the OS intuition screen copper list
 		move.l	#$dff000,a6
+
+		; Ensure blitter isn't busy before we mess with the copper
+		WAITBLIT
+
+		; Re-load copper lists otherwise we get the OS intuition screen copper list
 		move.l	#_hud_cop,cop1lc(a6)
 
 		tst.l	_pt1210_state+gs_screen

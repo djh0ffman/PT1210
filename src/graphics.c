@@ -43,6 +43,9 @@ static bool screen_active = false;
 
 static inline void restore_copper()
 {
+	/* Wait until blitter isn't busy */
+	WaitBlit();
+
 	/* Restore original Copper list */
 	custom.cop1lc = (ULONG) GfxBase->copinit;
 }
