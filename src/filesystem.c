@@ -26,6 +26,7 @@
 #include "utility.h"
 #include "version.h"
 
+static struct FileInfoBlock __aligned fib;
 static memory_buffer_t mod_pattern;
 static memory_buffer_t mod_sample;
 
@@ -197,41 +198,34 @@ void pt1210_file_gen_file_list(bool refresh)
 
 	file_list_t* list_entry = &pt1210_file_list[0];
 
-	/* Get a longword-aligned block of memory to store the file information block */
-	struct FileInfoBlock* fib = AllocMem(sizeof(*fib), MEMF_CLEAR | MEMF_PUBLIC);
-	if (!fib)
-		return;
-
 	/* Add "parent directory" entry */
 	list_entry->type = ENTRY_PARENT;
 	strcpy(list_entry->file_name, "PARENT");
 	pt1210_file_count = 1;
 
 	/* Iterate over directory contents and search for modules */
-	if (Examine(current_dir_lock, fib))
+	if (Examine(current_dir_lock, &fib))
 	{
 		while (pt1210_file_count < MAX_FILE_COUNT)
 		{
-			if (!ExNext(current_dir_lock, fib))
+			if (!ExNext(current_dir_lock, &fib))
 				break;
 
 			/* If DirEntryType is >0, it's a directory) */
-			if (fib->fib_DirEntryType > 0)
+			if (fib.fib_DirEntryType > 0)
 			{
 				list_entry = &pt1210_file_list[pt1210_file_count];
 				list_entry->type = ENTRY_DIRECTORY;
-				strncpy(list_entry->file_name, fib->fib_FileName, MAX_FILE_NAME_LENGTH);
+				strncpy(list_entry->file_name, fib.fib_FileName, MAX_FILE_NAME_LENGTH);
 				++pt1210_file_count;
 			}
 			else
 			{
 				/* Check this file is a module and add it to the file browser if so */
-				pt1210_file_check_module(fib);
+				pt1210_file_check_module(&fib);
 			}
 		}
 	}
-
-	FreeMem(fib, sizeof(*fib));
 
 	pt1210_file_write_cache();
 
