@@ -109,8 +109,9 @@ _pt1210_gfx_vblank_server_proc
 	move.l	VBIptr(pc),d0
 	beq.b	.noVBI
 
-	move.l	#$dff000,a6					; Re-load copper lists as OS can trash them
-	move.l	#_hud_cop,cop1lc(a6)
+	move.l	#$dff000,a6
+	WAITBLIT						; Ensure blitter isn't busy before we mess with the copper
+	move.l	#_hud_cop,cop1lc(a6)	; Re-load copper lists as Intuition will be trying to load its own
 
 	tst.l	_pt1210_state+gs_screen
 	bne.b	.dj
