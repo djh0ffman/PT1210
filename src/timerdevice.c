@@ -33,17 +33,17 @@ uint8_t pt1210_time_minutes;
 
 bool pt1210_timer_open_device()
 {
-    device_open = !OpenDevice("timer.device", 0, &time_request, 0);
+	device_open = !OpenDevice("timer.device", 0, &time_request, 0);
 
-    if (!device_open)
+	if (!device_open)
 	{
 		fprintf(stderr, "Failed to open timer device");
 		return false;
 	}
 
-    TimerBase = time_request.io_Device;
+	TimerBase = time_request.io_Device;
 
-    return true;
+	return true;
 }
 
 void pt1210_timer_close_device()
@@ -54,31 +54,33 @@ void pt1210_timer_close_device()
 
 void pt1210_timer_reset()
 {
+	GetSysTime(&time_now);
+	time_start = time_now;
 	time_pause = time_now;
 }
 
 void pt1210_timer_pause()
 {
-    GetSysTime(&time_pause);
-    paused = true;
+	GetSysTime(&time_pause);
+	paused = true;
 }
 
 void pt1210_timer_play()
 {
-    GetSysTime(&time_now);
-    SubTime(&time_now, &time_pause);
-    AddTime(&time_start, &time_now);
-    paused = false;
+	GetSysTime(&time_now);
+	SubTime(&time_now, &time_pause);
+	AddTime(&time_start, &time_now);
+	paused = false;
 }
 
 void pt1210_timer_update()
 {
-    GetSysTime(&time_now);
+	GetSysTime(&time_now);
 	if (paused)
-        time_now = time_pause;
+		time_now = time_pause;
 
-    SubTime(&time_now, &time_start);
+	SubTime(&time_now, &time_start);
 
-    pt1210_time_seconds = (time_now.tv_secs % 60);
-    pt1210_time_minutes = (time_now.tv_secs / 60);
+	pt1210_time_seconds = (time_now.tv_secs % 60);
+	pt1210_time_minutes = (time_now.tv_secs / 60);
 }
