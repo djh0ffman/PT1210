@@ -54,10 +54,7 @@ void pt1210_timer_close_device()
 
 void pt1210_timer_reset()
 {
-    GetSysTime(&time_now);
-    time_start = time_now;
-    time_pause = time_now;
-    paused = true;
+	time_pause = time_now;
 }
 
 void pt1210_timer_pause()

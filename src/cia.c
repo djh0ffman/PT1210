@@ -22,6 +22,7 @@
 #include "cia.h"
 #include "utility.h"
 #include "state.h"
+#include "timerdevice.h"
 
 extern struct CIA ciab;
 
@@ -85,6 +86,7 @@ void pt1210_cia_interrupt_proc()
 	{
 		mt_end();
 		mt_Enabled = false;
+		pt1210_timer_pause();
 		return;
 	}
 
