@@ -31,7 +31,7 @@ extern struct Custom custom;
 
 static struct Screen* screen = NULL;
 static struct Interrupt* vblank_server = NULL;
-/*static*/ bool vblank_enabled = true;
+/*static*/ bool vblank_enabled = false;
 
 bool pt1210_gfx_open_screen()
 {
