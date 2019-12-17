@@ -20,9 +20,10 @@
 #include <resources/cia.h>
 
 #include "cia.h"
-#include "utility.h"
+#include "player.h"
 #include "state.h"
 #include "timerdevice.h"
+#include "utility.h"
 
 extern struct CIA ciab;
 
@@ -55,15 +56,6 @@ uint16_t pt1210_cia_display_bpm;		/* resulting display BPM after frames per beat
 uint16_t pt1210_cia_track_display_bpm;	/* resulting display BPM after frames per beat adjustment */
 
 uint16_t pt1210_cia_frames_per_beat;	/* The frames-per-beat value as set from parsing a magic sample names */
-
-/* ASM player variables */
-extern bool mt_TuneEnd;
-extern bool mt_Enabled;
-
-/* ASM player functions */
-void mt_music();
-void mt_retune();
-void mt_end();
 
 /* Called by the CIA timer interrupt */
 void pt1210_cia_interrupt_proc()

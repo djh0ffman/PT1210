@@ -22,6 +22,7 @@
 #include "fileselector.h"
 #include "filesystem.h"
 #include "graphics.h"
+#include "player.h"
 #include "timerdevice.h"
 #include "utility.h"
 #include "version.h"
@@ -39,12 +40,9 @@ static BPTR current_dir_lock = 0;
 
 /* Imported from ASM code */
 extern bool pt1210_fs_rescan_pending;
-extern bool mt_Enabled;
 extern char FS_LoadErrBuff[80];
 void FS_Reset();
 void ScopeStop();
-void mt_init(REG(a0, void* pattern_data),REG(a2, void* sample_data),REG(d7, uint32_t sample_length));
-void mt_end();
 
 static const char* error_memory = "NOT ENOUGH MEMORY";
 static const char* error_loading = "LOADING ERROR : $%08lx";

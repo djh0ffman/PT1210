@@ -49,10 +49,7 @@ static const char* avail_template = "CHIP: %lukb FAST: %lukb";
 extern file_list_t pt1210_file_list[MAX_FILE_COUNT];
 extern uint16_t pt1210_file_count;
 
-/* ASM player variables */
-/* TODO: Rename so the names are more in line with our new C code */
 extern bool pt1210_fs_rescan_pending;
-extern bool mt_Enabled;
 
 /* Offscreen drawing buffer in chip ram */
 extern uint8_t dir[6000];

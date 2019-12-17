@@ -20,33 +20,10 @@
 #include "filesystem.h"
 #include "gameport.h"
 #include "keyboard.h"
+#include "player.h"
 #include "pt1210.h"
 #include "timerdevice.h"
 #include "utility.h"
-
-/* ASM player variables */
-/* TODO: Rename so the names are more in line with our new C code */
-extern bool mt_TuneEnd;
-extern bool mt_Enabled;
-
-extern uint8_t mt_PatternLock;
-extern uint8_t mt_PatLockStart;
-extern uint8_t mt_PatLockEnd;
-
-extern uint8_t* mt_SongDataPtr;
-extern uint8_t mt_speed;
-extern uint8_t mt_counter;
-extern uint8_t mt_SongLen;
-extern uint8_t mt_SongPos;
-extern uint16_t mt_PatternPos;
-extern uint8_t mt_SLSongPos;
-extern uint16_t mt_SLPatternPos;
-extern uint8_t mt_PatternCue;
-extern uint8_t mt_PattDelTime;
-extern uint8_t mt_PattDelTime2;
-
-/* ASM functions */
-void mt_end();
 
 /* Wrapper for pt1210_fs_rescan() that causes it to rebuild the cache */
 static void rescan_wrapper() { pt1210_fs_rescan(true); };

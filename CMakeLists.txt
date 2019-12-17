@@ -203,6 +203,7 @@ add_executable(pt1210
 	include/input.h
 	include/inputdevice.h
 	include/keyboard.h
+	include/player.h
 	include/pt1210.h
 	include/timerdevice.h
 	include/utility.h
