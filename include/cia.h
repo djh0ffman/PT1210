@@ -11,11 +11,11 @@
  * CIA timer allocation/release and functionality.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #ifndef CIA_H
 #define CIA_H
+
+#include <stdbool.h>
+#include <stdint.h>
 
 #define CIA_MIN_BPM			32
 #define CIA_MAX_BPM			300

@@ -11,12 +11,12 @@
  * Joystick/CD32 gamepad handling and button bindings.
  */
 
+#ifndef GAMEPORT_H
+#define GAMEPORT_H
+
 #include <stdbool.h>
 
 #include "state.h"
-
-#ifndef GAMEPORT_H
-#define GAMEPORT_H
 
 /* POTGO/POTGOR (aka. POTINP) bit definitions */
 #define POTGOB_START (0)		/* Start pot counters */

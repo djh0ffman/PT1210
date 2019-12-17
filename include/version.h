@@ -11,4 +11,9 @@
  * Embedded version information.
  */
 
+#ifndef VERSION_H
+#define VERSION_H
+
 extern const char* pt1210_version;
+
+#endif /* VERSION_H */
