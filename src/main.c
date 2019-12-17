@@ -20,7 +20,6 @@
 #include "audiodevice.h"
 #include "cia.h"
 #include "consoledevice.h"
-#include "fileselector.h"
 #include "filesystem.h"
 #include "gameport.h"
 #include "graphics.h"
@@ -30,64 +29,79 @@
 
 int main(int argc, char** argv)
 {
+	int return_code = EXIT_FAILURE;
+
 	/* Init filesystem */
 	pt1210_file_initialize();
 
 	/* Attempt to open console device */
 	if (!pt1210_console_open_device())
-		return EXIT_FAILURE;
+		goto cleanup_file;
 
 	/* Attempt to open input device and install handler */
 	if (!pt1210_input_open_device())
-		return EXIT_FAILURE;
+		goto cleanup_console_device;
 
 	if (!pt1210_input_install_handler())
-		return EXIT_FAILURE;
+		goto cleanup_input_device;
 
 	/* Attempt to open gameport */
 	pt1210_gameport_allocate();
 
 	/* Attempt to allocate audio device */
 	if (!pt1210_audio_open_device())
-		return EXIT_FAILURE;
+		goto cleanup_gameport;
 
 	/* Attempt to allocate CIA timer */
 	if (!pt1210_cia_allocate_timer())
-		return EXIT_FAILURE;
+		goto cleanup_audio_device;
 
 	/* Attempt to open a custom Intuition screen */
 	if (!pt1210_gfx_open_screen())
-		return EXIT_FAILURE;
+		goto cleanup_cia_timer;
 
 	/* Attempt to install the VBlank interrupt server */
 	if (!pt1210_gfx_install_vblank_server())
-		return EXIT_FAILURE;
+		goto cleanup_screen;
 
+	/* Attempt to open the timer device */
 	if (!pt1210_timer_open_device())
-		return EXIT_FAILURE;
+		goto cleanup_vblank_server;
 
+	/* Attempt to initialize PT-1210 itself */
 	if (!pt1210_initialize())
-		return EXIT_FAILURE;
+		goto cleanup_timer_device;
+
+	/* All subsystems successfully initialized, set success return code */
+	return_code = EXIT_SUCCESS;
 
 	/* Enter the main loop */
 	pt1210_main();
 
+	/* Clean up PT-1210 */
 	pt1210_shutdown();
 
-	pt1210_cia_stop_timer();
-	pt1210_file_free_tune_memory();
-
-	/* Clean up */
+	/* Clean up subsystems */
+cleanup_timer_device:
 	pt1210_timer_close_device();
+cleanup_vblank_server:
 	pt1210_gfx_remove_vblank_server();
+cleanup_screen:
 	pt1210_gfx_close_screen();
+cleanup_cia_timer:
 	pt1210_cia_free_timer();
+cleanup_audio_device:
 	pt1210_audio_close_device();
+cleanup_gameport:
 	pt1210_gameport_free();
+/*cleanup_input_handler:*/
 	pt1210_input_remove_handler();
+cleanup_input_device:
 	pt1210_input_close_device();
+cleanup_console_device:
 	pt1210_console_close_device();
+cleanup_file:
 	pt1210_file_shutdown();
 
-	return EXIT_SUCCESS;
+	return return_code;
 }

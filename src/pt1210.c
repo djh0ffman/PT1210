@@ -149,9 +149,18 @@ void pt1210_main()
 
 void pt1210_shutdown()
 {
-	/* Free signal bit */
-	FreeSignal(signal_bit);
-
 	/* Kill sound DMA */
 	mt_end();
+
+	/* Stop VBlank */
+	pt1210_gfx_enable_vblank_server(false);
+
+	/* Stop timer interrupt */
+	pt1210_cia_stop_timer();
+
+	/* Release module memory, if we're using any */
+	pt1210_file_free_tune_memory();
+
+	/* Free signal bit */
+	FreeSignal(signal_bit);
 }
