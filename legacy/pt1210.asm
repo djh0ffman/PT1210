@@ -247,7 +247,7 @@ _pt1210_asm_initialize
 		swap	d0
 		move.w	d0,2(a0)
 
-		move.l	#_dir,d0
+		move.l	#_pt1210_fs_bitplane,d0
 		addq.l	#8,a0
 		move.w	d0,6(a0)
 		swap	d0

@@ -39,8 +39,6 @@ static BPTR old_dir_lock = 0;
 static BPTR current_dir_lock = 0;
 
 /* Imported from ASM code */
-extern bool pt1210_fs_rescan_pending;
-extern char FS_LoadErrBuff[80];
 void FS_Reset();
 void ScopeStop();
 

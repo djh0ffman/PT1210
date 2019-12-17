@@ -30,9 +30,10 @@ static file_sort_key_t sort_key = SORT_NAME;
 static bool sort_descending = false;
 
 static size_t current = 0;
-/*static*/ size_t list_pos = 0;
+static size_t list_pos = 0;
 
 static char fs_text[FS_HEIGHT_CHARS][FS_WIDTH_CHARS];
+/*static*/ uint8_t __chip pt1210_fs_bitplane[FS_BITPLANE_SIZE_BYTES];
 
 static const char* error_template = "--------------------------------------- "
 									"%-" STR(FS_WIDTH_CHARS) "c"
@@ -49,25 +50,20 @@ static const char* avail_template = "CHIP: %lukb FAST: %lukb";
 extern file_list_t pt1210_file_list[MAX_FILE_COUNT];
 extern uint16_t pt1210_file_count;
 
-extern bool pt1210_fs_rescan_pending;
-
-/* Offscreen drawing buffer in chip ram */
-extern uint8_t dir[6000];
-
 /* ASM functions */
-void FS_Copper();
-void FS_CopperClr();
-
 void ST_Type(REG(a0, const char* text), REG(a1, void* dest_surface), REG(d7, uint8_t num_lines));
 void UI_TypeTitle(REG(a0, void*),REG(d4, uint32_t));
 
-static void fs_clear()
+/* Reference to start of ASM copper list instructions that draw selector line */
+extern volatile uint16_t selectaline[];
+
+static void clear_list()
 {
 	memset(fs_text, ' ', sizeof(fs_text));
-	memset(dir, 0, sizeof(dir));
+	memset(pt1210_fs_bitplane, 0, sizeof(pt1210_fs_bitplane));
 }
 
-void pt1210_fs_draw_dir()
+static void draw_list()
 {
 	size_t offset = current - list_pos;
 	size_t draw_len = min(FS_HEIGHT_CHARS, pt1210_file_count);
@@ -142,12 +138,42 @@ void pt1210_fs_draw_dir()
 	/* If the parent dir entry is all we have, show the no mods message */
 	if (!show_volumes && pt1210_file_count == 1)
 	{
-		ST_Type(fs_text[0], &dir[80], 0);
+		ST_Type(fs_text[0], &pt1210_fs_bitplane[FS_TEXT_OFFSET], 0);
 		pt1210_fs_draw_error(error_no_modules);
 		return;
 	}
 
-	ST_Type(fs_text[0], &dir[80], FS_HEIGHT_CHARS - 1);
+	ST_Type(fs_text[0], &pt1210_fs_bitplane[FS_TEXT_OFFSET], FS_HEIGHT_CHARS - 1);
+}
+
+static void clear_copper()
+{
+	/* Clear colors in selector copper list */
+	for (size_t i = 0; i < FS_HEIGHT_CHARS; ++i)
+	{
+		size_t index = i * 8 + 3;
+
+		/* Skip over copper instructions that deal with line >255 */
+		if (i > 15)
+			index += 2;
+
+		selectaline[index] = 0;
+	}
+}
+
+static void update_copper()
+{
+	if (!pt1210_file_count)
+		return;
+
+	/* Poke highlight color into correct row of copper list */
+	size_t index = list_pos * 8 + 3;
+
+	/* Skip over copper instructions that deal with line >255 */
+	if (list_pos > 15)
+		index += 2;
+
+	selectaline[index] = 0x00F;
 }
 
 void pt1210_fs_set_sort(file_sort_key_t new_key)
@@ -161,7 +187,7 @@ void pt1210_fs_set_sort(file_sort_key_t new_key)
 		sort_descending = !sort_descending;
 
 	pt1210_file_sort_list(sort_key, sort_descending);
-	pt1210_fs_draw_dir();
+	draw_list();
 }
 
 void pt1210_fs_select()
@@ -199,19 +225,16 @@ void pt1210_fs_select()
 
 void pt1210_fs_rescan(bool refresh)
 {
-	/* Stop player, VBlank, and scopes */
-	/* mt_Enabled = false; */
-	/* mt_end(); */
+	/* Disable VBlank */
 	pt1210_gfx_enable_vblank_server(false);
-	/* ScopeStop(); */
 
 	/* Reset file selector indices */
 	current = 0;
 	list_pos = 0;
 
 	/* Clear text/graphics buffers */
-	fs_clear();
-	FS_CopperClr();
+	clear_list();
+	clear_copper();
 	pt1210_fs_draw_error("READING FOLDER");
 
 	/* Regenerate file list */
@@ -222,8 +245,8 @@ void pt1210_fs_rescan(bool refresh)
 	pt1210_file_sort_list(sort_key, sort_descending);
 
 	/* Redraw list display */
-	pt1210_fs_draw_dir();
-	FS_Copper();
+	draw_list();
+	update_copper();
 
 	/* Re-enable VBlank */
 	pt1210_gfx_enable_vblank_server(true);
@@ -238,8 +261,9 @@ void pt1210_fs_move(int32_t offset)
 	current = new_current;
 	list_pos = min(clamp(list_pos + offset, 0, FS_HEIGHT_CHARS - 1), pt1210_file_count - 1);
 
-	pt1210_fs_draw_dir();
-	FS_Copper();
+	draw_list();
+	clear_copper();
+	update_copper();
 }
 
 void pt1210_fs_parent()
@@ -298,7 +322,7 @@ void pt1210_fs_draw_error(const char* error_message)
 		' '
 	);
 
-	ST_Type(error_buffer, &dir[80 + 10 * 7 * FS_WIDTH_CHARS], 4);
+	ST_Type(error_buffer, &pt1210_fs_bitplane[FS_ERROR_MSG_OFFSET], 4);
 }
 
 bool pt1210_fs_find_next(char key, size_t* index)

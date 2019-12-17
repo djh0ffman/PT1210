@@ -224,27 +224,32 @@ _fillb_planes	dc.w	bplpt+8,$0
 		dc.w	$184,$fff
 		dc.w	$188,$000
 
-_selectaline	dc.w	$9101,$fffe,$188,$00,$9601,$fffe,$188,$000,$188,$000
-_selectanext	dc.w	$9801,$fffe,$188,$00,$9d01,$fffe,$188,$000,$188,$000
-		dc.w	$9f01,$fffe,$188,$00,$a401,$fffe,$188,$000,$188,$000
-		dc.w	$a601,$fffe,$188,$00,$ab01,$fffe,$188,$000,$188,$000
-		dc.w	$ad01,$fffe,$188,$00,$b201,$fffe,$188,$000,$188,$000
-		dc.w	$b401,$fffe,$188,$00,$b901,$fffe,$188,$000,$188,$000
-		dc.w	$bb01,$fffe,$188,$00,$c001,$fffe,$188,$000,$188,$000
-		dc.w	$c201,$fffe,$188,$00,$c701,$fffe,$188,$000,$188,$000
-		dc.w	$c901,$fffe,$188,$00,$ce01,$fffe,$188,$000,$188,$000
-		dc.w	$d001,$fffe,$188,$00,$d501,$fffe,$188,$000,$188,$000
-		dc.w	$d701,$fffe,$188,$00,$dc01,$fffe,$188,$000,$188,$000
-		dc.w	$de01,$fffe,$188,$00,$e301,$fffe,$188,$000,$188,$000
-		dc.w	$e501,$fffe,$188,$00,$ea01,$fffe,$188,$000,$188,$000
-		dc.w	$ec01,$fffe,$188,$00,$f101,$fffe,$188,$000,$188,$000
-		dc.w	$f301,$fffe,$188,$00,$f801,$fffe,$188,$000,$188,$000
-		dc.w	$fa01,$fffe,$188,$00,$ff01,$fffe,$188,$000,$ffdf,$fffe
-		dc.w	$0101,$fffe,$188,$00,$0601,$fffe,$188,$000,$188,$000
-		dc.w	$0801,$fffe,$188,$00,$0d01,$fffe,$188,$000,$188,$000
-		dc.w	$0f01,$fffe,$188,$00,$1401,$fffe,$188,$000,$188,$000
-		dc.w	$1601,$fffe,$188,$00,$1b01,$fffe,$188,$000,$188,$000
-		dc.w	$1d01,$fffe,$188,$00,$2201,$fffe,$188,$000,$188,$000
+_selectaline
+		dc.w	$9101,$fffe,$188,$000,$9601,$fffe,$188,$000
+		dc.w	$9801,$fffe,$188,$000,$9d01,$fffe,$188,$000
+		dc.w	$9f01,$fffe,$188,$000,$a401,$fffe,$188,$000
+		dc.w	$a601,$fffe,$188,$000,$ab01,$fffe,$188,$000
+		dc.w	$ad01,$fffe,$188,$000,$b201,$fffe,$188,$000
+		dc.w	$b401,$fffe,$188,$000,$b901,$fffe,$188,$000
+		dc.w	$bb01,$fffe,$188,$000,$c001,$fffe,$188,$000
+		dc.w	$c201,$fffe,$188,$000,$c701,$fffe,$188,$000
+		dc.w	$c901,$fffe,$188,$000,$ce01,$fffe,$188,$000
+		dc.w	$d001,$fffe,$188,$000,$d501,$fffe,$188,$000
+		dc.w	$d701,$fffe,$188,$000,$dc01,$fffe,$188,$000
+		dc.w	$de01,$fffe,$188,$000,$e301,$fffe,$188,$000
+		dc.w	$e501,$fffe,$188,$000,$ea01,$fffe,$188,$000
+		dc.w	$ec01,$fffe,$188,$000,$f101,$fffe,$188,$000
+		dc.w	$f301,$fffe,$188,$000,$f801,$fffe,$188,$000
+		dc.w	$fa01,$fffe,$188,$000,$ff01,$fffe,$188,$000
+
+		; Special instruction for waiting beyond line 255
+		dc.w	$ffdf,$fffe
+
+		dc.w	$0101,$fffe,$188,$000,$0601,$fffe,$188,$000
+		dc.w	$0801,$fffe,$188,$000,$0d01,$fffe,$188,$000
+		dc.w	$0f01,$fffe,$188,$000,$1401,$fffe,$188,$000
+		dc.w	$1601,$fffe,$188,$000,$1b01,$fffe,$188,$000
+		dc.w	$1d01,$fffe,$188,$000,$2201,$fffe,$188,$000
 
 		dc.w	$2401,$fffe
 		dc.w	$188,$333
@@ -253,9 +258,6 @@ _selectanext	dc.w	$9801,$fffe,$188,$00,$9d01,$fffe,$188,$000,$188,$000
 
 		dc.w	$ffff,$fffe
 		dc.w	$ffff,$fffe
-
-_selectasize =	_selectanext-_selectaline
-
 
 _cSwitch	dc.w	$8f01,$fffe
 _cSelect	dc.w	$8f01,$fffe
@@ -339,9 +341,6 @@ _track		dcb.b	40*9*3
 
 ; Another magic section name '.bss_chip' to get a chip RAM BSS hunk.
 	section .bss_chip,bss_c
-
-_dir			ds.b	FS_ListMax*7*40+(40*3),0
-_dirend
 
 _basepattern	ds.b	40*PT_LineHeight
 

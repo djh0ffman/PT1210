@@ -19,9 +19,19 @@
 
 #include "filesystem.h"
 
+#define FS_FONT_HEIGHT	7
 #define FS_WIDTH_CHARS	40
 #define FS_HEIGHT_CHARS	21
 #define FS_TITLE_CHARS	30
+
+/* W x H characters plus 3 rows of padding for the bottom */
+#define FS_BITPLANE_SIZE_BYTES (FS_FONT_HEIGHT * FS_WIDTH_CHARS * FS_HEIGHT_CHARS + 3 * FS_WIDTH_CHARS)
+
+/* 2 rows of padding for the top when drawing text */
+#define FS_TEXT_OFFSET (2 * FS_WIDTH_CHARS)
+
+/* Draw error messages starting from the 10th row */
+#define FS_ERROR_MSG_OFFSET (FS_TEXT_OFFSET + 10 * FS_FONT_HEIGHT * FS_WIDTH_CHARS)
 
 void pt1210_fs_draw_avail_ram();
 void pt1210_fs_draw_dir();

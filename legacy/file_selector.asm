@@ -4,45 +4,11 @@
 
 ; Imports from C code
 	XREF _pt1210_file_count
-	XREF _list_pos
+	XREF _pt1210_fs_bitplane
 
 ; Exports to C code
-	XDEF _FS_Copper
-	XDEF _FS_CopperClr
 	XDEF _FS_Reset
-	XDEF _dir
-
-_FS_Copper	cmp.w	#$0,_pt1210_file_count
-			bgt.b	.go
-			bsr	_FS_CopperClr
-			rts
-
-.go			movem.l	d0-a6,-(sp)
-			moveq	#0,d0
-			move.l	_list_pos,d0
-			move.w	#FS_ListMax-1,d7
-			lea	_selectaline,a0
-.loop		clr.w	6(a0)
-			tst.w	d0
-			bne.b	.skip
-			nop
-			move.w	#$00f,6(a0)
-
-.skip		subq.w	#1,d0
-			lea	_selectasize(a0),a0
-			dbra	d7,.loop
-			movem.l	(sp)+,d0-a6
-			rts
-
-_FS_CopperClr	movem.l	d0-a6,-(sp)
-			moveq	#0,d0
-			move.w	#FS_ListMax-1,d7
-			lea	_selectaline,a0
-.loop		clr.w	6(a0)
-			lea	_selectasize(a0),a0
-			dbra	d7,.loop
-			movem.l	(sp)+,d0-a6
-			rts
+	XDEF _selectaline
 
 _FS_Reset	movem.l	d0-a6,-(sp)
 			move.b	#125,_pt1210_cia_base_bpm
@@ -79,5 +45,4 @@ _FS_Reset	movem.l	d0-a6,-(sp)
 			movem.l	(sp)+,d0-a6
 			rts
 
-FS_ListMax	=	21
 			even
