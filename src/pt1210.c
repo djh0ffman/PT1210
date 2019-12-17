@@ -21,9 +21,6 @@
 #include <clib/debug_protos.h>
 #include <proto/exec.h>
 
-void pt1210_asm_initialize();
-void pt1210_asm_shutdown();
-
 /* Program state */
 volatile global_state_t pt1210_state =
 {
@@ -50,6 +47,7 @@ static struct Task* task = NULL;
 static deferred_function_t deferred_func = NULL;
 
 /* ASM functions */
+void pt1210_asm_initialize();
 void UI_Reset();
 
 void pt1210_defer_function(deferred_function_t func)
@@ -154,6 +152,6 @@ void pt1210_shutdown()
 	/* Free signal bit */
 	FreeSignal(signal_bit);
 
-	/* Do some remaining ASM cleanup */
-	pt1210_asm_shutdown();
+	/* Kill sound DMA */
+	mt_end();
 }

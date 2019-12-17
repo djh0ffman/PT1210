@@ -14,6 +14,7 @@
 *
 ***************************************************************************
 
+	include	hardware/custom.i
 	include state.i
 
 SW_Splash = 0		; Include splash screen
@@ -22,7 +23,6 @@ SW_Splash = 0		; Include splash screen
 
 ; Exports for C code (places them in global scope)
 	XDEF _pt1210_asm_initialize
-	XDEF _pt1210_asm_shutdown
 	XDEF _pt1210_gfx_vblank_server_proc
 
 ; Imports from C code
@@ -33,20 +33,6 @@ SW_Splash = 0		; Include splash screen
 	XREF _pt1210_cia_display_bpm
 	XREF _pt1210_cia_track_display_bpm
 	XREF _pt1210_fs_bitplane
-
-FONTWIDTH = 64
-
-TIMERSET	= %1100000000001000
-TIMERCLR	= %0100000000001000
-;		   ab-------cdefg--
-;	a: SET/CLR Bit
-;	b: Master Bit
-;	c: Blitter Int
-;	d: Vert Blank Int
-;	e: Copper Int
-;	f: IO Ports/Timers
-;	g: Software Int
-
 
 ***************************************************
 *** MACRO DEFINITION				***
@@ -131,9 +117,6 @@ _pt1210_gfx_vblank_server_proc
 ************************************
 ** The mega mod player by h0ffman **
 ************************************
-
-	include	hardware/custom.i
-
 
 		ifne	SW_Splash
 splashkill	movem.l	d0-a6,-(sp)
@@ -268,15 +251,6 @@ _pt1210_asm_initialize
  		movem.l	(sp)+,d0-a6
 		rts
 
-_pt1210_asm_shutdown
-		movem.l	d0-a6,-(sp)
-		jsr	_mt_end
-
-		;bsr	kbrem
-
-		movem.l	(sp)+,d0-a6
-		rts
-
 		include vblank_int.asm
 		include ui.asm
 		include pattern_render.asm
@@ -285,5 +259,3 @@ _pt1210_asm_shutdown
 		include data_fast.asm
 		include data_chip.asm
 		include splash_screen.asm
-
-
