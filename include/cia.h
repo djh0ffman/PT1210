@@ -22,19 +22,18 @@
 #define CIA_SEED_PAL		1773447
 #define CIA_SEED_NTSC		1789773
 
-/* Global variables */
-extern uint8_t pt1210_cia_base_bpm;
-extern int16_t pt1210_cia_offset_bpm;
-extern uint8_t pt1210_cia_fine_offset;
-extern int16_t pt1210_cia_nudge_bpm;
-extern uint16_t pt1210_cia_display_bpm;
-extern uint16_t pt1210_cia_track_display_bpm;
-extern uint16_t pt1210_cia_frames_per_beat;
-
 bool pt1210_cia_allocate_timer();
 void pt1210_cia_free_timer();
 void pt1210_cia_start_timer();
 void pt1210_cia_stop_timer();
+void pt1210_cia_set_frames_per_beat(uint8_t frames);
 void pt1210_cia_set_bpm(uint8_t bpm);
+void pt1210_cia_set_nudge(int8_t nudge);
+void pt1210_cia_increment_bpm_coarse();
+void pt1210_cia_decrement_bpm_coarse();
+void pt1210_cia_increment_bpm_fine();
+void pt1210_cia_decrement_bpm_fine();
+void pt1210_cia_update_bpm();
+void pt1210_cia_reset_bpm();
 
 #endif /* CIA_H */

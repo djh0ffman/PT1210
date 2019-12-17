@@ -59,9 +59,7 @@ void pt1210_defer_function(deferred_function_t func)
 void pt1210_reset()
 {
 	/* Reset CIA */
-	pt1210_cia_base_bpm = 125;
-	pt1210_cia_offset_bpm = 0;
-	pt1210_cia_fine_offset = 0;
+	pt1210_cia_reset_bpm();
 
 	/* Re-enable all audio channels */
 	pt1210_state.player.channel_toggle = 0xF;

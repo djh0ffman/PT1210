@@ -38,56 +38,42 @@ void pt1210_action_switch_screen()
 
 void pt1210_action_pitch_up()
 {
-	if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm < CIA_MAX_BPM)
-		++pt1210_cia_offset_bpm;
+	pt1210_cia_increment_bpm_coarse();
 }
 
 void pt1210_action_pitch_down()
 {
-	if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm > CIA_MIN_BPM)
-		--pt1210_cia_offset_bpm;
+	pt1210_cia_decrement_bpm_coarse();
 }
 
 void pt1210_action_pitch_up_fine()
 {
-	if (pt1210_cia_fine_offset + 1 < 16)
-		++pt1210_cia_fine_offset;
-	else if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm < CIA_MAX_BPM)
-	{
-		++pt1210_cia_offset_bpm;
-		pt1210_cia_fine_offset = 0;
-	}
+	pt1210_cia_increment_bpm_fine();
 }
 
 void pt1210_action_pitch_down_fine()
 {
-	if (pt1210_cia_fine_offset > 0)
-		--pt1210_cia_fine_offset;
-	else if (pt1210_cia_base_bpm + pt1210_cia_offset_bpm > CIA_MIN_BPM)
-	{
-		--pt1210_cia_offset_bpm;
-		pt1210_cia_fine_offset = 15;
-	}
+	pt1210_cia_decrement_bpm_fine();
 }
 
 void pt1210_action_nudge_forward()
 {
-	pt1210_cia_nudge_bpm = 1;
+	pt1210_cia_set_nudge(1);
 }
 
 void pt1210_action_nudge_backward()
 {
-	pt1210_cia_nudge_bpm = -1;
+	pt1210_cia_set_nudge(-1);
 }
 
 void pt1210_action_nudge_forward_hard()
 {
-	pt1210_cia_nudge_bpm = 6;
+	pt1210_cia_set_nudge(6);
 }
 
 void pt1210_action_nudge_backward_hard()
 {
-	pt1210_cia_nudge_bpm = -6;
+	pt1210_cia_set_nudge(-6);
 }
 
 void pt1210_action_play_pause()

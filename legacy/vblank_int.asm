@@ -5,6 +5,8 @@
 		XDEF _pt1210_gfx_vblank_server_proc
 
 		; Imports from C code
+		XREF _pt1210_cia_set_nudge
+		XREF _pt1210_cia_update_bpm
 		XREF _pt1210_gameport_process_buttons
 		XREF _pt1210_keyboard_process_keys
 		XREF _pt1210_timer_update
@@ -31,17 +33,18 @@ _pt1210_gfx_vblank_server_proc
 		tst.b	_vblank_enabled
 		beq.b	.quit
 
-		move.w	#0,_pt1210_cia_nudge_bpm
+		; Reset nudge back to 0
+		moveq	#0,d0
+		move.l d0,-(sp)
+		jsr	_pt1210_cia_set_nudge
+		addq #4,sp
 
 		jsr _pt1210_timer_update
 		jsr	_pt1210_keyboard_process_keys
 		jsr _pt1210_gameport_process_buttons
 
-		moveq	#0,d0
-		move.b	_pt1210_cia_base_bpm,d0
-		move.l d0,-(sp)
-		jsr	_pt1210_cia_set_bpm
-		addq #4,sp
+		; Update BPM to apply any new nudge/pitch adjustments
+		jsr	_pt1210_cia_update_bpm
 
 		bsr	UI_TrackPos
 		bsr	UI_WarnFlash

@@ -28,7 +28,6 @@ SW_Splash = 0		; Include splash screen
 ; Imports from C code
 	XREF _pt1210_cia_set_bpm
 	XREF _pt1210_cia_base_bpm
-	XREF _pt1210_cia_nudge_bpm
 	XREF _pt1210_cia_actual_bpm
 	XREF _pt1210_cia_display_bpm
 	XREF _pt1210_cia_track_display_bpm

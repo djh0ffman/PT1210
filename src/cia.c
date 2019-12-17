@@ -46,19 +46,19 @@ static uint16_t timer_value = 0;
 static uint16_t timer_prev_value = 0;	/* Previous value; allows CIA interrupt to detect change */
 
 /* For BPM calculations */
+static int16_t offset_bpm;				/* Signed coarse offset applied using coarse pitch controls */
+static uint8_t fine_offset;				/* Fine offset applied using fine pitch controls */
+static int16_t nudge_bpm;				/* Nudge offset applied using nudge controls */
+static uint16_t frames_per_beat;		/* The frames-per-beat value as set from parsing a magic sample name */
+
+/* Global variables needed by player and UI */
 uint8_t pt1210_cia_base_bpm;			/* The base BPM as set by the module */
-int16_t pt1210_cia_offset_bpm;			/* Signed coarse offset applied using coarse pitch controls */
-uint8_t pt1210_cia_fine_offset;			/* Fine offset applied using fine pitch controls */
-int16_t pt1210_cia_nudge_bpm;			/* Nudge offset applied using nudge controls */
-uint16_t pt1210_cia_adjusted_bpm;		/* The BPM with coarse adjustments applied */
 uint16_t pt1210_cia_actual_bpm;			/* The final BPM value used to set timer high/low registers, with fine adjustments applied */
 uint16_t pt1210_cia_display_bpm;		/* resulting display BPM after frames per beat adjustment */
 uint16_t pt1210_cia_track_display_bpm;	/* resulting display BPM after frames per beat adjustment */
 
-uint16_t pt1210_cia_frames_per_beat;	/* The frames-per-beat value as set from parsing a magic sample names */
-
 /* Called by the CIA timer interrupt */
-void pt1210_cia_interrupt_proc()
+static void timer_interrupt_proc()
 {
 	/* Only write CIA registers if we need to, otherwise we reset the timer manually and introduce drift */
 	if (timer_value != timer_prev_value)
@@ -103,7 +103,7 @@ bool pt1210_cia_allocate_timer()
 	timer_int.is_Node.ln_Pri = 0;
 	timer_int.is_Node.ln_Name = "PT1210 CIA Interrupt";
 	timer_int.is_Data = NULL;
-	timer_int.is_Code = pt1210_cia_interrupt_proc;
+	timer_int.is_Code = timer_interrupt_proc;
 
 	/* Try to allocate CIA B timer A */
 	if (!AddICRVector(ciab_resource, CIAICRB_TA, &timer_int))
@@ -179,17 +179,67 @@ void pt1210_cia_stop_timer()
 	Enable();
 }
 
+void pt1210_cia_set_frames_per_beat(uint8_t frames)
+{
+	frames_per_beat = frames;
+	pt1210_cia_update_bpm();
+}
+
 void pt1210_cia_set_bpm(uint8_t bpm)
 {
 	pt1210_cia_base_bpm = bpm;
-	pt1210_cia_adjusted_bpm = clamp(bpm + pt1210_cia_offset_bpm + pt1210_cia_nudge_bpm, CIA_MIN_BPM, CIA_MAX_BPM);
-	pt1210_cia_actual_bpm = (pt1210_cia_adjusted_bpm << 4) | pt1210_cia_fine_offset;
+	pt1210_cia_update_bpm();
+}
 
-	/* calculate display bpm values based on frames per beat value */
-	if (pt1210_cia_frames_per_beat > 0)
+void pt1210_cia_set_nudge(int8_t nudge)
+{
+	nudge_bpm = nudge;
+}
+
+void pt1210_cia_increment_bpm_coarse()
+{
+	if (pt1210_cia_base_bpm + offset_bpm < CIA_MAX_BPM)
+		++offset_bpm;
+}
+
+void pt1210_cia_decrement_bpm_coarse()
+{
+	if (pt1210_cia_base_bpm + offset_bpm > CIA_MIN_BPM)
+		--offset_bpm;
+}
+
+void pt1210_cia_increment_bpm_fine()
+{
+	if (fine_offset + 1 < 16)
+		++fine_offset;
+	else if (pt1210_cia_base_bpm + offset_bpm < CIA_MAX_BPM)
 	{
-		pt1210_cia_display_bpm = pt1210_cia_actual_bpm * 24 / pt1210_cia_frames_per_beat;
-		pt1210_cia_track_display_bpm = (pt1210_cia_base_bpm << 4) * 24 / pt1210_cia_frames_per_beat;
+		++offset_bpm;
+		fine_offset = 0;
+	}
+}
+
+void pt1210_cia_decrement_bpm_fine()
+{
+	if (fine_offset > 0)
+		--fine_offset;
+	else if (pt1210_cia_base_bpm + offset_bpm > CIA_MIN_BPM)
+	{
+		--offset_bpm;
+		fine_offset = 15;
+	}
+}
+
+void pt1210_cia_update_bpm()
+{
+	uint16_t adjusted_bpm = clamp(pt1210_cia_base_bpm + offset_bpm + nudge_bpm, CIA_MIN_BPM, CIA_MAX_BPM);
+	pt1210_cia_actual_bpm = (adjusted_bpm << 4) | fine_offset;
+
+	/* Calculate display BPM values based on frames per beat value */
+	if (frames_per_beat > 0)
+	{
+		pt1210_cia_display_bpm = pt1210_cia_actual_bpm * 24 / frames_per_beat;
+		pt1210_cia_track_display_bpm = (pt1210_cia_base_bpm << 4) * 24 / frames_per_beat;
 	}
 	else
 	{
@@ -199,4 +249,13 @@ void pt1210_cia_set_bpm(uint8_t bpm)
 
 	/* TODO: NTSC? */
 	timer_value = (CIA_SEED_PAL << 4) / pt1210_cia_actual_bpm;
+}
+
+void pt1210_cia_reset_bpm()
+{
+	pt1210_cia_base_bpm = 125;
+	offset_bpm = 0;
+	fine_offset = 0;
+	nudge_bpm = 0;
+	frames_per_beat = 0;
 }

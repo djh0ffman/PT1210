@@ -748,16 +748,15 @@ void pt1210_file_load_module(size_t current)
 	}
 
 	/* init module and start it up */
-	pt1210_cia_frames_per_beat = selection->frames;
 	mt_init(mod_pattern.buffer, mod_sample.buffer, mod_sample.size);
 	pt1210_fs_draw_title();
 	pt1210_reset();
+	pt1210_cia_set_frames_per_beat(selection->frames);
 	mt_Enabled = true;
 	pt1210_timer_reset();
 	pt1210_timer_play();
 	pt1210_gfx_enable_vblank_server(true);
 	pt1210_action_switch_screen();
-	return;
 }
 
 void pt1210_file_free_tune_memory()
