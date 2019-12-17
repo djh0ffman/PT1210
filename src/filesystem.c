@@ -23,6 +23,7 @@
 #include "filesystem.h"
 #include "graphics.h"
 #include "player.h"
+#include "pt1210.h"
 #include "timerdevice.h"
 #include "utility.h"
 #include "version.h"
@@ -39,7 +40,6 @@ static BPTR old_dir_lock = 0;
 static BPTR current_dir_lock = 0;
 
 /* Imported from ASM code */
-void FS_Reset();
 void ScopeStop();
 
 static const char* error_memory = "NOT ENOUGH MEMORY";
@@ -751,7 +751,7 @@ void pt1210_file_load_module(size_t current)
 	pt1210_cia_frames_per_beat = selection->frames;
 	mt_init(mod_pattern.buffer, mod_sample.buffer, mod_sample.size);
 	pt1210_fs_draw_title();
-	FS_Reset();
+	pt1210_reset();
 	mt_Enabled = true;
 	pt1210_timer_reset();
 	pt1210_timer_play();

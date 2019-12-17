@@ -1,6 +1,8 @@
 
 ** GFX data for chip ram
 
+; Exports to C code
+	XDEF _selectaline
 
 ; When linking with amiga-gcc, we need to use the
 ; magic section name '.data_chip' to get a chip RAM data hunk.

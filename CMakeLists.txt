@@ -150,7 +150,6 @@ set(LEGACY_DEPENDS
 	# ASM files 'included' by pt1210.asm
 	legacy/data_chip.asm
 	legacy/data_fast.asm
-	legacy/file_selector.asm
 	legacy/pattern_render.asm
 	legacy/player.asm
 	legacy/scope.asm

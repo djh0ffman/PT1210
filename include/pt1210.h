@@ -20,6 +20,7 @@
 typedef void (*deferred_function_t)();
 
 void pt1210_defer_function(deferred_function_t func);
+void pt1210_reset();
 void pt1210_quit();
 bool pt1210_initialize();
 void pt1210_main();

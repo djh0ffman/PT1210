@@ -14,6 +14,7 @@
 #include "cia.h"
 #include "fileselector.h"
 #include "graphics.h"
+#include "player.h"
 #include "pt1210.h"
 #include "state.h"
 
@@ -48,10 +49,47 @@ static uint8_t signal_bit = 0;
 static struct Task* task = NULL;
 static deferred_function_t deferred_func = NULL;
 
+/* ASM functions */
+void UI_Reset();
+
 void pt1210_defer_function(deferred_function_t func)
 {
 	deferred_func = func;
 	Signal(task, 1 << signal_bit);
+}
+
+void pt1210_reset()
+{
+	/* Reset CIA */
+	pt1210_cia_base_bpm = 125;
+	pt1210_cia_offset_bpm = 0;
+	pt1210_cia_fine_offset = 0;
+
+	/* Re-enable all audio channels */
+	pt1210_state.player.channel_toggle = 0xF;
+
+	/* Reset loop state */
+	pt1210_state.player.loop_active = false;
+	pt1210_state.player.loop_start = 0;
+	pt1210_state.player.loop_end = 0;
+	pt1210_state.player.loop_size = 4;
+
+	/* Reset player state */
+	pt1210_state.player.slip_on = true;
+	pt1210_state.player.repitch_enabled = true;
+	pt1210_state.player.pattern_slip_pending = false;
+
+	mt_TuneEnd = false;
+	mt_PatternLock = 0;
+	mt_PatLockStart = 0;
+	mt_PatLockEnd = 0;
+	mt_PatternCue = 0;
+
+	mt_SLSongPos = 0;
+	mt_SLPatternPos = 0;
+
+	/* Reset UI */
+	UI_Reset();
 }
 
 void pt1210_quit()

@@ -28,12 +28,11 @@ SW_Splash = 0		; Include splash screen
 ; Imports from C code
 	XREF _pt1210_cia_set_bpm
 	XREF _pt1210_cia_base_bpm
-	XREF _pt1210_cia_offset_bpm
-	XREF _pt1210_cia_fine_offset
 	XREF _pt1210_cia_nudge_bpm
 	XREF _pt1210_cia_actual_bpm
 	XREF _pt1210_cia_display_bpm
 	XREF _pt1210_cia_track_display_bpm
+	XREF _pt1210_fs_bitplane
 
 FONTWIDTH = 64
 
@@ -281,7 +280,6 @@ _pt1210_asm_shutdown
 		include vblank_int.asm
 		include ui.asm
 		include pattern_render.asm
-		include file_selector.asm
 		include scope.asm
 		include player.asm
 		include data_fast.asm

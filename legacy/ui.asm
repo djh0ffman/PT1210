@@ -8,6 +8,7 @@
 	XREF _pt1210_time_minutes
 
 ; Exports to C code
+	XDEF _UI_Reset
 	XDEF _UI_TypeTitle
 
 	include "gfx/hud_fast.asm"
@@ -22,6 +23,20 @@ UI_TogStart	= UI_TotWidth*16
 
 UI_RepitchLoc	= UI_TogStart+38
 
+_UI_Reset
+		movem.l	d0-a6,-(sp)
+
+		move.b	#-1,PT_PrevPat
+		bsr	PT_DrawPat2
+		bsr	UI_TrackDraw
+
+		move.b	#-1,UI_PatternCue
+		move.b	#-1,UI_BPMFINE
+
+		bsr	UI_CuePos
+
+		movem.l	(sp)+,d0-a6
+		rts
 
 UI_CuePos	moveq	#0,d0
 		moveq	#0,d1
