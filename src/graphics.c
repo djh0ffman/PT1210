@@ -22,6 +22,7 @@
 #include <proto/intuition.h>
 
 #include "graphics.h"
+#include "version.h"
 
 /* Assembler VBlank routine */
 void pt1210_gfx_vblank_server_proc();
@@ -47,7 +48,7 @@ bool pt1210_gfx_open_screen()
 		.ViewModes = 0,
 		.Type = CUSTOMSCREEN,
 		.Font = NULL,
-		.DefaultTitle = "PT1210",
+		.DefaultTitle = (char*) &pt1210_version[7],
 		.Gadgets = NULL,
 		.CustomBitMap = NULL
 	};
