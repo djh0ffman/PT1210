@@ -52,7 +52,7 @@ if(CPPCHECK)
 endif()
 
 # Override release C flags (defaults to -O3)
-set(CMAKE_C_FLAGS_RELEASE "-Os -s")
+set(CMAKE_C_FLAGS_RELEASE "-Os -s -fomit-frame-pointer")
 
 # Legacy ASM target
 add_library(legacy OBJECT legacy/pt1210.asm)
