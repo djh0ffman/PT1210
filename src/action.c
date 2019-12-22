@@ -242,6 +242,26 @@ void pt1210_action_toggle_slip()
 	player->slip_on = !player->slip_on;
 }
 
+void pt1210_action_solo_channel_1()
+{
+	pt1210_state.player.channel_toggle = 1;
+}
+
+void pt1210_action_solo_channel_2()
+{
+	pt1210_state.player.channel_toggle = 1 << 1;
+}
+
+void pt1210_action_solo_channel_3()
+{
+	pt1210_state.player.channel_toggle = 1 << 2;
+}
+
+void pt1210_action_solo_channel_4()
+{
+	pt1210_state.player.channel_toggle = 1 << 3;
+}
+
 void pt1210_action_toggle_channel_1()
 {
 	pt1210_state.player.channel_toggle ^= 1;
@@ -260,6 +280,11 @@ void pt1210_action_toggle_channel_3()
 void pt1210_action_toggle_channel_4()
 {
 	pt1210_state.player.channel_toggle ^= 1 << 3;
+}
+
+void pt1210_action_unmute_all_channels()
+{
+	pt1210_state.player.channel_toggle = 0x0F;
 }
 
 void pt1210_action_toggle_repitch()

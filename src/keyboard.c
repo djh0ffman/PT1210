@@ -30,6 +30,10 @@ static input_binding_t bindings_dj[] =
 	{ KEYCODE_DOWN,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_HOLD_REPEAT,		pt1210_action_pitch_down_fine 			},
 	{ KEYCODE_RIGHT,	KEYCODE_LEFT_SHIFT,	PRESS_TYPE_REPEAT, 			pt1210_action_nudge_forward_hard 		},
 	{ KEYCODE_LEFT,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_REPEAT, 			pt1210_action_nudge_backward_hard 		},
+	{ KEYCODE_1,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_1			},
+	{ KEYCODE_2,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_2			},
+	{ KEYCODE_3,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_3			},
+	{ KEYCODE_4,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_4			},
 
 	/* FIXME: duplicate bindings for L/R shift; maybe add a keycode to allow mapping both? */
 	{ KEYCODE_EQUALS,	KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_move_forward_line_loop	},
@@ -38,6 +42,10 @@ static input_binding_t bindings_dj[] =
 	{ KEYCODE_DOWN,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_HOLD_REPEAT,		pt1210_action_pitch_down_fine 			},
 	{ KEYCODE_RIGHT,	KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_REPEAT, 			pt1210_action_nudge_forward_hard 		},
 	{ KEYCODE_LEFT,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_REPEAT, 			pt1210_action_nudge_backward_hard 		},
+	{ KEYCODE_1,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_1			},
+	{ KEYCODE_2,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_2			},
+	{ KEYCODE_3,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_3			},
+	{ KEYCODE_4,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_ONESHOT,			pt1210_action_solo_channel_4			},
 
 	/* Bindings without modifier keys */
 	{ KEYCODE_ESCAPE,	KEYCODE_NONE,	PRESS_TYPE_HOLD_ONESHOT,	pt1210_action_quit						},
@@ -59,6 +67,7 @@ static input_binding_t bindings_dj[] =
 	{ KEYCODE_2,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_toggle_channel_2			},
 	{ KEYCODE_3,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_toggle_channel_3			},
 	{ KEYCODE_4,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_toggle_channel_4			},
+	{ KEYCODE_5,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_unmute_all_channels		},
 	{ KEYCODE_TAB,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_toggle_repitch			},
 	{ KEYCODE_GRAVE,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_kill_sound_dma			},
 	{ KEYCODE_EQUALS,	KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_move_forward_pattern		},
