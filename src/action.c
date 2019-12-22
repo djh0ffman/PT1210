@@ -319,23 +319,6 @@ void pt1210_action_quit()
 		pt1210_quit();
 }
 
-void pt1210_action_fs_char_handler(char character)
-{
-	/* Ignore non-printable characters */
-	if (!isprint(character))
-		return;
-
-	/* Uppercase our character */
-	character = toupper(character);
-
-	/* Find the first matching item in the file list and move to it */
-	size_t index;
-
-	/* TODO: Move this into FS */
-	if (pt1210_fs_find_next(character, &index))
-		pt1210_fs_move(index - pt1210_fs_current_index());
-}
-
 void pt1210_action_fs_page_up()
 {
 	pt1210_fs_move(-FS_HEIGHT_CHARS);

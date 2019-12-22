@@ -278,11 +278,6 @@ void pt1210_fs_parent()
 	pt1210_fs_rescan(false);
 }
 
-size_t pt1210_fs_current_index()
-{
-	return current;
-}
-
 void pt1210_fs_draw_avail_ram()
 {
 	uint32_t avail_chip = 0;
@@ -349,6 +344,21 @@ bool pt1210_fs_find_next(char key, size_t* index)
 	}
 
 	return false;
+}
+
+void pt1210_fs_on_char_input(char character)
+{
+	/* Ignore non-printable characters */
+	if (!isprint(character))
+		return;
+
+	/* Uppercase our character */
+	character = toupper(character);
+
+	/* Find the first matching item in the file list and move to it */
+	size_t index;
+	if (pt1210_fs_find_next(character, &index))
+		pt1210_fs_move(index - current);
 }
 
 void pt1210_fs_on_disk_change()

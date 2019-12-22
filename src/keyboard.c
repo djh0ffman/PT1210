@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 #include "action.h"
+#include "fileselector.h"
 #include "keyboard.h"
 #include "utility.h"
 
@@ -97,7 +98,7 @@ static bool processing_enabled = true;
 static input_binding_t* cur_binding_list = bindings_fs;
 static size_t cur_binding_list_length = ARRAY_LENGTH(bindings_fs);
 
-static input_char_handler_t cur_char_handler = pt1210_action_fs_char_handler;
+static input_char_handler_t cur_char_handler = pt1210_fs_on_char_input;
 static char cur_char = '\0';
 
 static inline bool key_active(const uint8_t* states, keyboard_keycode_t keycode)
@@ -146,7 +147,7 @@ void pt1210_keyboard_switch_binding_list(screen_state_t screen)
 		case SCREEN_FILE_SELECTOR:
 			cur_binding_list = bindings_fs;
 			cur_binding_list_length = ARRAY_LENGTH(bindings_fs);
-			cur_char_handler = pt1210_action_fs_char_handler;
+			cur_char_handler = pt1210_fs_on_char_input;
 			break;
 	}
 }
