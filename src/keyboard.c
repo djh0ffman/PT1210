@@ -121,6 +121,16 @@ void pt1210_keyboard_enable_processing(bool enabled)
 
 void pt1210_keyboard_switch_binding_list(screen_state_t screen)
 {
+	/* Clear key and binding states */
+	for (size_t i = 0; i < ARRAY_LENGTH(key_states); ++i)
+		last_key_states[i] = key_states[i] = 0;
+
+	for (size_t i = 0; i < cur_binding_list_length; ++i)
+	{
+		cur_binding_list[i].state.pressed = false;
+		cur_binding_list[i].state.frames_held = 0; 
+	}
+
 	switch (screen)
 	{
 		case SCREEN_DJ:
