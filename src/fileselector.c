@@ -52,7 +52,7 @@ extern uint16_t pt1210_file_count;
 
 /* ASM functions */
 void ST_Type(REG(a0, const char* text), REG(a1, void* dest_surface), REG(d7, uint8_t num_lines));
-void UI_TypeTitle(REG(a0, void*),REG(d4, uint32_t));
+void UI_TypeTitle(REG(a0, const char*), REG(d4, size_t));
 
 /* Reference to start of ASM copper list instructions that draw selector line */
 extern volatile uint16_t selectaline[];
@@ -299,15 +299,15 @@ void pt1210_fs_draw_avail_ram()
 
 void pt1210_fs_draw_title()
 {
-	char title_buffer[FS_TITLE_CHARS];
+	char title_buffer[FS_TITLE_CHARS + 1];
 
 	const char* mod_title = pt1210_file_get_module_title();
 	if (!mod_title)
 		return;
 
-	snprintf(title_buffer, FS_TITLE_CHARS, "%-*s", FS_TITLE_CHARS - 2, mod_title);
+	snprintf(title_buffer, sizeof(title_buffer), "%-*s", FS_TITLE_CHARS, mod_title);
 
-	UI_TypeTitle(title_buffer, FS_TITLE_CHARS - 2);
+	UI_TypeTitle(title_buffer, FS_TITLE_CHARS);
 }
 
 void pt1210_fs_draw_error(const char* error_message)

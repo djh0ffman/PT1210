@@ -539,7 +539,6 @@ _UI_TypeTitle
 		move.l	(sp)+,d4
 		move.l	(sp)+,a0
 		lea		_hud+2,a1
-		lea		28(a1),a4
 		bsr		UI_TypeOR
 
 		movem.l	(sp)+,d0-a6
@@ -554,7 +553,7 @@ UI_BPMCent	dc.b	"+%"
 		; A5 = FONT
 		; D7 = Num Lines
 		; D4 = Number of Chars
-UI_TypeSmall	
+UI_TypeSmall
 			lea		(a6,d5.w),a1
 			lea		_font_small,a5
 
@@ -573,10 +572,11 @@ UI_TypeSmall
 		; A0 = TEXT
 		; A1 = SCREEN
 		; A5 = FONT
-		; D7 = Num Lines
 		; D4 = Number of Chars
-UI_Type		lea	_font_big,a5
-.nextchar	
+UI_Type
+		lea		_font_big,a5
+		sub.l	#1,d4
+.nextchar
 		moveq	#0,d0
 		move.b	(a0)+,d0
 		lsl.w	#3,d0
@@ -585,7 +585,6 @@ UI_Type		lea	_font_big,a5
 
 		lea	(a1),a3
 
-.charloop	
 		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,(a3)
@@ -599,15 +598,18 @@ UI_Type		lea	_font_big,a5
 		move.b	(a2)+,(a3)
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,(a3)
-		lea	(UI_TotWidth)(a3),a3
 
-		lea	1(a1),a1
+		lea		1(a1),a1
 		dbra	d4,.nextchar
 		rts
 
-UI_TypeOR	lea	_font_big,a5
+UI_TypeOR
+		lea		_font_big,a5
+		sub.l	#1,d4
 
-.nextchar	
+.nextchar
+		; ASCII char $80 is the "LCD blank space" character in the font
+		lea		_font_big+($80*8),a4
 		moveq	#0,d0
 		move.b	(a0)+,d0
 		lsl.w	#3,d0
@@ -616,44 +618,33 @@ UI_TypeOR	lea	_font_big,a5
 
 		lea	(a1),a3
 
-		move.l	a4,-(sp)
-.charloop	
 		move.b	(a2)+,d0
-		or.b	(a4),d0
+		or.b	(a4)+,d0
 		move.b	d0,(a3)
-		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,d0
-		or.b	(a4),d0
+		or.b	(a4)+,d0
 		move.b	d0,(a3)
-		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,d0
-		or.b	(a4),d0
+		or.b	(a4)+,d0
 		move.b	d0,(a3)
-		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,d0
-		or.b	(a4),d0
+		or.b	(a4)+,d0
 		move.b	d0,(a3)
-		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,d0
-		or.b	(a4),d0
+		or.b	(a4)+,d0
 		move.b	d0,(a3)
-		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,d0
-		or.b	(a4),d0
+		or.b	(a4)+,d0
 		move.b	d0,(a3)
-		lea	(UI_TotWidth)(a4),a4
 		lea	(UI_TotWidth)(a3),a3
 		move.b	(a2)+,d0
-		or.b	(a4),d0
+		or.b	(a4)+,d0
 		move.b	d0,(a3)
-		lea	(UI_TotWidth)(a4),a4
-		lea	(UI_TotWidth)(a3),a3
-		move.l	(sp)+,a4
 
 		lea		1(a1),a1
 		dbra	d4,.nextchar
