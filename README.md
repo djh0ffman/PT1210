@@ -1,21 +1,17 @@
-# PT-1210
-PT-1210 Amiga DJ Software
+# PT-1210 MK1 v1.1
+## The ProTracker Turntable
 
+Credits:
 
-The PT-1210 MK1 v1.0
+  * **Original Concept** - Hoffman & Akira
+  * **Code** - Hoffman & d0pefish
+  * **v1.1+ C Rewrite** - d0pefish
+  * **Graphics** - Akira
+  * **Testing** - Akira & Tecon
 
-The ProTracker Turntable
+---
 
-Credits
-
-Original Concept - Hoffman & Akira
-Code - Hoffman
-Graphics - Akira
-Testing - Akira & Tecon
-
-------------------------------------------------------------------------------
-
-** WHAT IS IT ** 
+## What is it?
 
 PT-1210 is a program for DJ'ing ProTracker modules. It essentially turns
 your Amiga into a turntable / CDJ with nudge, pitch control and so on.
@@ -25,7 +21,7 @@ re-pitch the samples played to match the BPM you want to play the tune at.
 This means drum and music loops will still be in sync and the other
 instruments will still be in key.
 
-** WHAT DO I NEED **
+## What do I need?
 
 It will run on pretty much any Amiga, OSC/ESC, AGA, Accelerated and so on.
 I would recommend however that you run it using a CF card on the IDE port
@@ -33,15 +29,16 @@ with 2 meg of chip ram. If you are using two Amigas I would also recommend
 that they are the same type, like two A1200's or two A600's. You can also
 use a hard drive, PCMCIA adapter CF Card, SD or even floppy disk.
 
-** HOW DO I USE IT ** 
+## How do I use it?
 
 Put all your modules in a folder with the program and run it. When it starts
 it will scan current folder for any ProTracker modules and add them to the file
 selector (M.K.). It will also try to determine the BPM. Simply select a module and
 it will load it, take you to the player screen and start playing. 
 
+# Keyboard Controls
+## File Selector Mode
 
-# KEYS FOR FILE SELECTA MODE
 |Key|Function|
 |---|---|
 | HELP        | Switch screens (load and DJ mode) |
@@ -55,7 +52,8 @@ it will load it, take you to the player screen and start playing.
 
 NOTE: Quit will not work if a tune is playing!
 
-# KEYS FOR DJ MODE
+## DJ Mode
+
 |Key|Function|
 |---|---|
 | HELP        | Switch screens (load and DJ mode) |
@@ -66,13 +64,16 @@ NOTE: Quit will not work if a tune is playing!
 | UP          | Increase BPM |
 | DOWN        | Decrease BPM |
 | SHIFT UP    | Increase BPM fine tune |
-| SHUFT DOWN  | Decrease BPM fine tune |
+| SHIFT DOWN  | Decrease BPM fine tune |
 | SPACE       | Stop / Play |
 | TAB         | Toggle repitch on / off |
 | \`          | Kills sound DMA |
-| 1/2/3/4		  | Mute / Un-Mute Channel |
+| 1/2/3/4		  | Mute / Un-mute channel |
+| SHIFT 1/2/3/4	  | Solo channel |
+| 5			  | Un-mute all channels |
 
-# Pattern / Position Functions
+## Pattern / Position Functions
+
 |Key|Function|
 |---|---|
 | F1          | Jump to cue pattern |
@@ -86,7 +87,8 @@ NOTE: Quit will not work if a tune is playing!
 | CTRL +      | Move cue pattern forward |
 | CTRL -      | Move cue pattern back |
 
-# Line Loop Functions
+## Line Loop Functions
+
 |Key|Function|
 |---|---|
 | F6          | Decrease loop size |
@@ -94,13 +96,13 @@ NOTE: Quit will not work if a tune is playing!
 | F5          | Activate loop |
 | F4          | Toggle Slip On / Off |
 
-** PATTERN LOOPING **
+## Pattern Looping
 
 F10 will cycle through the pattern loop modes. The first press will store the
 loop start point and the second press will store the loop end point. The
 third press will then deactivate the loop. 
 
-** LINE LOOPING **
+# Line Looping
 
 Line looping enables you to loop small sections of the current pattern. The
 loop start point currently quantises to a beat (assuming speed 6) so
@@ -112,7 +114,7 @@ the loop, the track drops into the position of the tune as if you never
 looped it. You can switch to normal loop mode which will continue playing
 the track from after the loop point when deactivated.
 
-** BPM DETECTION **
+# BPM Detection
 
 The BPM detection works by looking at the first line of the first pattern
 within the module. This seems to work pretty well as it's always the first
@@ -124,7 +126,8 @@ no CIA timing and a tempo of say 5, then the BPM will be inacurate.
 
 BTW - there is no way around this! ( i think! )
 
-** WHY ON EARTH DID YOU MAKE THIS PROGRAM? **
+# FAQ
+## Why on earth did you make this program?
 
 It started as a discussion on the EAB forum where Akira was asking if the
 repitch function would be possible. After some more posts I started making
@@ -132,13 +135,11 @@ a little proof of concept program with just one module. It worked and much
 better then we expected it to as well! Gradually over time I've added more
 functions, things like looping, pattern display, scopes and so on.
 
-** CAN I HAVE A SYSTEM FRIENDLY VERSION **
+## Can I have a system friendly version?
 
-Of course!, if you want to code it yourself! My serious lack of coding skill
-on the Amiga  means I ONLY know how to bang on the hardware! If you are
-seriously interested in producing a system friendly version, get in touch.
+PT1210 is now system friendly as of version 1.1!
 
-** MY MODULE SOUNDS WEIRD **
+## My module sounds weird!
 
 The player is one of the original ProTracker replay sources so it should be
 pretty dam accurate. If it sounds weird, check it in ProTracker v2.3d first
@@ -150,15 +151,14 @@ chip can only play samples up to a certain pitch. If your module runs the
 samples high in pitch and you push then tempo up too much, they wont go any
 further.
 
-
-** I WROTE MY MODULE FT2 AND IT CRASHES PROTRACKER! **
+## I wrote my module in FastTracker II and it crashes ProTracker!
 
 There are a number of modules that exist where they have no REPLEN set on the
 samples. Our guess is they've been written in FastTracker or similar. These
 actually crash ProTracker when trying to play them. Crashing is a bad thing
 so we apply a patch to the modules on load to fix this issue.
 
-** USING DIFFERENT AMIGAS **
+## Using different Amigas
 
 I've tried using an A600 alongside an A1200 and found that by default they do
 sound different. This is because they made the A600 badly and chopped a lot of
@@ -167,21 +167,13 @@ that the timing was slightly different between the two Amigas which we believe
 is a small difference in the two systems CIA chips. There is a fine pitch adjust
 which should help with this timing issue.
 
-** DO I NEED TO BE AWARE OF ANYTHING WEIRD THAT MIGHT HAPPEN **
-
-DO NOT UNPLUG A PCMCIA CARD WHILE ITS RUNNING! IT GOES FUCKING MENTAL!
-
-Also, it seems that SPS formatted drives can sometimes result in module corruption
-during loading. We've not found a way of recreating this issue yet so are yet to
-resolve it. Quick work around is to run it from PCMCIA card instead.
-
-** WHO ARE YOU **
+## Who are you?
 
 We are people who love the Amiga, love ProTracker and love DJ'ing. 
 
-------------------------------------------------------------------------------
+---
 
-Change log.
+# Changelog
 
 2014-05-06
 Fixed bug where scopes would crash if they hit a sample 0.
@@ -205,7 +197,6 @@ program. When we started this project I never knew so many people wanted to dust
 off their Amiga's and hook them up to their mixers. I hope you all enjoy playing
 ProTracker mods in the mix with this tool. Now you can all stop harassing Akira
 for a release!!
-
 
 2013-03-21
 BPM re-arranged, now shows fine as larger digits and percentage diff
@@ -289,4 +280,3 @@ Files no longer need to be called mod., file is now checked for M.K.
 
 2012-09-09 
 Inital beater
-
