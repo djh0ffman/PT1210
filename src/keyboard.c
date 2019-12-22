@@ -71,6 +71,10 @@ static input_binding_t bindings_fs[] =
 	{ KEYCODE_UP,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT, 	pt1210_action_fs_page_up 				},
 	{ KEYCODE_DOWN,		KEYCODE_LEFT_SHIFT,	PRESS_TYPE_ONESHOT,		pt1210_action_fs_page_down				},
 
+	/* FIXME: duplicate bindings for L/R shift; maybe add a keycode to allow mapping both? */
+	{ KEYCODE_UP,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_ONESHOT, 	pt1210_action_fs_page_up 			},
+	{ KEYCODE_DOWN,		KEYCODE_RIGHT_SHIFT,	PRESS_TYPE_ONESHOT,		pt1210_action_fs_page_down			},
+
 	/* Bindings without modifier keys */
 	{ KEYCODE_ESCAPE,	KEYCODE_NONE,	PRESS_TYPE_HOLD_ONESHOT,	pt1210_action_quit						},
 	{ KEYCODE_HELP,		KEYCODE_NONE,	PRESS_TYPE_ONESHOT,			pt1210_action_switch_screen				},
