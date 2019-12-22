@@ -19,6 +19,9 @@
 
 #include "filesystem.h"
 
+/* TODO: Make this dynamic */
+#define FS_MAX_ENTRIES	500
+
 #define FS_FONT_HEIGHT	7
 #define FS_WIDTH_CHARS	40
 #define FS_HEIGHT_CHARS	21
@@ -33,6 +36,13 @@
 /* Draw error messages starting from the 10th row */
 #define FS_ERROR_MSG_OFFSET (FS_TEXT_OFFSET + 10 * FS_FONT_HEIGHT * FS_WIDTH_CHARS)
 
+/* Keys for sorting the file list */
+typedef enum
+{
+	SORT_NAME,
+	SORT_BPM,
+} fs_sort_key_t;
+
 void pt1210_fs_draw_avail_ram();
 void pt1210_fs_draw_dir();
 void pt1210_fs_draw_error(const char* error_message);
@@ -40,7 +50,7 @@ void pt1210_fs_draw_title();
 void pt1210_fs_move(int32_t offset);
 void pt1210_fs_select();
 void pt1210_fs_parent();
-void pt1210_fs_set_sort(file_sort_key_t sort_key);
+void pt1210_fs_set_sort(fs_sort_key_t sort_key);
 void pt1210_fs_rescan(bool refresh);
 bool pt1210_fs_find_next(char key, size_t* index);
 void pt1210_fs_on_char_input(char character);

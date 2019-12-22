@@ -32,9 +32,6 @@ static struct FileInfoBlock __aligned fib;
 static memory_buffer_t mod_pattern;
 static memory_buffer_t mod_sample;
 
-file_list_t pt1210_file_list[MAX_FILE_COUNT];
-uint16_t pt1210_file_count;
-
 /* Directory locks */
 static BPTR old_dir_lock = 0;
 static BPTR current_dir_lock = 0;
@@ -46,78 +43,6 @@ static const char* error_memory = "NOT ENOUGH MEMORY";
 static const char* error_loading = "LOADING ERROR : $%08lx";
 
 static const char* cache_file = "_pt1210.cache";
-
-/* A generic comparator function pointer type */
-typedef int (*comparator_t)(const void*, const void*);
-
-/* Flag to swap comparator operands (for reversing sort) */
-static bool cmp_swap = false;
-
-/* Comparator functions for sorting each of the file structure fields */
-/* FIXME: Turn this into a function and only check vols/assigns when FS in volume mode */
-#define CMP_NON_FILE_ENTRIES()														\
-	/* Parent entries first... */ 													\
-	if (lhs->type == ENTRY_PARENT && rhs->type != ENTRY_PARENT)						\
-		return -1;																	\
-																					\
-	if (rhs->type == ENTRY_PARENT && lhs->type != ENTRY_PARENT) 					\
-		return 1;																	\
-																					\
-	/* ...followed by directories in ascending order */								\
-	if (lhs->type == ENTRY_DIRECTORY && rhs->type != ENTRY_DIRECTORY)				\
-		return -1;																	\
-																					\
-	if (rhs->type == ENTRY_DIRECTORY && lhs->type != ENTRY_DIRECTORY)				\
-		return 1;																	\
-																					\
-	/* ...followed by volumes in ascending order */									\
-	if (lhs->type == ENTRY_VOLUME && rhs->type != ENTRY_VOLUME)						\
-		return -1;																	\
-																					\
-	if (rhs->type == ENTRY_VOLUME && lhs->type != ENTRY_VOLUME)						\
-		return 1;																	\
-																					\
-	/* ...followed by assigns in ascending order */									\
-	if (lhs->type == ENTRY_ASSIGN && rhs->type != ENTRY_ASSIGN)						\
-		return -1;																	\
-																					\
-	if (rhs->type == ENTRY_ASSIGN && lhs->type != ENTRY_ASSIGN)						\
-		return 1;																	\
-																					\
-	if (lhs->type != ENTRY_FILE && lhs->type == rhs->type)							\
-		return strncasecmp(lhs->file_name, rhs->file_name, MAX_FILE_NAME_LENGTH);
-
-static int cmp_bpm(const void* a, const void* b)
-{
-	const file_list_t* lhs = a;
-	const file_list_t* rhs = b;
-
-	CMP_NON_FILE_ENTRIES();
-
-	return cmp_swap ? rhs->bpm - lhs->bpm : lhs->bpm - rhs->bpm;
-}
-
-static int cmp_name(const void* a, const void* b)
-{
-	const file_list_t* lhs = a;
-	const file_list_t* rhs = b;
-
-	CMP_NON_FILE_ENTRIES();
-
-	/* Ignore any MOD. prefixes */
-	const char* lhs_name = lhs->file_name;
-	const char* rhs_name = rhs->file_name;
-
-	if (has_mod_prefix(lhs_name) && lhs_name[4] != '\0')
-		lhs_name += 4;
-	if (has_mod_prefix(rhs_name) && rhs_name[4] != '\0')
-		rhs_name += 4;
-
-	return cmp_swap ?
-		strncasecmp(rhs_name, lhs_name, MAX_FILE_NAME_LENGTH) :
-		strncasecmp(lhs_name, rhs_name, MAX_FILE_NAME_LENGTH);
-}
-
 
 static void read_error()
 {
@@ -133,221 +58,8 @@ static void memory_error()
 	pt1210_fs_draw_error(error_memory);
 }
 
-void pt1210_file_initialize()
+static bool check_module(struct FileInfoBlock* fib, file_list_t* list_entry)
 {
-	if (old_dir_lock)
-		return;
-
-	/* Find our own process and retrieve lock */
-	struct Process* process = (struct Process*) FindTask(NULL);
-	old_dir_lock = process->pr_CurrentDir;
-
-	/* Create a copy of the old lock and change to it */
-	current_dir_lock = DupLock(old_dir_lock);
-	CurrentDir(current_dir_lock);
-}
-
-void pt1210_file_shutdown()
-{
-	/* Restore current directory to old lock and free our own */
-	CurrentDir(old_dir_lock);
-	UnLock(current_dir_lock);
-
-	current_dir_lock = 0;
-	old_dir_lock = 0;
-}
-
-bool pt1210_file_change_dir(const char* path)
-{
-	/* Attempt to get a lock on the selected directory */
-	BPTR dir_lock = Lock(path, ACCESS_READ);
-	if (!dir_lock)
-		return false;
-
-	/* Free current lock and change directory */
-	UnLock(current_dir_lock);
-	current_dir_lock = dir_lock;
-	CurrentDir(dir_lock);
-	return true;
-}
-
-bool pt1210_file_parent_dir()
-{
-	BPTR parent_lock = ParentDir(current_dir_lock);
-	if (parent_lock)
-	{
-		UnLock(current_dir_lock);
-		current_dir_lock = parent_lock;
-		CurrentDir(current_dir_lock);
-		return true;
-	}
-
-	return false;
-}
-
-void pt1210_file_gen_file_list(bool refresh)
-{
-	/* read cached file list, quit if successful */
-	if (!refresh)
-		if (pt1210_file_read_cache())
-			return;
-
-	file_list_t* list_entry = &pt1210_file_list[0];
-
-	/* Add "parent directory" entry */
-	list_entry->type = ENTRY_PARENT;
-	strcpy(list_entry->file_name, "PARENT");
-	pt1210_file_count = 1;
-
-	/* Iterate over directory contents and search for modules */
-	if (Examine(current_dir_lock, &fib))
-	{
-		while (pt1210_file_count < MAX_FILE_COUNT)
-		{
-			if (!ExNext(current_dir_lock, &fib))
-				break;
-
-			/* If DirEntryType is >0, it's a directory) */
-			if (fib.fib_DirEntryType > 0)
-			{
-				list_entry = &pt1210_file_list[pt1210_file_count];
-				list_entry->type = ENTRY_DIRECTORY;
-				strncpy(list_entry->file_name, fib.fib_FileName, MAX_FILE_NAME_LENGTH);
-				++pt1210_file_count;
-			}
-			else
-			{
-				/* Check this file is a module and add it to the file browser if so */
-				pt1210_file_check_module(&fib);
-			}
-		}
-	}
-
-	pt1210_file_write_cache();
-
-}
-
-void pt1210_file_gen_volume_list()
-{
-	pt1210_file_count = 0;
-
-	/* Start of critical section */
-	Forbid();
-
-	struct DosInfo* dos_info = (struct DosInfo*) BADDR(DOSBase->dl_Root->rn_Info);
-	struct DevInfo* dvi = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
-
-	do
-	{
-#ifdef DEBUG
-		kprintf("Checking %s %ld\n", ((char*)BADDR(dvi->dvi_Name) + 1), dvi->dvi_Type);
-#endif
-		file_list_t* list_entry = &pt1210_file_list[pt1210_file_count];
-
-		switch(dvi->dvi_Type)
-		{
-			case DLT_VOLUME:		list_entry->type = ENTRY_VOLUME; break;
-			case DLT_DIRECTORY:		list_entry->type = ENTRY_ASSIGN; break;
-			case DLT_LATE:			list_entry->type = ENTRY_ASSIGN; break;
-			case DLT_NONBINDING:	list_entry->type = ENTRY_ASSIGN; break;
-			default:				continue;
-		}
-
-		/* BCPL strings have the length as the first byte */
-		void* vol_name_bstr = BADDR(dvi->dvi_Name);
-		uint8_t vol_name_len = *(uint8_t*) vol_name_bstr;
-		char* vol_name = (char*) vol_name_bstr + 1;
-		strncpy(list_entry->file_name, vol_name, MAX_FILE_NAME_LENGTH);
-
-		/* Add colon */
-		list_entry->file_name[vol_name_len] = ':';
-		list_entry->file_name[vol_name_len + 1] = '\0';
-
-		++pt1210_file_count;
-	} while ((dvi = (struct DevInfo*) BADDR(dvi->dvi_Next)) && pt1210_file_count < MAX_FILE_COUNT);
-
-	/* End of critical section */
-	Permit();
-}
-
-const char* pt1210_file_dev_name_from_vol_name(const char* vol_name)
-{
-	/* Start of critical section */
-	Forbid();
-
-	struct DosInfo* dos_info = (struct DosInfo*) BADDR(DOSBase->dl_Root->rn_Info);
-	struct DevInfo* dvi_vol = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
-	struct DevInfo* dvi_dev = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
-	const char* dev_name = NULL;
-
-	/* Trim the colon from the end */
-	char vol_name_trimmed[MAX_FILE_NAME_LENGTH + 1];
-	char* cur_char = vol_name_trimmed;
-	while (*vol_name != '\0' && *vol_name != ':')
-		*cur_char++ = *vol_name++;
-	*cur_char = '\0';
-
-	/* Find our volume in the DOS list*/
-	do
-	{
-		if (dvi_vol->dvi_Type != DLT_VOLUME)
-			continue;
-
-		const char* dvi_vol_name = (const char*) BADDR(dvi_vol->dvi_Name) + 1;
-
-		/* Found it */
-		if (!strcmp(vol_name_trimmed, dvi_vol_name))
-		{
-			/* If the volume's Task is NULL, the volume is currently ejected */
-			if (!dvi_vol->dvi_Task)
-				break;
-
-			/* Now look for the device that shares the same Task */
-			do
-			{
-				if (dvi_dev->dvi_Type != DLT_DEVICE)
-					continue;
-
-				if (dvi_dev->dvi_Task != dvi_vol->dvi_Task)
-					continue;
-
-				/* Found it, return the device name */
-				dev_name = (const char*) BADDR(dvi_dev->dvi_Name) + 1;
-				break;
-			} while ((dvi_dev = (struct DevInfo*) BADDR(dvi_dev->dvi_Next)));
-			break;
-		}
-	} while ((dvi_vol = (struct DevInfo*) BADDR(dvi_vol->dvi_Next)));
-
-	/* End of critical section */
-	Permit();
-
-	return dev_name;
-}
-
-void pt1210_file_sort_list(file_sort_key_t key, bool descending)
-{
-	if (pt1210_file_count <= 1)
-		return;
-
-	/* Function pointer to the comparator we want to use */
-	comparator_t comparator;
-	cmp_swap = descending;
-
-	switch (key)
-	{
-		case SORT_NAME:		comparator = cmp_name;		break;
-		case SORT_BPM:		comparator = cmp_bpm;		break;
-		default:			return;
-	}
-
-	/* Perform quicksort */
-	qsort(pt1210_file_list, pt1210_file_count, sizeof(*pt1210_file_list), comparator);
-}
-
-void pt1210_file_check_module(struct FileInfoBlock* fib)
-{
-	file_list_t* list_entry = &pt1210_file_list[pt1210_file_count];
 	uint32_t magic = 0;
 	uint8_t first_pattern = 0;
 	uint32_t pattern_row[4];
@@ -355,23 +67,23 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 
 	/* Ignore files too small to be valid Protracker modules */
 	if (fib->fib_Size < MIN_MODULE_FILE_SIZE)
-		return;
+		return false;
 
 	/* Check for valid magic numbers */
 	pt1210_file_read(fib->fib_FileName, &magic, PT_MAGIC_OFFSET, sizeof(magic));
 	if (magic != PT_MAGIC && magic != PT_MAGIC_64_PAT)
-		return;
+		return false;
 
 	/* Get number of first pattern */
 	if (!pt1210_file_read(fib->fib_FileName, &first_pattern, PT_POSITION_OFFSET, sizeof(first_pattern)))
-		return;
+		return false;
 
 	/* Multiply to get offset into pattern data */
 	size_t pattern_offset = PT_HEADER_LEN + first_pattern * PT_PATTERN_DATA_LEN;
 
 	/* Read first row of first pattern */
 	if (!pt1210_file_read(fib->fib_FileName, pattern_row, pattern_offset, sizeof(pattern_row)))
-		return;
+		return false;
 
 	/* Store a default BPM */
 	list_entry->bpm = DEFAULT_BPM;
@@ -395,7 +107,7 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	/* Look for a frames-per-beat tag in the name string of sample 31 */
 	list_entry->frames = 0;
 	if (!pt1210_file_read(fib->fib_FileName, fpb_tag, PT_SMP_31_NAME_OFFSET, sizeof(fpb_tag)))
-		return;
+		return false;
 
 	/* Force upper case on text */
 	fpb_tag[0] &= FPB_MAGIC_UPPER;
@@ -422,43 +134,16 @@ void pt1210_file_check_module(struct FileInfoBlock* fib)
 	/* Store file size */
 	list_entry->file_size = fib->fib_Size;
 
-	++pt1210_file_count;
-}
-
-bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
-{
-	BPTR file;
-	LONG result;
-
-	file = Open(file_name, MODE_OLDFILE);
-	if (!file)
-		return false;
-
-	/* FIXME: Possible bug in Kickstarts v36/v37 not returning -1 on error */
-	result = Seek(file, seek_point, OFFSET_BEGINNING);
-	if (result == -1)
-	{
-		Close(file);
-		return false;
-	}
-
-	result = Read(file, buffer, read_size);
-
-	Close(file);
-
-	if (result != read_size)
-		return false;
-
-	/* Success */
 	return true;
 }
 
-bool pt1210_file_read_cache()
+static bool read_cache(file_list_t* file_list, size_t* out_file_count, size_t max_entries)
 {
 #ifdef DEBUG
 	kprintf("Read file cache\n");
 #endif
 
+	size_t file_count;
 	BPTR file;
 	LONG result;
 
@@ -543,8 +228,8 @@ bool pt1210_file_read_cache()
 	}
 
 	/* read list entry count */
-	result = Read(file, &pt1210_file_count, sizeof(pt1210_file_count));
-	if (result != sizeof(pt1210_file_count))
+	result = Read(file, &file_count, sizeof(file_count));
+	if (result != sizeof(file_count))
 	{
 #ifdef DEBUG
 		kprintf("Failed to read file count\n");
@@ -553,7 +238,7 @@ bool pt1210_file_read_cache()
 		return false;
 	}
 
-	if (pt1210_file_count > MAX_FILE_COUNT)
+	if (file_count > max_entries)
 	{
 #ifdef DEBUG
 		kprintf("File count over flow\n");
@@ -563,8 +248,8 @@ bool pt1210_file_read_cache()
 	}
 
 	/* read list entries */
-	size_t list_size = sizeof(file_list_t) * pt1210_file_count;
-	result = Read(file, &pt1210_file_list, list_size);
+	size_t list_size = sizeof(file_list_t) * file_count;
+	result = Read(file, file_list, list_size);
 	if (result != list_size)
 	{
 #ifdef DEBUG
@@ -581,10 +266,11 @@ bool pt1210_file_read_cache()
 #endif
 
 	/* Success */
+	*out_file_count = file_count;
 	return true;
 }
 
-bool pt1210_file_write_cache()
+static bool write_cache(file_list_t* file_list, size_t file_count)
 {
 #ifdef DEBUG
 	kprintf("Write file cache\n");
@@ -639,8 +325,8 @@ bool pt1210_file_write_cache()
 	}
 
 	/* write file list entry count */
-	result = Write(file, &pt1210_file_count, sizeof(pt1210_file_count));
-	if (result != sizeof(pt1210_file_count))
+	result = Write(file, &file_count, sizeof(file_count));
+	if (result != sizeof(file_count))
 	{
 #ifdef DEBUG
 		kprintf("Failed to write file count\n");
@@ -650,8 +336,8 @@ bool pt1210_file_write_cache()
 	}
 
 	/* write file list data */
-	size_t list_size = sizeof(file_list_t) * pt1210_file_count;
-	result = Write(file, &pt1210_file_list, list_size);
+	size_t list_size = sizeof(*file_list) * file_count;
+	result = Write(file, file_list, list_size);
 	if (result != list_size)
 	{
 #ifdef DEBUG
@@ -671,7 +357,228 @@ bool pt1210_file_write_cache()
 	return true;
 }
 
-void pt1210_file_load_module(size_t current)
+void pt1210_file_initialize()
+{
+	if (old_dir_lock)
+		return;
+
+	/* Find our own process and retrieve lock */
+	struct Process* process = (struct Process*) FindTask(NULL);
+	old_dir_lock = process->pr_CurrentDir;
+
+	/* Create a copy of the old lock and change to it */
+	current_dir_lock = DupLock(old_dir_lock);
+	CurrentDir(current_dir_lock);
+}
+
+void pt1210_file_shutdown()
+{
+	/* Restore current directory to old lock and free our own */
+	CurrentDir(old_dir_lock);
+	UnLock(current_dir_lock);
+
+	current_dir_lock = 0;
+	old_dir_lock = 0;
+}
+
+bool pt1210_file_change_dir(const char* path)
+{
+	/* Attempt to get a lock on the selected directory */
+	BPTR dir_lock = Lock(path, ACCESS_READ);
+	if (!dir_lock)
+		return false;
+
+	/* Free current lock and change directory */
+	UnLock(current_dir_lock);
+	current_dir_lock = dir_lock;
+	CurrentDir(dir_lock);
+	return true;
+}
+
+bool pt1210_file_parent_dir()
+{
+	BPTR parent_lock = ParentDir(current_dir_lock);
+	if (parent_lock)
+	{
+		UnLock(current_dir_lock);
+		current_dir_lock = parent_lock;
+		CurrentDir(current_dir_lock);
+		return true;
+	}
+
+	return false;
+}
+
+size_t pt1210_file_gen_file_list(file_list_t* file_list, size_t max_entries, bool refresh)
+{
+	file_list_t* list_entry = file_list + 1;
+	size_t file_count = 1;
+
+	/* Read cached file list, quit if successful */
+	if (!refresh && read_cache(file_list, &file_count, max_entries))
+		return file_count;
+
+	/* Add "parent directory" entry */
+	file_list->type = ENTRY_PARENT;
+	strcpy(file_list->file_name, "PARENT");
+
+	/* Iterate over directory contents and search for modules */
+	if (Examine(current_dir_lock, &fib))
+	{
+		while (file_count < max_entries)
+		{
+			if (!ExNext(current_dir_lock, &fib))
+				break;
+
+			/* If DirEntryType is >0, it's a directory) */
+			if (fib.fib_DirEntryType > 0)
+			{
+				list_entry->type = ENTRY_DIRECTORY;
+				strncpy(list_entry->file_name, fib.fib_FileName, MAX_FILE_NAME_LENGTH);
+				++list_entry;
+				++file_count;
+			}
+			/* Check this file is a module and add it to the file browser if so */
+			else if (check_module(&fib, list_entry))
+			{
+				++list_entry;
+				++file_count;
+			}
+		}
+	}
+
+	write_cache(file_list, file_count);
+	return file_count;
+}
+
+size_t pt1210_file_gen_volume_list(file_list_t* file_list, size_t max_entries)
+{
+	size_t file_count = 0;
+
+	/* Start of critical section */
+	Forbid();
+
+	struct DosInfo* dos_info = (struct DosInfo*) BADDR(DOSBase->dl_Root->rn_Info);
+	struct DevInfo* dvi = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
+
+	do
+	{
+#ifdef DEBUG
+		kprintf("Checking %s %ld\n", ((char*)BADDR(dvi->dvi_Name) + 1), dvi->dvi_Type);
+#endif
+
+		switch(dvi->dvi_Type)
+		{
+			case DLT_VOLUME:		file_list->type = ENTRY_VOLUME; break;
+			case DLT_DIRECTORY:		file_list->type = ENTRY_ASSIGN; break;
+			case DLT_LATE:			file_list->type = ENTRY_ASSIGN; break;
+			case DLT_NONBINDING:	file_list->type = ENTRY_ASSIGN; break;
+			default:				continue;
+		}
+
+		/* BCPL strings have the length as the first byte */
+		void* vol_name_bstr = BADDR(dvi->dvi_Name);
+		uint8_t vol_name_len = *(uint8_t*) vol_name_bstr;
+		char* vol_name = (char*) vol_name_bstr + 1;
+		strncpy(file_list->file_name, vol_name, MAX_FILE_NAME_LENGTH);
+
+		/* Add colon */
+		file_list->file_name[vol_name_len] = ':';
+		file_list->file_name[vol_name_len + 1] = '\0';
+
+		++file_list;
+		++file_count;
+	} while ((dvi = (struct DevInfo*) BADDR(dvi->dvi_Next)) && file_count < max_entries);
+
+	/* End of critical section */
+	Permit();
+	return file_count;
+}
+
+const char* pt1210_file_dev_name_from_vol_name(const char* vol_name)
+{
+	/* Start of critical section */
+	Forbid();
+
+	struct DosInfo* dos_info = (struct DosInfo*) BADDR(DOSBase->dl_Root->rn_Info);
+	struct DevInfo* dvi_vol = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
+	struct DevInfo* dvi_dev = (struct DevInfo*) BADDR(dos_info->di_DevInfo);
+	const char* dev_name = NULL;
+
+	/* Trim the colon from the end */
+	char vol_name_trimmed[MAX_FILE_NAME_LENGTH + 1];
+	char* cur_char = vol_name_trimmed;
+	while (*vol_name != '\0' && *vol_name != ':')
+		*cur_char++ = *vol_name++;
+	*cur_char = '\0';
+
+	/* Find our volume in the DOS list*/
+	do
+	{
+		if (dvi_vol->dvi_Type != DLT_VOLUME)
+			continue;
+
+		const char* dvi_vol_name = (const char*) BADDR(dvi_vol->dvi_Name) + 1;
+
+		/* Found it */
+		if (!strcmp(vol_name_trimmed, dvi_vol_name))
+		{
+			/* If the volume's Task is NULL, the volume is currently ejected */
+			if (!dvi_vol->dvi_Task)
+				break;
+
+			/* Now look for the device that shares the same Task */
+			do
+			{
+				if (dvi_dev->dvi_Type != DLT_DEVICE)
+					continue;
+
+				if (dvi_dev->dvi_Task != dvi_vol->dvi_Task)
+					continue;
+
+				/* Found it, return the device name */
+				dev_name = (const char*) BADDR(dvi_dev->dvi_Name) + 1;
+				break;
+			} while ((dvi_dev = (struct DevInfo*) BADDR(dvi_dev->dvi_Next)));
+			break;
+		}
+	} while ((dvi_vol = (struct DevInfo*) BADDR(dvi_vol->dvi_Next)));
+
+	/* End of critical section */
+	Permit();
+
+	return dev_name;
+}
+
+bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size)
+{
+	BPTR file;
+	LONG result;
+
+	file = Open(file_name, MODE_OLDFILE);
+	if (!file)
+		return false;
+
+	/* FIXME: Possible bug in Kickstarts v36/v37 not returning -1 on error */
+	result = Seek(file, seek_point, OFFSET_BEGINNING);
+	if (result == -1)
+	{
+		Close(file);
+		return false;
+	}
+
+	result = Read(file, buffer, read_size);
+
+	Close(file);
+
+	if (result != read_size)
+		return false;
+
+	/* Success */
+	return true;
+}
+
+void pt1210_file_load_module(file_list_t* list_entry)
 {
 	/* disable current tune from playing */
 	mt_Enabled = false;
@@ -679,14 +586,11 @@ void pt1210_file_load_module(size_t current)
 	pt1210_gfx_enable_vblank_server(false);
 	ScopeStop();
 
-	/* get current tune selection */
-	file_list_t* selection = &pt1210_file_list[current];
-
 	pt1210_file_free_tune_memory();
 
 	/* read all 128 song positions */
 	uint8_t song_positions[128];
-	if (!pt1210_file_read(selection->file_name, song_positions, PT_POSITION_OFFSET, sizeof(song_positions)))
+	if (!pt1210_file_read(list_entry->file_name, song_positions, PT_POSITION_OFFSET, sizeof(song_positions)))
 	{
 		read_error();
 		pt1210_gfx_enable_vblank_server(true);
@@ -714,7 +618,7 @@ void pt1210_file_load_module(size_t current)
 	}
 
 	/* calc remaining sample size (well, just the rest of the file really) */
-	int32_t sample_size = selection->file_size - mod_pattern.size;
+	int32_t sample_size = list_entry->file_size - mod_pattern.size;
 	if (sample_size <= 0)
 	{
 		pt1210_fs_draw_error("FILE CORRUPT");
@@ -732,7 +636,7 @@ void pt1210_file_load_module(size_t current)
 	}
 
 	/* load all pattern data to public ram */
-	if (!pt1210_file_read(selection->file_name, mod_pattern.buffer, 0, mod_pattern.size))
+	if (!pt1210_file_read(list_entry->file_name, mod_pattern.buffer, 0, mod_pattern.size))
 	{
 		read_error();
 		pt1210_gfx_enable_vblank_server(true);
@@ -740,7 +644,7 @@ void pt1210_file_load_module(size_t current)
 	}
 
 	/* load all sample data to chip ram */
-	if (!pt1210_file_read(selection->file_name, mod_sample.buffer, mod_pattern.size, mod_sample.size))
+	if (!pt1210_file_read(list_entry->file_name, mod_sample.buffer, mod_pattern.size, mod_sample.size))
 	{
 		read_error();
 		pt1210_gfx_enable_vblank_server(true);
@@ -751,7 +655,7 @@ void pt1210_file_load_module(size_t current)
 	mt_init(mod_pattern.buffer, mod_sample.buffer, mod_sample.size);
 	pt1210_fs_draw_title();
 	pt1210_reset();
-	pt1210_cia_set_frames_per_beat(selection->frames);
+	pt1210_cia_set_frames_per_beat(list_entry->frames);
 	mt_Enabled = true;
 	pt1210_timer_reset();
 	pt1210_timer_play();

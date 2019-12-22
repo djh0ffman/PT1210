@@ -26,9 +26,11 @@
 #include "utility.h"
 
 static bool show_volumes = false;
-static file_sort_key_t sort_key = SORT_NAME;
+static fs_sort_key_t sort_key = SORT_NAME;
 static bool sort_descending = false;
 
+static file_list_t file_list[FS_MAX_ENTRIES];
+static uint16_t file_count;
 static size_t current = 0;
 static size_t list_pos = 0;
 
@@ -46,16 +48,15 @@ static const char* error_no_modules = "NO MODULES FOUND";
 
 static const char* avail_template = "CHIP: %lukb FAST: %lukb";
 
-/* TODO: Move these into here? */
-extern file_list_t pt1210_file_list[MAX_FILE_COUNT];
-extern uint16_t pt1210_file_count;
-
 /* ASM functions */
 void ST_Type(REG(a0, const char* text), REG(a1, void* dest_surface), REG(d7, uint8_t num_lines));
 void UI_TypeTitle(REG(a0, const char*), REG(d4, size_t));
 
 /* Reference to start of ASM copper list instructions that draw selector line */
 extern volatile uint16_t selectaline[];
+
+/* A generic comparator function pointer type */
+typedef int (*comparator_t)(const void*, const void*);
 
 static void clear_list()
 {
@@ -66,11 +67,11 @@ static void clear_list()
 static void draw_list()
 {
 	size_t offset = current - list_pos;
-	size_t draw_len = min(FS_HEIGHT_CHARS, pt1210_file_count);
+	size_t draw_len = min(FS_HEIGHT_CHARS, file_count);
 
 	for (size_t i = 0; i < draw_len; ++i)
 	{
-		file_list_t* list_entry = &pt1210_file_list[i + offset];
+		file_list_t* list_entry = &file_list[i + offset];
 		switch (list_entry->type)
 		{
 			case ENTRY_PARENT:
@@ -136,7 +137,7 @@ static void draw_list()
 	}
 
 	/* If the parent dir entry is all we have, show the no mods message */
-	if (!show_volumes && pt1210_file_count == 1)
+	if (!show_volumes && file_count == 1)
 	{
 		ST_Type(fs_text[0], &pt1210_fs_bitplane[FS_TEXT_OFFSET], 0);
 		pt1210_fs_draw_error(error_no_modules);
@@ -144,6 +145,107 @@ static void draw_list()
 	}
 
 	ST_Type(fs_text[0], &pt1210_fs_bitplane[FS_TEXT_OFFSET], FS_HEIGHT_CHARS - 1);
+}
+
+/* Comparator functions for sorting each of the file structure fields */
+static int cmp_dir_entries(const void* a, const void* b)
+{
+	const file_list_t* lhs = a;
+	const file_list_t* rhs = b;
+
+	/* Directories in ascending order */
+	if (lhs->type == ENTRY_DIRECTORY && rhs->type != ENTRY_DIRECTORY)
+		return -1;
+
+	if (rhs->type == ENTRY_DIRECTORY && lhs->type != ENTRY_DIRECTORY)
+		return 1;
+
+	return strncasecmp(lhs->file_name, rhs->file_name, MAX_FILE_NAME_LENGTH);
+}
+
+static int cmp_bpm(const void* a, const void* b)
+{
+	const file_list_t* lhs = a;
+	const file_list_t* rhs = b;
+
+	if (!(lhs->type == ENTRY_FILE && rhs->type == ENTRY_FILE))
+		return cmp_dir_entries(lhs, rhs);
+
+	return sort_descending ? rhs->bpm - lhs->bpm : lhs->bpm - rhs->bpm;
+}
+
+static int cmp_name(const void* a, const void* b)
+{
+	const file_list_t* lhs = a;
+	const file_list_t* rhs = b;
+
+	if (!(lhs->type == ENTRY_FILE && rhs->type == ENTRY_FILE))
+		return cmp_dir_entries(lhs, rhs);
+
+	/* Ignore any MOD. prefixes */
+	const char* lhs_name = lhs->file_name;
+	const char* rhs_name = rhs->file_name;
+
+	if (has_mod_prefix(lhs_name) && lhs_name[4] != '\0')
+		lhs_name += 4;
+	if (has_mod_prefix(rhs_name) && rhs_name[4] != '\0')
+		rhs_name += 4;
+
+	return sort_descending ?
+		strncasecmp(rhs_name, lhs_name, MAX_FILE_NAME_LENGTH) :
+		strncasecmp(lhs_name, rhs_name, MAX_FILE_NAME_LENGTH);
+}
+
+static int cmp_vol(const void* a, const void* b)
+{
+	const file_list_t* lhs = a;
+	const file_list_t* rhs = b;
+
+	/* Volumes in ascending order first */
+	if (lhs->type == ENTRY_VOLUME && rhs->type != ENTRY_VOLUME)
+		return -1;
+
+	if (rhs->type == ENTRY_VOLUME && lhs->type != ENTRY_VOLUME)
+		return 1;
+
+	/* ...followed by assigns in ascending order */
+	if (lhs->type == ENTRY_ASSIGN && rhs->type != ENTRY_ASSIGN)
+		return -1;
+
+	if (rhs->type == ENTRY_ASSIGN && lhs->type != ENTRY_ASSIGN)
+		return 1;
+
+	return strncasecmp(lhs->file_name, rhs->file_name, MAX_FILE_NAME_LENGTH);
+}
+
+void sort_list()
+{
+	if (file_count <= 1)
+		return;
+
+	/* Function pointer to the comparator we want to use */
+	comparator_t comparator;
+	file_list_t* first_entry = file_list;
+	size_t sort_count = file_count;
+
+	if (show_volumes)
+		comparator = cmp_vol;
+	else
+	{
+		switch (sort_key)
+		{
+			case SORT_NAME:		comparator = cmp_name;		break;
+			case SORT_BPM:		comparator = cmp_bpm;		break;
+			default:			return;
+		}
+
+		/* Skip the first entry, which will always be the 'parent' entry */
+		++first_entry;
+		--sort_count;
+	}
+
+	/* Perform quicksort */
+	qsort(first_entry, sort_count, sizeof(*file_list), comparator);
 }
 
 static void clear_copper()
@@ -163,7 +265,7 @@ static void clear_copper()
 
 static void update_copper()
 {
-	if (!pt1210_file_count)
+	if (!file_count)
 		return;
 
 	/* Poke highlight color into correct row of copper list */
@@ -176,7 +278,7 @@ static void update_copper()
 	selectaline[index] = 0x00F;
 }
 
-void pt1210_fs_set_sort(file_sort_key_t new_key)
+void pt1210_fs_set_sort(fs_sort_key_t new_key)
 {
 	if (sort_key != new_key)
 	{
@@ -186,18 +288,18 @@ void pt1210_fs_set_sort(file_sort_key_t new_key)
 	else
 		sort_descending = !sort_descending;
 
-	pt1210_file_sort_list(sort_key, sort_descending);
+	sort_list();
 	draw_list();
 }
 
 void pt1210_fs_select()
 {
-	file_list_t* selection = &pt1210_file_list[current];
+	file_list_t* selection = &file_list[current];
 
 	switch (selection->type)
 	{
 		case ENTRY_FILE:
-			pt1210_file_load_module(current);
+			pt1210_file_load_module(&file_list[current]);
 			break;
 
 		case ENTRY_DIRECTORY:
@@ -239,12 +341,12 @@ void pt1210_fs_rescan(bool refresh)
 
 	/* Regenerate file list */
 	if (show_volumes)
-		pt1210_file_gen_volume_list();
+		file_count = pt1210_file_gen_volume_list(file_list, FS_MAX_ENTRIES);
 	else
-		pt1210_file_gen_file_list(refresh);
-	pt1210_file_sort_list(sort_key, sort_descending);
+		file_count = pt1210_file_gen_file_list(file_list, FS_MAX_ENTRIES, refresh);
 
 	/* Redraw list display */
+	sort_list();
 	draw_list();
 	update_copper();
 
@@ -254,12 +356,12 @@ void pt1210_fs_rescan(bool refresh)
 
 void pt1210_fs_move(int32_t offset)
 {
-	int32_t new_current = clamp(current + offset, 0, pt1210_file_count - 1);
+	int32_t new_current = clamp(current + offset, 0, file_count - 1);
 	if (new_current == current)
 		return;
 
 	current = new_current;
-	list_pos = min(clamp(list_pos + offset, 0, FS_HEIGHT_CHARS - 1), pt1210_file_count - 1);
+	list_pos = min(clamp(list_pos + offset, 0, FS_HEIGHT_CHARS - 1), file_count - 1);
 
 	draw_list();
 	clear_copper();
@@ -323,11 +425,11 @@ void pt1210_fs_draw_error(const char* error_message)
 bool pt1210_fs_find_next(char key, size_t* index)
 {
 	/* Start at 1 to skip current entry */
-	for (size_t i = 1; i < pt1210_file_count; ++i)
+	for (size_t i = 1; i < file_count; ++i)
 	{
 		/* Find forward, wrapping around to the start */
-		size_t j = (current + i) % pt1210_file_count;
-		file_list_t* entry = &pt1210_file_list[j];
+		size_t j = (current + i) % file_count;
+		file_list_t* entry = &file_list[j];
 
 		size_t offset = 0;
 		if (has_mod_prefix(entry->file_name))

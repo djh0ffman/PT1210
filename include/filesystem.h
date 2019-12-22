@@ -21,8 +21,6 @@
 #include <proto/dos.h>
 
 #define MAX_FILE_NAME_LENGTH 	30
-/* TODO: Make this dynamic */
-#define MAX_FILE_COUNT 			500
 
 /* Smallest possible module = header + one pattern; no samples */
 #define MIN_MODULE_FILE_SIZE 	2018
@@ -84,26 +82,15 @@ typedef struct {
 	void* buffer;
 } memory_buffer_t;
 
-/* Keys for sorting the file list */
-typedef enum
-{
-	SORT_NAME,
-	SORT_BPM,
-} file_sort_key_t;
-
 void pt1210_file_initialize();
 void pt1210_file_shutdown();
 bool pt1210_file_change_dir(const char* path);
 bool pt1210_file_parent_dir();
-void pt1210_file_gen_file_list(bool refresh);
-void pt1210_file_gen_volume_list();
+size_t pt1210_file_gen_file_list(file_list_t* file_list, size_t max_entries, bool refresh);
+size_t pt1210_file_gen_volume_list(file_list_t* file_list, size_t max_entries);
 const char* pt1210_file_dev_name_from_vol_name(const char* vol_name);
-void pt1210_file_sort_list(file_sort_key_t key, bool ascending);
-void pt1210_file_check_module(struct FileInfoBlock* fib);
 bool pt1210_file_read(const char* file_name, void* buffer, size_t seek_point, size_t read_size);
-bool pt1210_file_read_cache();
-bool pt1210_file_write_cache();
-void pt1210_file_load_module(size_t current);
+void pt1210_file_load_module(file_list_t* list_entry);
 void pt1210_file_free_tune_memory();
 const char* pt1210_file_get_module_title();
 
