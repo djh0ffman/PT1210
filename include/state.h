@@ -43,6 +43,7 @@ typedef struct
 	uint8_t loop_size;
 	bool slip_on;
 	bool repitch_enabled;
+	bool repitch_lock_enabled;
 	bool pattern_slip_pending;
 } player_state_t;
 

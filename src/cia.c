@@ -54,6 +54,7 @@ static uint16_t frames_per_beat;		/* The frames-per-beat value as set from parsi
 /* Global variables needed by player and UI */
 uint8_t pt1210_cia_base_bpm;			/* The base BPM as set by the module */
 uint16_t pt1210_cia_actual_bpm;			/* The final BPM value used to set timer high/low registers, with fine adjustments applied */
+uint16_t pt1210_cia_repitch_bpm;		/* As above, but used for repitch basis (could be locked) */
 uint16_t pt1210_cia_display_bpm;		/* resulting display BPM after frames per beat adjustment */
 uint16_t pt1210_cia_track_display_bpm;	/* resulting display BPM after frames per beat adjustment */
 
@@ -196,19 +197,19 @@ void pt1210_cia_set_nudge(int8_t nudge)
 	nudge_bpm = nudge;
 }
 
-void pt1210_cia_increment_bpm_coarse()
+void pt1210_cia_increment_offset_coarse()
 {
 	if (pt1210_cia_base_bpm + offset_bpm < CIA_MAX_BPM)
 		++offset_bpm;
 }
 
-void pt1210_cia_decrement_bpm_coarse()
+void pt1210_cia_decrement_offset_coarse()
 {
 	if (pt1210_cia_base_bpm + offset_bpm > CIA_MIN_BPM)
 		--offset_bpm;
 }
 
-void pt1210_cia_increment_bpm_fine()
+void pt1210_cia_increment_offset_fine()
 {
 	if (fine_offset + 1 < 16)
 		++fine_offset;
@@ -219,7 +220,7 @@ void pt1210_cia_increment_bpm_fine()
 	}
 }
 
-void pt1210_cia_decrement_bpm_fine()
+void pt1210_cia_decrement_offset_fine()
 {
 	if (fine_offset > 0)
 		--fine_offset;
@@ -230,10 +231,20 @@ void pt1210_cia_decrement_bpm_fine()
 	}
 }
 
+void pt1210_cia_reset_offset()
+{
+	offset_bpm = 0;
+	fine_offset = 0;
+}
+
 void pt1210_cia_update_bpm()
 {
 	uint16_t adjusted_bpm = clamp(pt1210_cia_base_bpm + offset_bpm + nudge_bpm, CIA_MIN_BPM, CIA_MAX_BPM);
 	pt1210_cia_actual_bpm = (adjusted_bpm << 4) | fine_offset;
+
+	/* Only update repitch BPM if lock isn't enabled */
+	if (!pt1210_state.player.repitch_lock_enabled)
+		pt1210_cia_repitch_bpm = pt1210_cia_actual_bpm;
 
 	/* Calculate display BPM values based on frames per beat value */
 	if (frames_per_beat > 0)
@@ -253,9 +264,8 @@ void pt1210_cia_update_bpm()
 
 void pt1210_cia_reset_bpm()
 {
+	pt1210_cia_reset_offset();
 	pt1210_cia_base_bpm = 125;
-	offset_bpm = 0;
-	fine_offset = 0;
 	nudge_bpm = 0;
 	frames_per_beat = 0;
 }

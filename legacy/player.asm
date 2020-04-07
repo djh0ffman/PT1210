@@ -1360,7 +1360,7 @@ mt_tuneup
                   move.b     _pt1210_cia_base_bpm,d0
                   beq.b      .quit
                   lsl.w      #4,d0
-                  move.w     _pt1210_cia_actual_bpm,d1
+                  move.w     _pt1210_cia_repitch_bpm,d1
                   beq.b      .quit
                   mulu       d0,d5
                   divu       d1,d5

@@ -20,6 +20,7 @@ ps_loop_end					rs.b 1
 ps_loop_size				rs.b 1
 ps_slip_on					rs.b 1
 ps_repitch_enabled			rs.b 1
+ps_repitch_lock_enabled		rs.b 1
 ps_pattern_slip_pending		rs.b 1
 ps_size						rs.b 0
 

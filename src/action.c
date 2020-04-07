@@ -38,22 +38,27 @@ void pt1210_action_switch_screen()
 
 void pt1210_action_pitch_up()
 {
-	pt1210_cia_increment_bpm_coarse();
+	pt1210_cia_increment_offset_coarse();
 }
 
 void pt1210_action_pitch_down()
 {
-	pt1210_cia_decrement_bpm_coarse();
+	pt1210_cia_decrement_offset_coarse();
 }
 
 void pt1210_action_pitch_up_fine()
 {
-	pt1210_cia_increment_bpm_fine();
+	pt1210_cia_increment_offset_fine();
 }
 
 void pt1210_action_pitch_down_fine()
 {
-	pt1210_cia_decrement_bpm_fine();
+	pt1210_cia_decrement_offset_fine();
+}
+
+void pt1210_action_pitch_reset()
+{
+	pt1210_cia_reset_offset();
 }
 
 void pt1210_action_nudge_forward()
@@ -291,6 +296,12 @@ void pt1210_action_toggle_repitch()
 {
 	volatile player_state_t* player = &pt1210_state.player;
 	player->repitch_enabled = !player->repitch_enabled;
+}
+
+void pt1210_action_toggle_repitch_lock()
+{
+	volatile player_state_t* player = &pt1210_state.player;
+	player->repitch_lock_enabled = !player->repitch_lock_enabled;
 }
 
 void pt1210_action_kill_sound_dma()

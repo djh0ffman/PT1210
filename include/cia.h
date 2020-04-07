@@ -29,10 +29,11 @@ void pt1210_cia_stop_timer();
 void pt1210_cia_set_frames_per_beat(uint8_t frames);
 void pt1210_cia_set_bpm(uint8_t bpm);
 void pt1210_cia_set_nudge(int8_t nudge);
-void pt1210_cia_increment_bpm_coarse();
-void pt1210_cia_decrement_bpm_coarse();
-void pt1210_cia_increment_bpm_fine();
-void pt1210_cia_decrement_bpm_fine();
+void pt1210_cia_increment_offset_coarse();
+void pt1210_cia_decrement_offset_coarse();
+void pt1210_cia_increment_offset_fine();
+void pt1210_cia_decrement_offset_fine();
+void pt1210_cia_reset_offset();
 void pt1210_cia_update_bpm();
 void pt1210_cia_reset_bpm();
 
