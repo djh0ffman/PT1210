@@ -71,15 +71,15 @@ _mt_init
                   LEA        mt_SampleStarts(PC),A1
                   MOVEQ      #30,D0
 
-mtloop3           
+mtloop3
                   tst.w      48(a0)      ; cheak repeat length is not zero
                   bne.b      .skiprepfix    ; crappy FT2 mod?
                   move.w     #1,48(a0)      ; sure is!!  patch that shit!
 
 .skiprepfix       moveq      #0,d1
                   move.w     42(a0),d1      ; get sample length
-                  cmp.w      #1,d1          ; 2 bytes or less?
-                  ble.w      .blank          ; yes, replace with our blank sample
+                  cmp.l      #1,d1          ; 2 bytes or less?
+                  ble.w      .blank         ; yes, replace with our blank sample
 
                   cmp.l      a4,a2          ; check sample buffer boundry
                   bge.b      .blank         ; out of bounds so use blank sample
