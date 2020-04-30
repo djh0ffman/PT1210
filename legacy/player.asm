@@ -78,8 +78,8 @@ mtloop3
 
 .skiprepfix       moveq      #0,d1
                   move.w     42(a0),d1      ; get sample length
-                  cmp.w      #0,d1          ; 2 bytes or less?
-                  beq.w      .blank          ; yes, replace with our blank sample
+                  cmp.l      #1,d1          ; 2 bytes or less?
+                  ble.w      .blank          ; yes, replace with our blank sample
 
                   cmp.l      a4,a2          ; check sample buffer boundry
                   bge.b      .blank         ; out of bounds so use blank sample
