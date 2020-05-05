@@ -148,6 +148,10 @@ UI_TrackPos	lea	_track_pos,a1
 		mulu	#320,d1
 		divu	d0,d1
 
+		cmp.w   UI_PrevPos,d1
+		beq     .quit
+		move.w  d1,UI_PrevPos
+
 		cmp.w	#280,d1
 		blo.b	.flash
 		clr.b	UI_WarnEnable
@@ -179,6 +183,7 @@ UI_TrackPos	lea	_track_pos,a1
 
 .quit		rts
 
+UI_PrevPos:   dc.w 0
 
 UI_WarnFlash	lea	_track_flash,a0
 		lea	UI_WarnCol,a1
