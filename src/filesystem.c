@@ -583,6 +583,7 @@ void pt1210_file_load_module(file_list_t* list_entry)
 	/* disable current tune from playing */
 	mt_Enabled = false;
 	mt_end();
+	pt1210_timer_pause();
 	pt1210_gfx_enable_vblank_server(false);
 	ScopeStop();
 
