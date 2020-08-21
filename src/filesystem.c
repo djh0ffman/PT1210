@@ -430,6 +430,11 @@ size_t pt1210_file_gen_file_list(file_list_t* file_list, size_t max_entries, boo
 			if (!ExNext(current_dir_lock, &fib))
 				break;
 
+
+			/* Ignore files/directories with names that are too long for our list structure */
+			if (strlen(fib.fib_FileName) > MAX_FILE_NAME_LENGTH)
+				continue;
+
 			/* If DirEntryType is >0, it's a directory) */
 			if (fib.fib_DirEntryType > 0)
 			{
