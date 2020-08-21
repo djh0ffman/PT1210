@@ -40,17 +40,17 @@ static BPTR current_dir_lock = 0;
 void ScopeStop();
 
 static const char* error_memory = "NOT ENOUGH MEMORY";
-static const char* error_loading = "LOADING ERROR : $%08lx";
 
 static const char* cache_file = "_pt1210.cache";
 
 static void read_error()
 {
-	/* LONG error = IoErr(); */
+	char error_buf[FS_WIDTH_CHARS];
+	snprintf(error_buf, FS_WIDTH_CHARS, "I/O ERROR, DOS RETURN CODE %ld", IoErr());
 
 	/* TODO: Use Fault() when it's available (Kickstart v36) */
 	/* Fault(error, "", FS_LoadErrBuff, sizeof(FS_LoadErrBuff)); */
-	pt1210_fs_draw_error(error_loading);
+	pt1210_fs_draw_error(error_buf);
 }
 
 static void memory_error()
