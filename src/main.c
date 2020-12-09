@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 		goto cleanup_input_device;
 
 	/* Attempt to open gameport */
-	pt1210_gameport_allocate();
+	pt1210_gameport_open();
 
 	/* Attempt to allocate audio device */
 	if (!pt1210_audio_open_device())
@@ -93,7 +93,7 @@ cleanup_cia_timer:
 cleanup_audio_device:
 	pt1210_audio_close_device();
 cleanup_gameport:
-	pt1210_gameport_free();
+	pt1210_gameport_close();
 /*cleanup_input_handler:*/
 	pt1210_input_remove_handler();
 cleanup_input_device:
