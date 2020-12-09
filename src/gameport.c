@@ -36,13 +36,15 @@ static input_binding_t bindings_dj[] =
 	{ EVENT_BUTTON_PLAYPAUSE,	EVENT_BUTTON_FAST_FORWARD,	PRESS_TYPE_ONESHOT,			pt1210_action_pattern_cue_set		},
 	{ EVENT_BUTTON_PLAYPAUSE,	EVENT_BUTTON_REWIND,		PRESS_TYPE_ONESHOT,			pt1210_action_restart				},
 	{ EVENT_BUTTON_YELLOW,		EVENT_BUTTON_REWIND,		PRESS_TYPE_ONESHOT,			pt1210_action_toggle_repitch		},
+	{ EVENT_BUTTON_BLUE,		EVENT_BUTTON_REWIND,		PRESS_TYPE_ONESHOT,			pt1210_action_loop_decrease			},
+	{ EVENT_UP,					EVENT_BUTTON_REWIND,		PRESS_TYPE_ONESHOT,			pt1210_action_switch_screen			},
 	{ EVENT_UP,					EVENT_NONE,					PRESS_TYPE_HOLD_REPEAT,		pt1210_action_pitch_up 				},
 	{ EVENT_DOWN,				EVENT_NONE,					PRESS_TYPE_HOLD_REPEAT,		pt1210_action_pitch_down 			},
 	{ EVENT_RIGHT,				EVENT_NONE,					PRESS_TYPE_REPEAT,			pt1210_action_nudge_forward 		},
 	{ EVENT_LEFT,				EVENT_NONE,					PRESS_TYPE_REPEAT,			pt1210_action_nudge_backward 		},
 	{ EVENT_BUTTON_GREEN,		EVENT_NONE,					PRESS_TYPE_ONESHOT,			pt1210_action_toggle_slip			},
 	{ EVENT_BUTTON_1,			EVENT_NONE,					PRESS_TYPE_ONESHOT,			pt1210_action_toggle_line_loop		},
-	{ EVENT_BUTTON_2,			EVENT_NONE,					PRESS_TYPE_ONESHOT,			pt1210_action_loop_cycle			},
+	{ EVENT_BUTTON_2,			EVENT_NONE,					PRESS_TYPE_ONESHOT,			pt1210_action_loop_increase			},
 	{ EVENT_BUTTON_YELLOW,		EVENT_NONE,					PRESS_TYPE_ONESHOT,			pt1210_action_pattern_loop			},
 	{ EVENT_BUTTON_PLAYPAUSE,	EVENT_NONE,					PRESS_TYPE_ONESHOT,			pt1210_action_play_pause			}
 };
@@ -50,6 +52,7 @@ static input_binding_t bindings_dj[] =
 /* Default bindings for 'file selector' mode */
 static input_binding_t bindings_fs[] =
 {
+	{ EVENT_UP,					EVENT_BUTTON_REWIND,		PRESS_TYPE_ONESHOT,			pt1210_action_switch_screen			},
 	{ EVENT_UP,					EVENT_NONE,					PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_up 			},
 	{ EVENT_DOWN,				EVENT_NONE,					PRESS_TYPE_HOLD_REPEAT,		pt1210_action_fs_move_down 			},
 	{ EVENT_BUTTON_1,			EVENT_NONE,					PRESS_TYPE_ONESHOT, 		pt1210_action_fs_select 			}
