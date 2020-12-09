@@ -124,7 +124,7 @@ _hud_planes	dc.w	bplpt,$0
 		dc.w	$6adf,$fffe
 		dc.w	bpl1mod,-40
 		dc.w	bpl2mod,-40
-		dc.w	bplcon0,$1100
+		dc.w	bplcon0,$1200
 		; sprite colours
 		dc.w	$1a2,$f81
 		dc.w	$1a4,$f81
@@ -141,7 +141,7 @@ _grid_planes1	dc.w	bplpt,$0
 		dc.w	$6edf,$fffe
 
 
-		dc.w	bplcon0,$3100
+		dc.w	bplcon0,$3200
 
 _track_plane	dc.w	bplpt,$0
 		dc.w	bplpt+2,$0
@@ -160,7 +160,7 @@ _cue_flash	dc.w	$188,$811
 		dc.w	$18e,$f11
 
 		dc.w	$76df,$fffe
-		dc.w	bplcon0,$1100
+		dc.w	bplcon0,$1200
 		dc.w	$182,$bbb
 _grid_planes2	dc.w	bplpt,$0
 		dc.w	bplpt+2,$2
@@ -171,7 +171,7 @@ _grid_planes2c	dc.w	bplpt,$0
 
 		; track mute planes
 		dc.w	$7adf,$fffe
-		dc.w	bplcon0,$3100
+		dc.w	bplcon0,$3200
 
 _track_planes	dc.w	bplpt,$0
 		dc.w	bplpt+2,$0
@@ -200,7 +200,7 @@ _track_planes	dc.w	bplpt,$0
 		; **************************************
 
 _select_cop	dc.w	$83df,$fffe
-		dc.w	bplcon0,$2100
+		dc.w	bplcon0,$2200
 _select_planes	dc.w	bplpt,$0
 		dc.w	bplpt+2,$0
 		dc.w	bplpt+4,$0
@@ -211,7 +211,7 @@ _select_planes	dc.w	bplpt,$0
 		include "gfx/select-window.asm"
 
 		dc.w	$8edf,$fffe
-		dc.w	bplcon0,$3100
+		dc.w	bplcon0,$3200
 		dc.w	bplcon1,$0040
 		dc.w	bpl1mod,-40
 		dc.w	bpl2mod,0
@@ -256,7 +256,7 @@ _selectaline
 		dc.w	$2401,$fffe
 		dc.w	$188,$333
 		dc.w	$2501,$fffe
-		dc.w	bplcon0,$0100
+		dc.w	bplcon0,$0200
 
 		dc.w	$ffff,$fffe
 		dc.w	$ffff,$fffe
@@ -274,7 +274,7 @@ _cSwitch3	dc.w	$ffdf,$fffe
 		dc.w	$188,$333
 
 		dc.w	$2501,$fffe
-		dc.w	bplcon0,$0100
+		dc.w	bplcon0,$0200
 
 
 		dc.w	$ffff,$fffe
