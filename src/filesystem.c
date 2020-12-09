@@ -36,6 +36,9 @@ static memory_buffer_t mod_sample;
 static BPTR old_dir_lock = 0;
 static BPTR current_dir_lock = 0;
 
+/* Window pointer */
+static APTR old_window_ptr = 0;
+
 /* Imported from ASM code */
 void ScopeStop();
 
@@ -155,12 +158,13 @@ static bool read_cache(file_list_t* file_list, size_t* out_file_count, size_t ma
 #endif
 		return false;
 	}
+
 	/* FIXME: Possible bug in Kickstarts v36/v37 not returning -1 on error */
 	result = Seek(file, 0, OFFSET_BEGINNING);
 	if (result == -1)
 	{
 #ifdef DEBUG
-		kprintf("Failed to seek begining of cache file\n");
+		kprintf("Failed to seek beginning of cache file\n");
 #endif
 		Close(file);
 		return false;
@@ -362,11 +366,17 @@ void pt1210_file_initialize()
 	if (old_dir_lock)
 		return;
 
-	/* Find our own process and retrieve lock */
+	/* Find our own process */
 	struct Process* process = (struct Process*) FindTask(NULL);
-	old_dir_lock = process->pr_CurrentDir;
+
+	/* Save old window pointer */
+	old_window_ptr = process->pr_WindowPtr;
+
+	/* Set to -1 to prevent requesters from opening */
+	process->pr_WindowPtr = (APTR) -1;
 
 	/* Create a copy of the old lock and change to it */
+	old_dir_lock = process->pr_CurrentDir;
 	current_dir_lock = DupLock(old_dir_lock);
 	CurrentDir(current_dir_lock);
 }
@@ -379,6 +389,10 @@ void pt1210_file_shutdown()
 
 	current_dir_lock = 0;
 	old_dir_lock = 0;
+
+	/* Restore window pointer */
+	struct Process* process = (struct Process*) FindTask(NULL);
+	process->pr_WindowPtr = old_window_ptr;
 }
 
 bool pt1210_file_change_dir(const char* path)
