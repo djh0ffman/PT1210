@@ -5,7 +5,7 @@
 ;---------------------------------------------------
 
 		section splashstart,code_c
-	
+
 nope		rts
 
 		section splash,code_c
@@ -28,30 +28,30 @@ splashgo	lea	splashimage(pc),a0
 		lea	splashsprites(pc),a0
 
 		moveq	#8-1,d7
-		
+
 .sprloop	move.w	d0,6(a0)
 		swap	d0
 		move.w	d0,2(a0)
 		swap	d0
 		addq.l	#8,a0
 		dbra	d7,.sprloop
-		
-		
+
+
 		lea	splashcopper(pc),a0
 		lea	$dff000,a6
-		move.l	a0,cop1lc(a6)					
+		move.l	a0,cop1lc(a6)
 
 		lea	splashpalcop(pc),a0
 		lea	splashpal(pc),a1
 		moveq	#32-1,d0
 		moveq	#3,d1
 		bsr	CF_Init
-		
+
 .loop		bsr	splashwait
 		moveq	#0,d0
 		bsr	CF_Do
 		tst.b	d0
-		beq.b	.loop				
+		beq.b	.loop
 
 		move.w	#3*50,d7
 .wait		bsr	splashwait
@@ -62,14 +62,14 @@ splashgo	lea	splashimage(pc),a0
 		moveq	#32-1,d0
 		moveq	#3,d1
 		bsr	CF_Init
-		
+
 .loop2		bsr	splashwait
 		moveq	#0,d0
 		bsr	CF_Do
 		tst.b	d0
 		beq.b	.loop2
 
-		
+
 		rts
 
 *************************************************
@@ -78,7 +78,7 @@ splashgo	lea	splashimage(pc),a0
 ** A0 = Copper Pointer (current colours)
 ** A1 = Destination Pallete (color to go too)
 ** D0 = Color count (zero based!!)
-** D1 = Frame wait 
+** D1 = Frame wait
 ** CF_Do		; call each frame
 ** no Params
 *************************************************
@@ -90,13 +90,13 @@ CF_PalPtr	rs.l	1
 CF_ColCnt	rs.b	1
 CF_FrmWait	rs.b	1
 CF_FrmCnt	rs.b	1
-CF_ColChange	rs.b	1	
+CF_ColChange	rs.b	1
 CF_Complete	rs.b	1
 CF_DataSize	rs.b	0
-		
+
 CF_Init		lea	CF_Data(pc),a2
 		move.l	a0,CF_CopPtr(a2)
-		move.l	a1,CF_PalPtr(a2)	; store cp ptr	
+		move.l	a1,CF_PalPtr(a2)	; store cp ptr
 		move.b	d0,CF_ColCnt(a2)
 		move.b	d1,CF_FrmWait(a2)
 		clr.b	CF_FrmCnt(a2)
@@ -105,7 +105,7 @@ CF_Init		lea	CF_Data(pc),a2
 
 CF_Do		movem.l	d1-a6,-(sp)
 		lea	CF_Data(pc),a2
-		
+
 		add.b	#1,CF_FrmCnt(a2)
 		move.b	CF_FrmCnt(a2),d0
 		lea	CF_FrmWait(a2),a3
@@ -116,26 +116,26 @@ CF_Do		movem.l	d1-a6,-(sp)
 
 		tst.b	CF_Complete(a2)
 		bne	CF_Quit
-		
+
 		clr.b	CF_ColChange(a2)	;test for complete
-		
+
 		moveq	#0,d0
 		move.b	CF_ColCnt(a2),d0	; get count of colours
-		
+
 		move.l	CF_CopPtr(a2),a0	; copper a0
 		move.l	CF_PalPtr(a2),a1	; pallete a1
-	
+
 CF_NextColour	moveq	#0,d1
 		moveq	#0,d2
 		moveq	#0,d3			; final colour
 		moveq	#2,d6			; rgb count
 		move.w	2(a0),d1		; current colour
 		move.w	(a1),d2			; destination colour
-	        
+
 		cmp.w	d1,d2
 		beq.s	CF_NoChange
 
-		move.b	#1,CF_ColChange(a2)	; color change flagged 
+		move.b	#1,CF_ColChange(a2)	; color change flagged
 CF_NextPrime	moveq	#0,d4
 		moveq	#0,d5
 		move.b	d1,d4
@@ -146,10 +146,10 @@ CF_NextPrime	moveq	#0,d4
 		cmp.b	d5,d4
 		blo.s	CF_AddCol
 		beq.s	CF_MoveCol
-		
+
 		sub.b	#$1,d4
 		bra.s	CF_MoveCol
-		
+
 CF_AddCol	add.b	#$1,d4
 
 CF_MoveCol	or.w	d4,d3
@@ -157,12 +157,12 @@ CF_MoveCol	or.w	d4,d3
 		ror.w	#4,d3
 		lsr.w	#4,d1		; shift cols
 		lsr.w	#4,d2
- 			        
-	        dbra	d6,CF_NextPrime	
+
+	        dbra	d6,CF_NextPrime
 
 		lsr.w	#4,d3		; now have final colour
 		move.w	d3,2(a0)	; chuck it on the copper
-	
+
 CF_NoChange	lea	4(a0),a0
 		lea	2(a1),a1
 		dbra	d0,CF_NextColour
@@ -174,7 +174,7 @@ CF_NoChange	lea	4(a0),a0
 
 CF_Quit		move.b	CF_Complete(a2),d0
 		movem.l	(sp)+,d1-a6
-		rts			
+		rts
 
 CF_Data		ds.b	CF_DataSize
 
@@ -307,10 +307,10 @@ splashpal	dc.w	$0000
 
 splashblack
 		dcb.w	32,$0
-	
+
 splashimage
 		incbin	gfx/splash.raw
-	
+
 
 		endc
 

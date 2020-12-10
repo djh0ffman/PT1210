@@ -23,7 +23,7 @@ scopebytewd	= 10	; byte draw width
 ScopeInit	lea	VolCalc(pc),a0
 		moveq	#1,d2		; volume counter
 		moveq	#0,d0		; smp data
-	
+
 .nxsmp		move.l	d0,d3
 		move.l	d2,d4
 		EXT.W	D0		; extend to word
@@ -42,7 +42,7 @@ ScopeInit	lea	VolCalc(pc),a0
 		bne.b	.nxsmp
 		addq.b	#1,d2
 		cmp.b	#33,d2
-		bne.b	.nxsmp		
+		bne.b	.nxsmp
 		rts
 
 Scope		bsr	ScopeClr
@@ -53,7 +53,7 @@ Scope		bsr	ScopeClr
 ScopeCont	bsr.b	ScopeRt
 		bsr	ScopeShow
 		rts
-		
+
 _ScopeStop	LEA	ScopeInfo(pc),A2
 		clr.l	ns_sampleptr(A2)
 		lea	20(a2),a2
@@ -63,7 +63,7 @@ _ScopeStop	LEA	ScopeInfo(pc),A2
 		lea	20(a2),a2
 		clr.l	ns_sampleptr(A2)
 		bra.b	ScopeCont
-		
+
 ScopeRt		lea	ScopePtr(pc),a0
 		movem.l	(a0)+,d0/d1
 		move.l	d0,-(a0)
@@ -77,21 +77,21 @@ ScopeBlitFill	lea	$dff000,a6
 		lsl.w	#6,d1			; shift up
 		or.w	d0,d1			; blitsize
 		moveq	#-1,d7
-		
+
 		WAITBLIT
 
-		move.l	d2,bltapt(a6)	
+		move.l	d2,bltapt(a6)
 		add.l	#40,d2
 		move.l	d2,bltcpt(a6)
 		move.l	d2,bltdpt(a6)		; load dest
-				
+
 		move.l	d7,bltafwm(a6)		; clear word masks
 		clr.l	bltcmod(a6)		; clear mods
 		clr.l	bltamod(a6)		;
 		clr.w	bltcon1(a6)		; clear control2
 		move.w	#$0b5a,bltcon0(a6)	; set control1
 		move.w	d1,bltsize(a6)		; BLIT!
-		
+
 		WAITBLIT
 
 		moveq	#20,d0			; width words
@@ -101,9 +101,9 @@ ScopeBlitFill	lea	$dff000,a6
 
 		move.l	ScopePtr+4,d2
 		add.l	#(((scopesize*2)+1)*scopeplanewidth)-1,d2
-		move.l	d2,bltapt(a6)	
+		move.l	d2,bltapt(a6)
 		sub.l	#40,d2
-				
+
 		move.l	d2,bltcpt(a6)
 		move.l	d2,bltdpt(a6)		; load dest
 
@@ -134,7 +134,7 @@ ScopeClr	lea	$dff000,a6
 		rts
 
 ScopeShow	move.l	ScopePtr(pc),d0		; load plane to copper
-		lea	_cScope,a0		
+		lea	_cScope,a0
 		move.w	d0,6(a0)
 		swap	d0
 		move.w	d0,2(a0)
@@ -164,7 +164,7 @@ ScoRetrig
 	bne.b	.skip
 	move.l	#0,ns_sampleptr(a2)
 	bra.b	.skip2
-	
+
 .skip	BSR	SetScope
 	MOVEQ	#0,D0
 	MOVE.B	n_samplenum(A0),D0
@@ -190,7 +190,7 @@ ScoContinue
 	DIVU	D1,D2
 	EXT.L	D2
 	ADD.L	D2,D0
-ScoChk	CMP.L	ns_endptr(A2),D0		
+ScoChk	CMP.L	ns_endptr(A2),D0
 	BLO.S	ScoUpdatePtr
 	TST.L	ns_repeatptr(A2)
 	BNE.S	ScoSamLoop
@@ -260,12 +260,12 @@ ScoDraw	LSR.W	#1,D5		; volume calc..
 	MOVE.L	(A2),A0				; sample ptr
 	ADD.L	ScopePtr+4(pc),A1		; draw pos
 	MOVEQ	#scopebytewd-1,D2				; draw length!
-	
+
 	lea	VolCalc(pc),a3
 
 	moveq	#9,d0
 	lsl.w	d0,d5
-	add.l	d5,a3	
+	add.l	d5,a3
 
 	tst.l	ns_repeatptr(a2)
 	beq.b	.noloop
@@ -276,7 +276,7 @@ ScoDraw	LSR.W	#1,D5		; volume calc..
 	move.l	d4,a4
 	move.l	ns_repeatptr(a2),a5
 	sub.l	a0,d4
-	cmp.l	d6,d4		
+	cmp.l	d6,d4
 	ble	sdloop
 	bra.b	sdfast
 
@@ -284,7 +284,7 @@ ScoDraw	LSR.W	#1,D5		; volume calc..
 	move.l	d4,a4
 	sub.l	a0,d4
 	moveq	#scopebytewd-1*8,d6
-	cmp.l	d6,d4		
+	cmp.l	d6,d4
 	ble	sdend
 
 sdfast	moveq	#0,d0
@@ -337,7 +337,7 @@ sdfast	moveq	#0,d0
 	bset	d0,(a1,d1.w)
 
 	addq.l	#1,a1
-	dbra	d2,sdfast	
+	dbra	d2,sdfast
 	rts
 
 	; loop based drawer
@@ -351,7 +351,7 @@ sdloop	moveq	#0,d0
 	cmp.l	a0,a4
 	bge.b	.sk1
 	move.l	a5,a0
-	
+
 .sk1	move.b	(a0)+,d1
 	add.w	d1,d1
 	move.w	(a3,d1.w),d1
@@ -437,7 +437,7 @@ sdend	moveq	#0,d0
 	cmp.l	a0,a4
 	bge.b	.sk1
 	rts
-	
+
 .sk1	move.b	(a0)+,d1
 	add.w	d1,d1
 	move.w	(a3,d1.w),d1
@@ -519,7 +519,7 @@ SetScope
 	bne.b	.high
 	clr.l	ns_sampleptr(a4)
 	rts
-	
+
 .high	SUBQ.W	#1,D1
 	LSL.W	#4,D1
 	LEA	ScopeSamInfo,A4

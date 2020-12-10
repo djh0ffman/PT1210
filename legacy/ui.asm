@@ -258,7 +258,7 @@ UI_TrackPosPix	dcb.w	129,0
 UI_TextBits	movem.l	d0-a6,-(sp)
 		lea	_hud,a6		; screen pointer
 
-UI_BPMFine	
+UI_BPMFine
 		lea	_pt1210_cia_display_bpm,a3
 		lea	UI_BPMFINE,a4
 		moveq	#0,d0
@@ -279,7 +279,7 @@ UI_BPMFine
 
 .skip
 
-UI_BPMDiff	
+UI_BPMDiff
 		lea	UI_BPMCent,a0
 		move.b	#"+",(a0)
 		lea	_pt1210_cia_display_bpm,a3
@@ -654,7 +654,7 @@ UI_TypeOR
 UI_Draw		movem.l	d0-a6,-(sp)
 
 UI_ALL		lea	$dff000,a6
-				
+
 				; REPITCH
 UI_RPDraw	moveq	#HUD_repitch,d0
 			lea		_pt1210_state+gs_player+ps_repitch_enabled,a3
@@ -684,7 +684,7 @@ UI_SlipDraw	moveq	#HUD_line_loop_mode,d0
 
 
 		; slip
-UI_PatLockDraw	
+UI_PatLockDraw
 			moveq	#0,d0
 			lea		_mt_PatternLock,a3
 			lea		UI_PatternLock,a4
@@ -700,31 +700,31 @@ UI_PatLockDraw
 			beq.b	.firston
 
 			moveq	#HUD_pat_loop_in,d0		; both on
-			moveq	#1,d1	
+			moveq	#1,d1
 			bsr		UI_BlitHudTile
 			moveq	#HUD_pat_loop_out,d0
-			moveq	#1,d1	
+			moveq	#1,d1
 			bsr		UI_BlitHudTile
 			bra		.skip
 
-.alloff	
+.alloff
 			moveq	#HUD_pat_loop_in,d0
-			moveq	#0,d1	
+			moveq	#0,d1
 			bsr		UI_BlitHudTile
 			moveq	#HUD_pat_loop_out,d0
-			moveq	#0,d1	
+			moveq	#0,d1
 			bsr		UI_BlitHudTile
 			bra		.skip
 
 .firston	moveq	#HUD_pat_loop_in,d0
-			moveq	#1,d1	
+			moveq	#1,d1
 			bsr		UI_BlitHudTile
 			moveq	#HUD_pat_loop_out,d0
-			moveq	#0,d1	
+			moveq	#0,d1
 			bsr		UI_BlitHudTile
 .skip
 
-UI_LoopSizeDraw	
+UI_LoopSizeDraw
 			moveq	#0,d6
 			lea		_pt1210_state+gs_player+ps_loop_size,a3
 			lea		UI_LoopSize,a4
@@ -735,7 +735,7 @@ UI_LoopSizeDraw
 			move.b	d6,(a4)
 
 			moveq	#32,d5		; compare value
-			
+
 			moveq	#HUD_line_loop_32,d0
 			moveq	#0,d1					; off
 			cmp.b	d5,d6
@@ -872,7 +872,7 @@ UI_MinDraw	lea	_pt1210_time_minutes,a3
 .skip
 
 
-UI_PatPosDraw	
+UI_PatPosDraw
 			lea	_mt_PatternPos,a3
 			lea	UI_PatternPos,a4
 			moveq	#0,d0
@@ -891,7 +891,7 @@ UI_PatPosDraw
 			bsr	UI_DigiBlit
 .skip
 
-UI_SongPosDraw	
+UI_SongPosDraw
 			lea	_mt_SongPos,a3
 			lea	UI_SongPos,a4
 			moveq	#0,d0
@@ -989,7 +989,7 @@ UI_BlitHudTile:
 			tst.w		d1
 			beq.b		.is_off
 			move.l		(a0)+,a2		; get hud on
-.is_off		
+.is_off
 			WAITBLIT
 			move.l		a2,bltapt(a6)
 			move.l		a1,bltdpt(a6)

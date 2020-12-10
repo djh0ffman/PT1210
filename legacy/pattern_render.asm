@@ -211,7 +211,7 @@ _ST_Type
 			rts
 
 PT_PlanePtr	dc.l	_pattern1
-			dc.l	_pattern2 
+			dc.l	_pattern2
 
 PT_HexList	dc.b	"0123456789ABCDEF"
 			even
