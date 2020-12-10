@@ -55,7 +55,7 @@ UI_CuePos	moveq	#0,d0
 		moveq	#10-1,d7
 .clrloop	clr.l	(a2)+
 		dbra	d7,.clrloop
-		moveq	#-1,d5
+		moveq	#1,d3
 		bsr.b	UI_PixDraw
 .quit		rts
 
@@ -100,27 +100,23 @@ UI_TrackDraw	moveq	#0,d0
 		; a1 = screen
 		; d1 = start pix
 		; d2 = end pix
-		; d5 = clear? 0 = clear
-UI_PixDraw	cmp.w	d2,d3
+		; d3 = clear? 0 = clear
+UI_PixDraw	sub	d1,d2
+		tst.b	d2
 		beq.b	.quit
-		move.w	d2,d3
-		sub	d1,d3
-		tst.b	d3
-		beq.b	.quit
-		subq.w	#1,d3
+		subq.w	#1,d2
 
 .pixloop	move.w	d1,d4	; current pixel
-
 		lsr.w	#3,d4
 		move.w	d1,d5
 		not.b	d5
-		tst.b	d6
+		tst.b	d3
 		beq.b	.clr
 		bset	d5,(a1,d4.w)
 		bra.b	.next
 .clr		bclr	d5,(a1,d4.w)
 .next		addq.w	#1,d1
-		dbra	d3,.pixloop
+		dbra	d2,.pixloop
 
 .quit		rts
 
