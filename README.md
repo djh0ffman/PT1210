@@ -67,6 +67,8 @@ NOTE: Quit will not work if a tune is playing!
 | SHIFT DOWN  | Decrease BPM fine tune |
 | SPACE       | Stop / Play |
 | TAB         | Toggle repitch on / off |
+| DELETE 	  | Resets tempo to original |
+| BACKSPACE   | Freezes the current pitch offset when adjusting the tempo further |
 | \`          | Kills sound DMA |
 | 1/2/3/4		  | Mute / Un-mute channel |
 | SHIFT 1/2/3/4	  | Solo channel |
