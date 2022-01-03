@@ -25,7 +25,7 @@
 - !HudCut
   control_id: 4
   control_name: HUD_repitch
-  cut_x: 19
+  cut_x: 18
   cut_y: 1
 
 - !HudCut
@@ -62,4 +62,10 @@
   control_id: 10
   control_name: HUD_line_loop_32
   cut_x: 8
+  cut_y: 1
+
+- !HudCut
+  control_id: 11
+  control_name: HUD_repitch_lock
+  cut_x: 18
   cut_y: 1

@@ -208,7 +208,7 @@ UI_WarnFlash	lea	_track_flash,a0
 UI_WarnCount	dc.b	0
 UI_WarnEnable	dc.b	0
 
-UI_WarnCol	dc.w	$1fc,$1fc
+UI_WarnCol	dc.w $0cf,$0cf   ; old white	$1fc,$1fc
 		dc.w	$f00,$f00
 
 
@@ -659,7 +659,12 @@ UI_ALL		lea	$dff000,a6
 UI_RPDraw	moveq	#HUD_repitch,d0
 			lea		_pt1210_state+gs_player+ps_repitch_enabled,a3
 			lea		UI_Repitch,a4
-			bsr		UI_CompareTileBlit
+			bsr		UI_CompareTileBlitHigh
+
+UI_RPLDraw  moveq	#HUD_repitch_lock,d0
+			lea		_pt1210_state+gs_player+ps_repitch_lock_enabled,a3
+			lea		UI_RepitchLock,a4
+			bsr		UI_CompareTileBlitLow
 
 		; LineLoop on off
 UI_LPDraw	moveq	#HUD_line_loop_active,d0
@@ -959,6 +964,40 @@ UI_ChanBlit	WAITBLIT
 			; then blit
 			; d0 = tile ID
 			; d1 = resulting toggle value
+UI_CompareTileBlitHigh:
+			moveq	#0,d1
+			move.b	(a3),d1
+			cmp.b	(a4),d1
+			beq.b	.skip
+			move.b	d1,(a4)
+			tst.b	d1
+			beq.b	.go
+			moveq	#1,d1
+.go			bra 	UI_BlitHudTileHigh
+.skip		rts
+
+			; byte compare a3 / a4
+			; then blit
+			; d0 = tile ID
+			; d1 = resulting toggle value
+UI_CompareTileBlitLow:
+			moveq	#0,d1
+			move.b	(a3),d1
+			cmp.b	(a4),d1
+			beq.b	.skip
+			move.b	d1,(a4)
+			tst.b	d1
+			beq.b	.go
+			moveq	#1,d1
+.go			bra 	UI_BlitHudTileLow
+.skip		rts
+
+
+
+			; byte compare a3 / a4
+			; then blit
+			; d0 = tile ID
+			; d1 = resulting toggle value
 UI_CompareTileBlit:
 			moveq	#0,d1
 			move.b	(a3),d1
@@ -968,7 +1007,7 @@ UI_CompareTileBlit:
 			tst.b	d1
 			beq.b	.go
 			moveq	#1,d1
-.go			bra.b	UI_BlitHudTile
+.go			bra 	UI_BlitHudTile
 .skip		rts
 
 		; d0 = tile id
@@ -999,6 +1038,76 @@ UI_BlitHudTile:
 			move.w		#0,bltamod(a6)
 			move.w		#UI_Width-2,bltdmod(a6)
 			move.w		#(16*5)<<6+1,bltsize(a6)
+			movem.l		(sp)+,d0-a5
+			rts
+
+
+		; d0 = tile id
+		; d1 = 0 off / 1 on
+UI_BlitHudTileHigh:
+			movem.l		d0-a5,-(sp)
+			lea			hud_lookup,a0
+			mulu		#hud_lookup_sizeof,d0
+			lea			(a0,d0.w),a0
+			move.w		(a0)+,d2		; x
+			move.w		(a0)+,d3		; y
+			add.w		d2,d2			; correct column
+			mulu		#UI_TotWidth*16,d3	; correct line
+			add.w		d2,d3
+			lea			_hud,a1			; screen
+			lea			(a1,d3.w),a1
+			move.l		(a0)+,a2		; get hud off
+			tst.w		d1
+			beq.b		.is_off
+			move.l		(a0)+,a2		; get hud on
+.is_off
+			WAITBLIT
+			move.l		a2,bltapt(a6)
+			move.l		a1,bltdpt(a6)
+			move.l		#-1,bltafwm(a6)
+			move.w		#$09f0,bltcon0(a6)
+			move.w		#$0000,bltcon1(a6)
+			move.w		#0,bltamod(a6)
+			move.w		#UI_Width-2,bltdmod(a6)
+			move.w		#(8*5)<<6+1,bltsize(a6)
+			movem.l		(sp)+,d0-a5
+			rts
+
+
+		; d0 = tile id
+		; d1 = 0 off / 1 on
+UI_BlitHudTileLow:
+			movem.l		d0-a5,-(sp)
+			lea			hud_lookup,a0
+			mulu		#hud_lookup_sizeof,d0
+			lea			(a0,d0.w),a0
+
+			move.w		(a0)+,d2		; x
+			add.w		d2,d2			; correct column
+
+			move.w		(a0)+,d3		; y
+			mulu        #16,d3              ; y * 16 
+			add.w  		#8,d3               ; select 8 lines lower
+			mulu		#UI_TotWidth,d3	; correct line
+
+			add.w		d2,d3
+			lea			_hud,a1			; screen
+			lea			(a1,d3.w),a1
+			move.l		(a0)+,a2		; get hud off
+			tst.w		d1
+			beq.b		.is_off
+			move.l		(a0)+,a2		; get hud on
+.is_off
+		    add.l       #$50,a2  ; select 2nd half of UI tile
+			WAITBLIT
+			move.l		a2,bltapt(a6)
+			move.l		a1,bltdpt(a6)
+			move.l		#-1,bltafwm(a6)
+			move.w		#$09f0,bltcon0(a6)
+			move.w		#$0000,bltcon1(a6)
+			move.w		#0,bltamod(a6)
+			move.w		#UI_Width-2,bltdmod(a6)
+			move.w		#(8*5)<<6+1,bltsize(a6)
 			movem.l		(sp)+,d0-a5
 			rts
 
@@ -1039,4 +1148,5 @@ UI_Speed	dc.b	-1
 UI_SLSongPos	dc.b	-1
 UI_PatternCue	dc.b	-1
 UI_BPMFINE	dc.b	-1
+UI_RepitchLock	dc.b	-1
 		even
