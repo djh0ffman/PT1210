@@ -7,7 +7,7 @@ Credits:
   * **Code** - Hoffman & d0pefish
   * **v1.1+ C Rewrite** - d0pefish
   * **Graphics** - Akira
-  * **Testing** - Akira & Tecon
+  * **Testing** - PT12 Krew
 
 ---
 
