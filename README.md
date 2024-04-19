@@ -177,6 +177,9 @@ We are people who love the Amiga, love ProTracker and love DJ'ing.
 
 # Changelog
 
+2024-04-19
+It's been ten years, might as well put it all out there now :D
+
 2014-05-06
 Fixed bug where scopes would crash if they hit a sample 0.
 Added folder re-scan function but crashes if you switch floppy disk! (no good!)
