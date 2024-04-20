@@ -13,6 +13,7 @@
 
 #include <ctype.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <clib/debug_protos.h>
 #include <proto/exec.h>
@@ -48,11 +49,21 @@ static const char* cache_file = "_pt1210.cache";
 
 static void read_error()
 {
-	char error_buf[FS_WIDTH_CHARS];
-	snprintf(error_buf, FS_WIDTH_CHARS, "I/O ERROR, DOS RETURN CODE %ld", IoErr());
+	char error_buf[FS_WIDTH_CHARS + 1];
+	LONG err = IoErr();
+	if (DOSBase->dl_lib.lib_Version >= 36)
+	{
+		char tmp[32];
+		int i;
+		Fault(err, NULL, tmp, sizeof(tmp));
+		for (i = 0; tmp[i]; i++)
+			tmp[i] = toupper(tmp[i]);
+		snprintf(error_buf, FS_WIDTH_CHARS, "I/O ERROR %ld: %s", err, tmp);
+	}
+	else
+		snprintf(error_buf, FS_WIDTH_CHARS, "I/O ERROR, DOS RETURN CODE %ld", err);
+	error_buf[FS_WIDTH_CHARS] = '\0';
 
-	/* TODO: Use Fault() when it's available (Kickstart v36) */
-	/* Fault(error, "", FS_LoadErrBuff, sizeof(FS_LoadErrBuff)); */
 	pt1210_fs_draw_error(error_buf);
 }
 
@@ -376,9 +387,8 @@ void pt1210_file_initialize()
 	process->pr_WindowPtr = (APTR) -1;
 
 	/* Create a copy of the old lock and change to it */
-	old_dir_lock = process->pr_CurrentDir;
 	current_dir_lock = DupLock(old_dir_lock);
-	CurrentDir(current_dir_lock);
+	old_dir_lock = CurrentDir(current_dir_lock);
 }
 
 void pt1210_file_shutdown()
@@ -402,10 +412,10 @@ bool pt1210_file_change_dir(const char* path)
 	if (!dir_lock)
 		return false;
 
-	/* Free current lock and change directory */
+	/* Change directory and free old current dir lock */
+	CurrentDir(dir_lock);
 	UnLock(current_dir_lock);
 	current_dir_lock = dir_lock;
-	CurrentDir(dir_lock);
 	return true;
 }
 
@@ -414,9 +424,9 @@ bool pt1210_file_parent_dir()
 	BPTR parent_lock = ParentDir(current_dir_lock);
 	if (parent_lock)
 	{
+		CurrentDir(parent_lock);
 		UnLock(current_dir_lock);
 		current_dir_lock = parent_lock;
-		CurrentDir(current_dir_lock);
 		return true;
 	}
 
@@ -446,7 +456,7 @@ size_t pt1210_file_gen_file_list(file_list_t* file_list, size_t max_entries, boo
 
 
 			/* Ignore files/directories with names that are too long for our list structure */
-			if (strlen(fib.fib_FileName) > MAX_FILE_NAME_LENGTH)
+			if (strlen(fib.fib_FileName) >= MAX_FILE_NAME_LENGTH)
 				continue;
 
 			/* If DirEntryType is >0, it's a directory) */
